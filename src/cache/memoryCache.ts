@@ -21,7 +21,7 @@ export interface IMemoryCache<TKey = any, TValue = any> {
     getEntries: () => Iterable<[TKey, TValue]>;
 }
 
-
+// TODO: remove class, create factory method
 export class MemoryCache<TKey = any, TValue = any> implements IMemoryCache {
     private map: Map<TKey, TValue>;
 

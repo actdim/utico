@@ -30,6 +30,7 @@ type PersistentCacheEventStruct = {
     evict: CacheEvictionEvent;
 };
 
+// TODO: remove class, create factory method
 // implements Struct<StructEventTarget<PersistentCacheEventStruct>>
 // PersistentCacheManager
 export class PersistentCache extends StructEventTarget<PersistentCacheEventStruct> {
@@ -95,9 +96,6 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         await this.exec(async () => {
             const entries = await this._db.registry.where(keyOf<ICacheEntry>("expiresAt")).below(date.getTime()).toArray();
             for (const entry of entries) {
-                await this._db.data.delete(entry.id);
-                await this._db.registry.delete(entry.id);
-                result.push(entry.id);
                 const evt = new StructEvent<PersistentCacheEventStruct, this>("evict", {
                     detail: {
                         entry: entry
@@ -109,9 +107,11 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
                 this.dispatchEvent(evt);
                 // evt.defaultPrevented?
                 // TODO: support evt.detail.keepAliveOptions
-                await this._db.data.delete(entry.id);
                 await this._db.registry.delete(entry.id);
+                // await this._db.data.delete(entry.id);
                 result.push(entry.id);
+                // TODO: use bulkDelete
+                // TODO: use transaction
             }
         });
         return result;
@@ -238,9 +238,9 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         });
     }
 
-    async delete(key: string) {
+    async delete(id: string) {
         await this.exec(async () => {
-            await this._db.registry.delete(key);
+            await this._db.registry.delete(id);
         });
     }
 

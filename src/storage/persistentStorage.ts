@@ -22,7 +22,8 @@ import { IPersistentStorage } from "./storageContracts";
 })();
 */
 
-// KVStore
+// TODO: remove class, create factory method
+// TODO: support Indexed DB
 export class PersistentStorage<T> implements IPersistentStorage {
     private slotName: string;
 

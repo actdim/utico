@@ -101,9 +101,6 @@ export class CacheDb extends Dexie {
         db.registry.hook("deleting", async (key, obj, transaction) => {
             await transaction.table(dataTableName).delete(key);
         });
-        // db.data.hook("deleting", async (key, obj, transaction) => {
-        //     await transaction.table(cacheRegistryTableName).delete(key);
-        // });
 
         // db.registry.mapToClass(CacheEntry);
         // db.data.mapToClass(CacheDataItem);
