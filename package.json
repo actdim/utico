@@ -1,6 +1,6 @@
 {
     "name": "@actdim/utico",
-    "version": "0.1.0",
+    "version": "0.9.0",
     "description": "@actdim/utico",
     "author": "Pavel Borodaev",
     "license": "Proprietary",
@@ -10,7 +10,7 @@
         "common",
         "typescript",
         "utility",
-        "utils"        
+        "utils"
     ],
     "files": [
         "dist",
@@ -29,20 +29,20 @@
             "import": "./dist/*.es.js",
             "types": "./dist/*.d.ts"
         }
-    },    
+    },
     "typesVersions": {
         "*": {
             "*": [
                 "dist/*.d.ts"
             ]
         }
-    },    
+    },
     "scripts": {
         "build": "tsc && vite build",
         "test": "npx vitest",
-        "test-w": "npx vitest --watch",
-        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-        "dtest": "node --inspect-brk node_modules/vitest/vitest.mjs run --poolOptions.threads.singleThread"
+        "wtest": "npx vitest --watch",
+        "dtest": "node --inspect-brk node_modules/vitest/vitest.mjs run --poolOptions.threads.singleThread",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
     },
     "peerDependencies": {
         "dexie": "^4.0.8",
