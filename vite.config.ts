@@ -30,8 +30,7 @@ export default defineConfig({
         },
         rollupOptions: {
             input: config.srcFiles(),
-            // external: config.externals(),
-            external: config.packages,
+            external: config.externals,
             output: {
                 globals: {
                     react: "React",
@@ -72,7 +71,7 @@ export default defineConfig({
         {
             name: "postBuild",
             closeBundle() {
-                console.log("Use vite dedupe: " + config.packages);
+                console.log("Use vite dedupe:", config.packages.join(", "));
                 // const oldPath = path.resolve(__dirname, "dist", `${packageName}.d.ts`);
                 // const newPath = path.resolve(__dirname, "dist", `index.d.ts`);
                 // if (fs.existsSync(oldPath)) {

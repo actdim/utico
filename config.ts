@@ -26,9 +26,14 @@ function getSrcFiles(dir: string) {
     });
 }
 
-const packages = [/*...Object.keys(packageJson["dependencies"] || {}),*/ ...Object.keys(packageJson["peerDependencies"] || {})];
+const packages = [
+    // ...Object.keys(packageJson["dependencies"] || {}),
+    ...Object.keys(packageJson["peerDependencies"] || {}),
+    // ...Object.keys(packageJson["devDependencies"] || {})
+];
+
 export default {
-    packages,    
+    packages,
     resolveAliases: () => {
         return Object.fromEntries(Object.entries(aliases).map(([key, value]) => [key, path.resolve(rootPath, value)]));
         // return Object.entries(aliases).map(
@@ -41,8 +46,7 @@ export default {
         // );
     },
     srcFiles: () => getSrcFiles(path.resolve(__dirname, "src")),
-    externals: () => {
-        const pattern = new RegExp(`^(${packages.join("|")})(/.*)?$`);
-        return (id: string) => pattern.test(id);
+    externals: (id: string) => {
+        return packages.some((pkg) => id === pkg || id.startsWith(`${pkg}/`));
     }
 };

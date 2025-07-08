@@ -45,6 +45,8 @@
             ]
         }
     },
+    "sideEffects": false,
+    "sideEffects?": [],
     "scripts": {
         "build": "tsc && vite build",
         "test": "npx vitest",
