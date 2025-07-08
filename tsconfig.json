@@ -63,6 +63,7 @@
             "@/*": ["src/*"]
         },
         "composite": true,
+        "importHelpers": true
         // "preserveSymlinks": false
         // "preserveSymlinks": true // NO! use "npm pack" or "yalc" (not "npm link") or monorepo (pnpm, yarn workspaces, turborepo)
     },
