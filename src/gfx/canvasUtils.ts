@@ -165,7 +165,7 @@ export const drawSvgAsync = (svgData: string, context: CanvasRenderingContext2D,
     return drawImageAsync(imageSrc, context).finally(() => DOMURL.revokeObjectURL(imageSrc));
 };
 
-export function canvas2Image(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
+export function canvasToImage(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
     // const image = document.createElement("img")
     const image = new Image();
     image.crossOrigin = "anonymous";
@@ -182,7 +182,7 @@ export function canvas2Image(canvas: HTMLCanvasElement, size?: number[], mimeTyp
     return image;
 }
 
-export async function canvas2ImageAsync(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
+export async function canvasToImageAsync(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
     // document.createElement("img")
     const image = new Image();
     image.crossOrigin = "anonymous";
@@ -273,3 +273,60 @@ export const refineSvg = (() => {
         return svgDoc.outerHTML;
     };
 })();
+
+export function drawRoundedRect(
+    context: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r:
+        | number
+        | {
+              tl: number;
+              tr: number;
+              br: number;
+              bl: number;
+          }
+) {
+    if (typeof r === "number") {
+        r = { tl: r, tr: r, br: r, bl: r };
+    } else {
+        const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+        for (let side in defaultRadius) {
+            r[side] = r[side] || defaultRadius[side];
+        }
+    }
+    context.beginPath();
+    context.moveTo(x + r.tl, y);
+    context.lineTo(x + w - r.tr, y);
+    context.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+    context.lineTo(x + w, y + h - r.br);
+    context.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+    context.lineTo(x + r.bl, y + h);
+    context.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+    context.lineTo(x, y + r.tl);
+    context.quadraticCurveTo(x, y, x + r.tl, y);
+    context.closePath();
+
+    // context.fill();
+    // context.stroke();
+
+    // simple but less accurate
+    // if (w < 2 * r) {
+    //     r = w / 2;
+    // }
+    // if (h < 2 * r) {
+    //     r = h / 2;
+    // }
+    // context.beginPath();
+    // context.moveTo(x + r, y);
+    // context.arcTo(x + w, y, x + w, y + h, r);
+    // context.arcTo(x + w, y + h, x, y + h, r);
+    // context.arcTo(x, y + h, x, y, r);
+    // context.arcTo(x, y, x + w, y, r);
+    // context.closePath();
+
+    // https://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+    // + other: https://newfivefour.com/javascript-canvas-rounded-rectangle.html
+}

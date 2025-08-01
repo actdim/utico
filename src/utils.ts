@@ -125,7 +125,27 @@ export const suppressConsole = (action: () => void) => {
     return result;
 };
 
-
+// another comparator example
+// const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
+// depEffect
+export function memoEffect<TDep, TResult>(
+    getValue: () => TDep, // getDep
+    callback: (v: TDep) => TResult, // onChange/action
+    comparator: (a: TDep, b: TDep) => boolean = (a, b) => a === b // equals
+) {
+    let val: TDep | undefined;
+    let initialized = false;
+    let retVal: TResult;
+    return () => {
+        const next = getValue();
+        if (!initialized || !comparator(next, val!)) {
+            val = next;
+            initialized = true;
+            retVal = callback(next);
+        }
+        return retVal;
+    };
+}
 
 /*
 export function memoizeThrottle<T extends Func>(

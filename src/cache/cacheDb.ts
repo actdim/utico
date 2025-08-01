@@ -4,7 +4,7 @@ const registryTableName = "registry"; // "catalog"
 const dataTableName = "data";
 
 export interface ICacheEntry {
-    id: string;
+    id: string; // should be called "id" for Dexie!
     createdAt: number;
     // updatedAt: number; // lastModified
     accessedAt: number; // lastAccessed/lastAccessTime
