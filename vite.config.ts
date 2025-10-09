@@ -1,11 +1,8 @@
 import { Alias, AliasOptions, defineConfig } from "vite";
 import * as path from "path";
 import config from "./config";
-import react from "@vitejs/plugin-react-swc";
-// import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import * as fs from "fs";
-import { JsxEmit } from "typescript";
 import tsConfigPaths from "vite-tsconfig-paths";
 import * as packageJson from "./package.json";
 
@@ -32,11 +29,6 @@ export default defineConfig({
             input: config.srcFiles(),
             external: config.externals,
             output: {
-                globals: {
-                    react: "React",
-                    "react-dom": "ReactDOM",
-                    lodash: "_"
-                },
                 exports: "named",
                 preserveModules: true,
                 preserveModulesRoot: "src",
@@ -50,7 +42,6 @@ export default defineConfig({
         // emptyOutDir: true
     },
     plugins: [
-        react({}),
         tsConfigPaths(),
         dts({
             outDir: "dist",
@@ -63,10 +54,6 @@ export default defineConfig({
             // one module
             // rollupTypes: true,
             // insertTypesEntry: true // ?
-
-            // compilerOptions: {
-            //     jsx: JsxEmit.ReactJSX
-            // }
         }),
         {
             name: "postBuild",

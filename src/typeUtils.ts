@@ -27,6 +27,11 @@ export function entry<T extends object, TKey extends keyof T>(obj: T, name: TKey
 export function satisfies<TShape>() {
     return <T extends TShape>(obj: T) => obj;
 }
+/** check also const strict = <T>() => <U extends T>(u: U & { [K in Exclude<keyof U, keyof T>]: never }) => u;
+ */
+export function strictSatisfies<T>() {
+    return <U extends T>(u: U & Record<Exclude<keyof U, keyof T>, never>) => u;
+}
 
 // $keyOf
 export const keyOf = <T extends object, TKey extends keyof T = keyof T>(key: TKey, obj?: T) => key;
@@ -219,9 +224,9 @@ export function copy<T extends object, U extends object>(src: T, dst: U, props?:
 }
 
 export function isPlainObject(value) {
-  if (Object.prototype.toString.call(value) !== '[object Object]') return false;
-  const proto = Object.getPrototypeOf(value);
-  return proto === null || proto === Object.prototype;
+    if (Object.prototype.toString.call(value) !== '[object Object]') return false;
+    const proto = Object.getPrototypeOf(value);
+    return proto === null || proto === Object.prototype;
 }
 
 const sort = (() => {

@@ -24,7 +24,38 @@ export type StrictDiff<T, U> = {
     [K in keyof T as K extends keyof U ? (T[K] extends U[K] ? (U[K] extends T[K] ? never : K) : K) : K]: T[K];
 };
 
-export type Intersection<T, U> = Pick<T, Extract<keyof T, keyof U>>;
+/** Mathematical (real) intersection */
+export type CommonPart<T, U> = Pick<T, CommonKeys<T, U>>;
+export type CommonPartEx<T extends object[]> =
+    T extends [infer A extends object, infer B extends object, ...infer Rest extends object[]]
+    ? CommonPartEx<[Pick<A, Extract<keyof A, keyof B>>, ...Rest]>
+    : T extends [infer Only extends object]
+    ? Only
+    : unknown;
+
+export type CommonPartFromSchema<T extends Record<string, object>> =
+    keyof T extends infer K ?
+    K extends any ?
+    CommonPart<T[K & keyof T], CommonPartFromSchema<Omit<T, K & keyof T>>>
+    : unknown
+    : unknown;
+
+export type CommonKeys<T, U> = Extract<keyof T, keyof U>;
+export type CommonKeysEx<T extends object[]> =
+    T extends [infer A extends object, infer B extends object, ...infer Rest extends object[]]
+    ? CommonKeysEx<[{ [K in Extract<keyof A, keyof B>]: any }, ...Rest]>
+    : T extends [infer Only extends object]
+    ? keyof Only
+    : never;
+
+export type UnionToIntersection<U> =
+    (U extends any ? (x: U) => void : never) extends (x: infer R) => void ? R : never;
+
+export type ValueUnion<T> = T[keyof T];
+
+export type TupleFromKeys<T, K extends readonly (keyof T)[]> = {
+    [I in keyof K]: K[I] extends keyof T ? T[K[I]] : never
+};
 
 export type Extend<T extends object, U extends object, K extends keyof U> = T & { [P in K]: U[K] };
 
@@ -62,43 +93,43 @@ export type CallableConstructor<TConstructor extends Constructor> = TConstructor
 export type ToUpper<T> = T extends string
     ? Uppercase<T>
     : {
-          [K in keyof T as K extends string ? Uppercase<K> : K]: T[K];
-      };
+        [K in keyof T as K extends string ? Uppercase<K> : K]: T[K];
+    };
 
 // ToLowerCase
 export type ToLower<T> = T extends string
     ? Lowercase<T>
     : {
-          [K in keyof T as K extends string ? Lowercase<K> : K]: T[K];
-      };
+        [K in keyof T as K extends string ? Lowercase<K> : K]: T[K];
+    };
 
 export type AddPrefix<T, TPrefix extends string> = T extends string
     ? `${TPrefix}${T}`
     : {
-          [K in keyof T as AddPrefix<K, TPrefix>]: T[K];
-      };
+        [K in keyof T as AddPrefix<K, TPrefix>]: T[K];
+    };
 
 export type AddSuffix<T, TSuffix extends string> = T extends string
     ? `${T}${TSuffix}`
     : {
-          [K in keyof T as AddSuffix<K, TSuffix>]: T[K];
-      };
+        [K in keyof T as AddSuffix<K, TSuffix>]: T[K];
+    };
 
 export type RemovePrefix<T, TPrefix extends string> = T extends string
     ? T extends `${TPrefix}${infer Tail}`
-        ? RemovePrefix<Tail, TPrefix>
-        : T // never?
+    ? RemovePrefix<Tail, TPrefix>
+    : T // never?
     : {
-          [K in keyof T as RemovePrefix<K, TPrefix>]: T[K];
-      };
+        [K in keyof T as RemovePrefix<K, TPrefix>]: T[K];
+    };
 
 export type RemoveSuffix<T, TSuffix extends string> = T extends string
     ? T extends `${infer Head}${TSuffix}`
-        ? RemoveSuffix<Head, TSuffix>
-        : T // never?
+    ? RemoveSuffix<Head, TSuffix>
+    : T // never?
     : {
-          [K in keyof T as RemoveSuffix<K, TSuffix>]: T[K];
-      };
+        [K in keyof T as RemoveSuffix<K, TSuffix>]: T[K];
+    };
 
 export const getPrefixer = (prefix: string) => (value: string) => {
     return `${prefix}${value}`;
@@ -106,15 +137,15 @@ export const getPrefixer = (prefix: string) => (value: string) => {
 
 export const getValuePrefixer =
     <T extends { [key: string]: string }>(prefix: string) =>
-    (dict: T): T => {
-        return Object.fromEntries(Object.keys(dict).map((k) => [k, `${prefix}${dict[k]}`])) as T;
-    };
+        (dict: T): T => {
+            return Object.fromEntries(Object.keys(dict).map((k) => [k, `${prefix}${dict[k]}`])) as T;
+        };
 
 export const getKeyPrefixer =
     <T extends { [key: string]: any }>(prefix: string) =>
-    (obj: T): object => {
-        return Object.fromEntries(Object.keys(obj).map((k) => [`${prefix}${k}`, obj[k]]));
-    };
+        (obj: T): object => {
+            return Object.fromEntries(Object.keys(obj).map((k) => [`${prefix}${k}`, obj[k]]));
+        };
 
 // export type MaybePromise<T> = T extends undefined ? void : T | PromiseLike<Awaited<T>>; // TODO: check
 export type MaybePromise<T> = T extends undefined ? void : T | PromiseLike<T>;
@@ -166,7 +197,7 @@ export type ParameterType<TFunc, TParamIndex extends number> = TFunc extends Fun
     : never;
 
 // Lambda?
-// export type Executor<T = void, TArgs extends any[] = []> = Func<TArgs, T> | AsyncFunc<[], T>;
+// export type Executor<T = void, TArgs extends any[] = []> = Func<TArgs, T> | AsyncFunc<[], T>; // same
 export type Executor<T = void, TArgs extends any[] = []> = Func<TArgs, T | PromiseLike<T>>;
 
 export type Overwrite<Base extends object, Overrides extends object> = Omit<Base, keyof Overrides> & Overrides;
@@ -177,6 +208,9 @@ export type Extends<T extends object, TBase extends object> = T extends TBase ? 
 
 // more strict than Extract
 export type RequireExtends<T extends TBase, TBase extends object> = T;
+
+export type Strict<T, U extends T> =
+    Exclude<keyof U, keyof T> extends never ? U : never;
 
 export type MaybeExtends<T, TShape> = T extends TShape ? T : never;
 

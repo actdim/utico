@@ -18,7 +18,7 @@ const aliases = {
     "@": "./src"
 };
 
-function getSrcFiles(dir: string) {
+function getSrcFiles(dir: string): string[] {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     return entries.flatMap((entry) => {
         const res = path.resolve(dir, entry.name);
@@ -28,8 +28,7 @@ function getSrcFiles(dir: string) {
 
 const packages = [
     // ...Object.keys(packageJson["dependencies"] || {}),
-    ...Object.keys(packageJson["peerDependencies"] || {}),
-    // ...Object.keys(packageJson["devDependencies"] || {})
+    ...Object.keys(packageJson["peerDependencies"] || {})
 ];
 
 export default {
