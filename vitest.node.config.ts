@@ -5,22 +5,6 @@ import config from "./config";
 import fs from "fs";
 import path from "path";
 
-// use "chrome://inspect"
-// wmic process where "name='node.exe'" get ProcessId,CommandLine /FORMAT:LIST
-// Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Format-Table ProcessId, CommandLine -AutoSize
-// ps -ef | grep node
-// netstat -ano | findstr 9229
-// netstat -ano | findstr LISTEN | findstr node
-
-// build:
-// tsc --project tsconfig.vitest.json
-
-// opfs:
-// https://github.com/jurerotar/opfs-mock
-// https://jsr.io/%40happy-js/happy-opfs
-
-// uvu + expect
-
 export default defineConfig({
     test: {
         watch: false,

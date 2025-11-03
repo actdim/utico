@@ -76,7 +76,7 @@ export default defineConfig({
                     filePath = path.resolve(__dirname, filePath);
                     if (fs.existsSync(filePath)) {
                         fs.unlinkSync(filePath);
-                        console.log('Removed excluded d.ts:', filePath);
+                        console.log('Removed excluded:', filePath);
                     }
                 }
 

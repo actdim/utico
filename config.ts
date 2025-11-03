@@ -4,9 +4,6 @@ import * as fs from "fs";
 import { Alias } from "vite";
 import * as packageJson from "./package.json";
 
-// https://vitejs.dev/config/
-// https://www.dev-notes.ru/articles/typescript/tsconfig-cheat-sheet/
-
 // const __filename = url.fileURLToPath(import.meta.url)
 // const __dirname = path.dirname(__filename)
 
