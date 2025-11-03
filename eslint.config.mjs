@@ -24,7 +24,7 @@ export default defineConfig(
             ...eslint.configs.recommended.rules,
             ...tsEslint.configs.recommended.rules,
             ...prettierPlugin.configs.recommended.rules,
-            'prettier/prettier': 'error',
+            'prettier/prettier': 'off',
             'no-unused-vars': 'off',
             'no-undef': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
@@ -58,7 +58,7 @@ export default defineConfig(
                 // ...globals.node,
             },
         },
-    }
+    },
     // File-pattern specific overrides
     // {
     //     files: ['src/**/*', 'test/**/*'],

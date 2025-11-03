@@ -6,5 +6,6 @@ export default {
     singleQuote: true,
     printWidth: 100,
     // headwind?
-    plugins: []
+    plugins: [],
+    // endOfLine: "lf"
 };

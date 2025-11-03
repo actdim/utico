@@ -8,4 +8,4 @@
 
 ## Structured persistence
 
-## Primitive type extensions
+## Useful type extensions

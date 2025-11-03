@@ -6,8 +6,6 @@ import * as fs from "fs";
 import tsConfigPaths from "vite-tsconfig-paths";
 import * as packageJson from "./package.json";
 
-// https://www.dev-notes.ru/articles/typescript/tsconfig-cheat-sheet/
-
 const rootPath = __dirname;
 
 const packageName = packageJson.name.split("/").reverse()[0];
@@ -41,23 +39,47 @@ export default defineConfig({
         sourcemap: true
         // emptyOutDir: true
     },
+    server: {
+        port: 5173,
+        open: "/tests/browser/index.html",
+        fs: {
+            strict: false
+        }
+    },
+    esbuild: {
+        // sourcemap: "inline",
+        // target: "es2020",
+    },
     plugins: [
         tsConfigPaths(),
         dts({
             outDir: "dist",
             entryRoot: "src",
-            // include: ["./src/**/*.ts"]
-            include: ["src"],
+            include: ["src/**/*.ts"],
             // many modules
             rollupTypes: false,
             insertTypesEntry: false
             // one module
             // rollupTypes: true,
-            // insertTypesEntry: true // ?
+            // insertTypesEntry: true
+            // staticImport: true
         }),
+
         {
             name: "postBuild",
             closeBundle() {
+                const excluded = [
+                    "dist/store/storeDb.d.ts",
+                    "dist/store/storeDb.d.ts.map"
+                ];
+                for (let filePath of excluded) {
+                    filePath = path.resolve(__dirname, filePath);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                        console.log('Removed excluded d.ts:', filePath);
+                    }
+                }
+
                 console.log("Use vite dedupe:", config.packages.join(", "));
                 // const oldPath = path.resolve(__dirname, "dist", `${packageName}.d.ts`);
                 // const newPath = path.resolve(__dirname, "dist", `index.d.ts`);

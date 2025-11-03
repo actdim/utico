@@ -1,139 +1,172 @@
-import Dexie from "dexie";
-// https://dexie.org/docs/Typescript
+import { AsyncMutex } from "@/asyncMutex";
+import { DataRecord, FieldDefTemplate, MetadataRecord, StoreBase, TransactionMode } from "./storeContracts";
+import * as Dexie from "dexie";
 
-const registryTableName = "registry"; // "catalog"
+const metadataTableName = "metadata";
 const dataTableName = "data";
+const dataFieldDefTemplate: FieldDefTemplate<keyof DataRecord> = ["&key", "value"];
 
-export interface IDataEntry {
-    id: string; // should be called "id" for Dexie!
-    createdAt: number;
-    updatedAt: number; // lastModified
-}
-// isValid?
-// tags?
+const mutex = new AsyncMutex();
 
-export interface ICacheDataEntry extends IDataEntry {
-    accessedAt?: number; // lastAccessed/lastAccessTime
-    slidingExpiration?: number;
-    // absoluteExpiration?: number;
-    expiresAt?: number; // expiryTime
-}
+export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.Dexie {
+    // catalog/registry
+    metadata: Dexie.Table<T, string>;
+    data: Dexie.Table<DataRecord, string>;
 
-export type EntryTypes = {
-    default: IDataEntry,
-    cache: ICacheDataEntry
-}
+    protected _isDisposed: boolean;
 
-// IDataRecord
-export interface IDataItem {
-    readonly id: string;
-    readonly value: any;
-}
-
-const dataItemPropertyNames: (keyof IDataItem)[] = ["id", "value"];
-
-type DbColumnTemplate = string[];
-
-// (registry/catalog)ColumnNames
-const entryColumnTemplates: {
-    [name in keyof EntryTypes]: DbColumnTemplate
-} = {
-    default: ["id", "createdAt", "updatedAt"] satisfies (keyof IDataEntry)[],
-    cache: ["id", "createdAt", "accessedAt", "updatedAt", "expiresAt"] satisfies (keyof ICacheDataEntry)[]
-};
-
-export class DataEntry implements IDataEntry {
-    id: string;
-    createdAt: number;
-    updatedAt: number;
-
-    constructor(src: Partial<DataEntry>) {
-        Object.assign(this, src);
-        // Define navigation properties.
-        // Making them non-enumerable will prevent them from being handled by indexedDB
-        // when doing put() or add().
-        // Object.defineProperties(this, {
-        // ...: { value: [], enumerable: false, writable: true }
-        // });
-    }
-}
-
-export class CacheDataEntry extends DataEntry {
-    accessedAt?: number; // lastAccessed/lastAccessTime
-    slidingExpiration?: number;
-    // absoluteExpiration?: number;
-    expiresAt?: number; // expiryTime
-
-    constructor(src: Partial<CacheDataEntry>) {
-        super(src);
-        Object.assign(this, src);
-    }
-}
-
-// DataRecord
-export class DataItem<T = any> implements IDataItem {
-    id: string;
-    value: T;
-
-    constructor(src: Partial<DataItem>) {
-        Object.assign(this, src);
-    }
-
-    // constructor(key: string, value: string) {
-    //     this.key = key;
-    //     this.value = value;
-    // }
-}
-
-function toDexieColumnName(name: string) {
-    return name.toLowerCase() == "id" ? "&id" : name;
-}
-
-export class StoreDb<TEntryTemplate extends keyof EntryTypes> extends Dexie {
-    // catalog/entries
-    registry: Dexie.Table<EntryTypes[TEntryTemplate], string>;
-    data: Dexie.Table<IDataItem, string>;
-
-    constructor(name: string, entryTemplate: TEntryTemplate) {
+    constructor(name: string, metadataFieldDefTemplate: keyof T extends string ? FieldDefTemplate<keyof T> : never) {
         // navigator.storage.estimate()
         // navigator.webkitTemporaryStorage.queryUsageAndQuota()
 
         if (!name) {
-            throw new Error("Invalid database name"); // cannot be empty
+            throw new Error("Invalid database name."); // cannot be empty
         }
 
         super(name); // {autoOpen: false}
 
+        this._isDisposed = false;
+
         const db = this;
 
-        const entryColumnTemplate = entryColumnTemplates[entryTemplate];
         db.version(1).stores({
-            [registryTableName]: entryColumnTemplate.map(toDexieColumnName).join(", "),
-            [dataTableName]: dataItemPropertyNames.map(toDexieColumnName).join(", ")
+            [metadataTableName]: metadataFieldDefTemplate.join(", "),
+            [dataTableName]: dataFieldDefTemplate.join(", ")
         });
 
         // db.version(2).stores({
         // 	// ...
         // }).upgrade(trans => {
-        // 	return trans.table(dataTableName).toCollection().modify((entry: IDataEntry) => {
+        // 	return trans.table(dataTableName).toCollection().modify((entry: MetadataRecord) => {
         // 		// ...
         // 	});
         // });
 
-        this.registry = db.table(registryTableName);
+        this.metadata = db.table(metadataTableName);
         this.data = db.table(dataTableName);
 
+        this.metadata.hook('creating', (key, obj) => {
+            obj.createdAt = Date.now();
+        });
+
+        this.metadata.hook('updating', (mods, key, obj) => {
+            return { ...mods, updatedAt: Date.now() };
+        });
+
         // additional way to handle relationships
-        // db.registry.hook("deleting", (key, obj, transaction) => {
+        // this.metadata.hook("deleting", (key, obj, transaction) => {
         //     // only synchronous code!
         //     transaction.table(dataTableName).delete(key);
         // });
 
-        // db.registry.mapToClass(DataEntry);
-        // db.data.mapToClass(DataItem);
+        // this.metadata.mapToClass(MetadataRecord);
+        // this.data.mapToClass(DataRecord);
 
-        // db.on('populate', () => db.registry.bulkAdd([
+        // this.on('populate', () => db.metadata.bulkAdd([
         // 	// ...
         // ]));
+    }
+
+    dispose() {
+        if (!this._isDisposed) {
+            if (this.isOpen()) {
+                this.close();
+            }
+            this._isDisposed = true;
+        }
+    }
+
+    async openAsync() {
+        if (!this.isOpen()) {
+            try {
+                await this.open();
+            } catch (err) {
+                if (err instanceof Dexie.Dexie.OpenFailedError) {
+                    await this.open();
+                } else {
+                    throw err;
+                }
+            }
+            // TODO: log (this.verno, this._dbSchema etc)
+        }
+    }
+
+    async execAsync<T>(
+        action: () => Promise<T>, // scope
+        transactionMode: TransactionMode = "r!") {
+        await this.openAsync();
+        try {
+            const result = await this.transaction(transactionMode, this.metadata, this.data, async () => {
+                return await action();
+            });
+            return result;
+        } catch (err) {
+            if (this.isOpen()) {
+                // this._db.close(); // generally speaking: we don't (never) need to close a connection
+            }
+            throw err;
+        }
+    }
+
+    async getKeysAsync() {
+        return this.metadata.toCollection().primaryKeys();
+    }
+
+    async containsAsync(key: string, transactionMode: TransactionMode = "r") {
+        return await this.execAsync(async () => {
+            const metadataRecord = await this.metadata.get(key);
+            return metadataRecord !== undefined;
+        }, transactionMode);
+    }
+
+    async deleteAsync(key: string, transactionMode: TransactionMode = "rw") {
+        await this.execAsync(async () => {
+            await this.metadata.delete(key);
+            await this.data.delete(key);
+        }, transactionMode);
+    }
+
+    // deleteManyAsync
+    async bulkDeleteAsync(keys: string[], transactionMode: TransactionMode = "rw") {
+        await this.execAsync(async () => {
+            await this.metadata.bulkDelete(keys);
+            await this.data.bulkDelete(keys);
+        }, transactionMode);
+    }
+
+    // clearAllAsync
+    async clearAsync(transactionMode: TransactionMode = "rw") {
+        await this.execAsync(async () => {
+            await this.metadata.clear();
+            await this.data.clear();
+        }, transactionMode);
+    }
+
+    static async deleteAsync(name: string) {
+        try {
+            await mutex.dispatch(async () => {
+                if (await StoreDb.exists(name)) {
+                    await StoreDb.delete(name);
+                }
+            });
+        } catch (err) {
+            if (err instanceof Dexie.Dexie.InvalidStateError || err instanceof Dexie.Dexie.VersionError) {
+                console.warn(`[DataStore] delete(${name}) failed:`, err);
+            } else {
+                throw err;
+            }
+        }
+    }
+
+    static existsAsync(name: string) {
+        return Dexie.Dexie.exists(name);
+    }
+
+    static async openAsync<T extends StoreBase>(name: string, factory: (name: string) => T) {
+        return await mutex.dispatch(async () => {
+            const store = factory(name);
+            await store.openAsync();
+            return store;
+        });
     }
 }

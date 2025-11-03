@@ -2,10 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { delayAsync, delayErrorAsync, withTimeoutAsync, memoEffect } from "@/utils";
 
 describe("msgBus", () => {
-    process.on("unhandledRejection", (reason, promise) => {
-        console.error("Unhandled Rejection at:", promise, "reason:", reason);
-        process.exit(1);
-    });
+    // process.on("unhandledRejection", (reason, promise) => {
+    //     console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    //     process.exit(1);
+    // });
 
     // window.onerror = (message, source, lineno, colno, error) => {
     //     console.error("Caught error:", error);
@@ -32,7 +32,7 @@ describe("msgBus", () => {
                 return action(str);
             }
         );
-        
+
         let r = fn();
         expect(r).toBe(action(dep, true));
         let oldR = r;

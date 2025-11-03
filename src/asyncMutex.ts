@@ -10,15 +10,15 @@ class AsyncMutex { // or Mutex
     private mutex = Promise.resolve();
 
     private locked = false;
-    
+
     async lock(timeoutMs?: number): Promise<() => void> {
         let begin: (unlock: () => void) => void = () => { };
-        let timer: NodeJS.Timeout | undefined;
+        let timer: ReturnType<typeof setTimeout> | undefined;
 
         const previous = this.mutex;
         this.mutex = this.mutex.then(() => new Promise(begin));
         this.locked = true;
-        
+
         const lockPromise = new Promise<() => void>((resolve, reject) => {
             begin = resolve;
 

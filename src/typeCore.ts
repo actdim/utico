@@ -231,3 +231,56 @@ export type IsTuple<T> = T extends readonly [...infer Elements] ? (number extend
 
 // Struct(Copy), Shape, Interface 
 export type Struct<T> = { [K in keyof T]: T[K] };
+
+type NonFunctionPropertyKeys<T> = {
+    [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K
+}[keyof T];
+
+type NextDepthMap = {
+    0: 1;
+    1: 2;
+    2: 3;
+    3: 4;
+    4: 5;
+    5: 5;
+};
+type NextDepth<D extends number> = D extends keyof NextDepthMap ? NextDepthMap[D] : 5;
+
+export type KeyPath<T, D extends number = 0> =
+    D extends 5 ? never :
+    T extends readonly any[]
+    ? `${number}` | `${number}.${KeyPath<T[number], NextDepth<D>>}`
+    : T extends object
+    ? {
+        [K in NonFunctionPropertyKeys<T> & (string | number)]:
+        T[K] extends readonly any[]
+        ? `${K}` |
+        `${K}.${number}` |
+        `${K}.${number}.${KeyPath<T[K][number], NextDepth<D>>}`
+        : T[K] extends object
+        ? `${K}` | `${K}.${KeyPath<T[K], NextDepth<D>>}`
+        : `${K}`;
+    }[NonFunctionPropertyKeys<T> & (string | number)]
+    : never;
+
+export type KeyPathValue<T, P extends string> =
+    P extends `${infer K}.${infer Rest}`
+    ? K extends keyof T
+    ? KeyPathValue<T[K], Rest>
+    : T extends readonly any[]
+    ? K extends `${number}`
+    ? KeyPathValue<T[number], Rest>
+    : never
+    : never
+    : P extends keyof T
+    ? T[P]
+    : T extends readonly any[]
+    ? P extends `${number}`
+    ? T[number]
+    : never
+    : never;
+
+// Slice
+export type KeyPathValueMap<T> = {
+    [K in KeyPath<T>]?: KeyPathValue<T, K>;
+};
