@@ -11,7 +11,6 @@ const rootPath = __dirname;
 
 // TODO: read from tsconfig.json
 const aliases = {
-    // '$'
     "@": "./src"
 };
 
