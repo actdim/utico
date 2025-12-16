@@ -1,6 +1,6 @@
 import { Alias, AliasOptions, defineConfig } from "vite";
 import * as path from "path";
-import config from "./config";
+import config from "./packageConfig";
 import dts from "vite-plugin-dts";
 import * as fs from "fs";
 import tsConfigPaths from "vite-tsconfig-paths";

@@ -1,7 +1,7 @@
 import { defineConfig, TestProjectConfiguration } from "vitest/config";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { resolve } from 'path';
-import config from "./config";
+import config from "./packageConfig";
 import fs from "fs";
 import path from "path";
 

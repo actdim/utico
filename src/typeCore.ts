@@ -284,3 +284,21 @@ export type KeyPathValue<T, P extends string> =
 export type KeyPathValueMap<T> = {
     [K in KeyPath<T>]?: KeyPathValue<T, K>;
 };
+
+// type Exact<T, Shape> = T extends Shape
+//     ? Exclude<keyof T, keyof Shape> extends never
+//         ? T
+//         : never
+//     : never;
+
+// type NoExtraProperties<T, U> = {
+//     [K in keyof U]: K extends keyof T ? T[K] : never;
+// };
+
+// type ValidateKeys<T, Expected> =
+//     Exclude<keyof T, keyof Expected> extends never
+//         ? T
+//         : { error: 'Extra keys not allowed'; got: Exclude<keyof T, keyof Expected> };
+
+// type ExactKeys<T, K extends keyof any = keyof T> = 
+//     Record<K, any> & Record<Exclude<keyof T, K>, never>;
