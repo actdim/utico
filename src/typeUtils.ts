@@ -284,7 +284,7 @@ export function jsonClone<T extends object>(obj: T): T {
 }
 
 // freeze
-export const lock = Symbol("__lock");
+const lock = Symbol("__lock");
 
 // IFreezable
 export type ILockable<T = any> = Readonly<T> & { [lock]?: (locked: boolean) => void };
