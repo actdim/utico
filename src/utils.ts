@@ -50,17 +50,14 @@ export const delayAsync = (ms: number) => {
 };
 
 // scheduleErrorAsync
-export const delayErrorAsync = (ms: number, err?: Error) => {
-    if (!err) {
-        err = new Error("Timeout exceeded");
-    }
+export const delayErrorAsync = (ms: number, errFactory?: () => Error) => {
     return new Promise<never>((_, reject) =>
         setTimeout(
-            () => reject(err),
-            // Don't do this (!):
-            // () => {
-            //     throw err;
-            // },
+            () => {
+                // Do not throw!
+                const err = errFactory ? errFactory() : new Error("Timeout exceeded");
+                reject(err);
+            },
             ms
         )
     );
