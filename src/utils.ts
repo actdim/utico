@@ -144,6 +144,19 @@ export function memoEffect<TDep, TResult>(
     };
 }
 
+export function lazy<T>(factory: () => T): () => T {
+    let instance: T | undefined;
+    let initialized = false;
+
+    return () => {
+        if (!initialized) {
+            instance = factory();
+            initialized = true;
+        }
+        return instance!;
+    };
+}
+
 /*
 export function memoizeThrottle<T extends Func>(
     func: T,
