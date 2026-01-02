@@ -122,6 +122,36 @@ export const suppressConsole = (action: () => void) => {
     return result;
 };
 
+export function removePrefix(str: string, prefixes: string[]): string {
+    let removed = true;
+    while (removed) {
+        removed = false;
+        for (const prefix of prefixes) {
+            if (prefix && str.startsWith(prefix)) {
+                str = str.slice(prefix.length);
+                removed = true;
+                break;
+            }
+        }
+    }
+    return str;
+}
+
+export function removeSuffix(str: string, suffixes: string[]): string {
+    let removed = true;
+    while (removed) {
+        removed = false;
+        for (const suffix of suffixes) {
+            if (suffix && str.endsWith(suffix)) {
+                str = str.slice(0, -suffix.length);
+                removed = true;
+                break;
+            }
+        }
+    }
+    return str;
+}
+
 // another comparator example
 // const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 // depEffect
