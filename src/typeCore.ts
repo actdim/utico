@@ -4,8 +4,7 @@
 //   ? First | SplitStringToUnion<Rest, Separator>
 //   : T;
 
-// more useful version of Omit
-
+/** more useful version of Omit */
 export type Skip<T extends object, K extends keyof T> = Pick<T, Exclude<keyof T, K>>; // FilterOut
 // export type Skip<T, K extends keyof T> = {
 //     [P in keyof T as P extends K ? never : P]: T[P];
@@ -204,23 +203,28 @@ export type Overwrite<Base extends object, Overrides extends object> = Omit<Base
 // or
 // export type Overwrite<Base extends object, Overrides extends object> = Pick<Base, Exclude<keyof Base, keyof Overrides>> & Overrides;
 
-export type Extends<T extends object, TBase extends object> = T extends TBase ? true : false;
+export type Extends<T, TShape> = T extends TShape ? true : false;
 
 // more strict than Extract
-export type RequireExtends<T extends TBase, TBase extends object> = T;
-
-export type Strict<T, U extends T> =
-    Exclude<keyof U, keyof T> extends never ? U : never;
-
-export type MaybeExtends<T, TShape> = T extends TShape ? T : never;
+export type RequireExtends<T extends TShape, TShape extends object> = T;
 
 export type KeyOf<T extends object, TKey extends keyof T> = TKey;
+
+export type HasKeys<T> = keyof T extends never ? false : true;
+
+export type IsEmpty<T> = HasKeys<T> extends false ? true : false;
+
+export type Require<T, TCondition extends boolean> = TCondition extends true ? T : never;
+
+export type IF<TCondition extends boolean, Then, Else = never> = TCondition extends true ? Then : Else;
+
+export type Conditional<TCondition extends boolean, Then, Else = never> = IF<TCondition, Then, Else>;
 
 export type IsKeyOf<T, TKey extends object> = TKey extends keyof T ? true : false;
 
 export type KeysOf<T extends object, TKeys extends keyof T | Array<keyof T>> = TKeys extends Array<keyof T> ? TKeys[number] : TKeys;
 
-export type SafeKey<T extends object, K extends PropertyKey> = K extends keyof T ? K : never;
+export type MaybeKeyOf<T extends object, K extends PropertyKey> = K extends keyof T ? K : never;
 
 export type IsTuple<T> = T extends readonly [...infer Elements] ? (number extends Elements["length"] ? false : true) : false;
 
@@ -284,21 +288,3 @@ export type KeyPathValue<T, P extends string> =
 export type KeyPathValueMap<T> = {
     [K in KeyPath<T>]?: KeyPathValue<T, K>;
 };
-
-// type Exact<T, Shape> = T extends Shape
-//     ? Exclude<keyof T, keyof Shape> extends never
-//         ? T
-//         : never
-//     : never;
-
-// type NoExtraProperties<T, U> = {
-//     [K in keyof U]: K extends keyof T ? T[K] : never;
-// };
-
-// type ValidateKeys<T, Expected> =
-//     Exclude<keyof T, keyof Expected> extends never
-//         ? T
-//         : { error: 'Extra keys not allowed'; got: Exclude<keyof T, keyof Expected> };
-
-// type ExactKeys<T, K extends keyof any = keyof T> = 
-//     Record<K, any> & Record<Exclude<keyof T, K>, never>;

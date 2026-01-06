@@ -187,6 +187,39 @@ export function lazy<T>(factory: () => T): () => T {
     };
 }
 
+// TODO:
+/*
+function getMetadata<T>(
+    store: WeakMap<object, Map<PropertyKey, T>>,
+    target: object,
+    prop: PropertyKey,
+): T | undefined {
+    return store.get(target)?.get(prop) as T | undefined;
+}
+
+function setMetadata<T>(
+    store: WeakMap<object, Map<PropertyKey, T>>,
+    target: object,
+    prop: PropertyKey,
+    value: T,
+) {
+    let propMap = store.get(target);
+    if (!propMap) {
+        propMap = new Map();
+        store.set(target, propMap);
+    }
+    propMap.set(prop, value);
+}
+
+function hasMetadata(
+    store: WeakMap<object, Map<PropertyKey, any>>,
+    target: object,
+    prop: PropertyKey,
+): boolean {
+    return store.get(target)?.has(prop) ?? false;
+}
+*/
+
 /*
 export function memoizeThrottle<T extends Func>(
     func: T,
