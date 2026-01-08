@@ -5,16 +5,16 @@
 //   : T;
 
 /** more useful version of Omit */
-export type Skip<T extends object, K extends keyof T> = Pick<T, Exclude<keyof T, K>>; // FilterOut
+export type Skip<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>; // FilterOut
 // export type Skip<T, K extends keyof T> = {
 //     [P in keyof T as P extends K ? never : P]: T[P];
 // };
 
-// export type PickEx<T extends object, TKeys extends keyof T | Array<keyof T>> = {
+// export type PickEx<T, TKeys extends keyof T | Array<keyof T>> = {
 //     [K in TKeys extends Array<keyof T> ? TKeys[number] : TKeys]: T[K];
 // };
 
-export type Filter<T extends object, V> = {
+export type Filter<T, V> = {
     [K in keyof T as T[K] extends V ? K : never]: T[K];
 };
 
@@ -56,16 +56,16 @@ export type TupleFromKeys<T, K extends readonly (keyof T)[]> = {
     [I in keyof K]: K[I] extends keyof T ? T[K[I]] : never
 };
 
-export type Extend<T extends object, U extends object, K extends keyof U> = T & { [P in K]: U[K] };
+export type Extend<T, U, K extends keyof U> = T & { [P in K]: U[K] };
 
 // Validation
-export type ValueOf<T extends object> = T[keyof T];
+export type ValueOf<T> = T[keyof T];
 export type OneOnly<T, Key extends keyof T> = { [key in Exclude<keyof T, Key>]: null } & Pick<T, Key>;
 export type OneOfByKey<T> = { [key in keyof T]: OneOnly<T, key> };
 export type OneOfType<T> = ValueOf<OneOfByKey<T>>;
 
 // Extract version
-export type KeyOfType<FromType extends object, KeepType = any, Include = true> = {
+export type KeyOfType<FromType, KeepType = any, Include = true> = {
     [K in keyof FromType]: FromType[K] extends KeepType ? (Include extends true ? K : never) : Include extends true ? never : K;
 }[keyof FromType];
 
@@ -73,7 +73,7 @@ export type Weaken<T, K extends keyof T> = {
     [P in keyof T]: P extends K ? any : T[P];
 };
 
-export type Mutable<T extends object> = {
+export type Mutable<T> = {
     -readonly [K in keyof T]: T[K];
 };
 
@@ -199,16 +199,16 @@ export type ParameterType<TFunc, TParamIndex extends number> = TFunc extends Fun
 // export type Executor<T = void, TArgs extends any[] = []> = Func<TArgs, T> | AsyncFunc<[], T>; // same
 export type Executor<T = void, TArgs extends any[] = []> = Func<TArgs, T | PromiseLike<T>>;
 
-export type Overwrite<Base extends object, Overrides extends object> = Omit<Base, keyof Overrides> & Overrides;
+export type Overwrite<Base, Overrides> = Omit<Base, keyof Overrides> & Overrides;
 // or
-// export type Overwrite<Base extends object, Overrides extends object> = Pick<Base, Exclude<keyof Base, keyof Overrides>> & Overrides;
+// export type Overwrite<Base, Overrides> = Pick<Base, Exclude<keyof Base, keyof Overrides>> & Overrides;
 
 export type Extends<T, TShape> = T extends TShape ? true : false;
 
 // more strict than Extract
-export type RequireExtends<T extends TShape, TShape extends object> = T;
+export type RequireExtends<T extends TShape, TShape> = T;
 
-export type KeyOf<T extends object, TKey extends keyof T> = TKey;
+export type KeyOf<T, TKey extends keyof T> = TKey;
 
 export type HasKeys<T> = keyof T extends never ? false : true;
 
@@ -220,11 +220,11 @@ export type IF<TCondition extends boolean, Then, Else = never> = TCondition exte
 
 export type Conditional<TCondition extends boolean, Then, Else = never> = IF<TCondition, Then, Else>;
 
-export type IsKeyOf<T, TKey extends object> = TKey extends keyof T ? true : false;
+export type IsKeyOf<T, TKey> = TKey extends keyof T ? true : false;
 
-export type KeysOf<T extends object, TKeys extends keyof T | Array<keyof T>> = TKeys extends Array<keyof T> ? TKeys[number] : TKeys;
+export type KeysOf<T, TKeys extends keyof T | Array<keyof T>> = TKeys extends Array<keyof T> ? TKeys[number] : TKeys;
 
-export type MaybeKeyOf<T extends object, K extends PropertyKey> = K extends keyof T ? K : never;
+export type MaybeKeyOf<T, K extends PropertyKey> = K extends keyof T ? K : never;
 
 export type IsTuple<T> = T extends readonly [...infer Elements] ? (number extends Elements["length"] ? false : true) : false;
 
