@@ -20,16 +20,16 @@ export class PersistentStore extends DataStore<MetadataRecord> implements IPersi
 
     private _options: PersistentStoreOptions; // TODO: support
 
-    static deleteAsync(name: string) {
-        return StoreDb.deleteAsync(name);
+    static delete(name: string) {
+        return StoreDb.delete(name);
     }
 
-    static existsAsync(name: string) {
-        return StoreDb.existsAsync(name);
+    static exists(name: string) {
+        return StoreDb.exists(name);
     }
 
-    static openAsync(name: string, options?: PersistentStoreOptions) {
-        return StoreDb.openAsync(name, () => new PersistentStore(name, options));
+    static open(name: string, options?: PersistentStoreOptions) {
+        return StoreDb.open(name, () => new PersistentStore(name, options));
     }
 
     constructor(name: string, options?: PersistentStoreOptions) {

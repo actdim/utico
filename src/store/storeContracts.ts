@@ -52,14 +52,14 @@ export type TransactionMode = Dexie.TransactionMode;
 export type OrderDirection = "asc" | "desc";
 
 export type StoreBase = {
-    openAsync(): PromiseLike<void>;
+    open(): PromiseLike<void>;
 }
 
 export interface IStoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> {
 
-    toArrayAsync(orderBy?: keyof T, orderDirection?: OrderDirection, transactionMode?: TransactionMode): Promise<StoreItem<T, TValue>[]>;
+    toArray(orderBy?: keyof T, orderDirection?: OrderDirection, transactionMode?: TransactionMode): Promise<StoreItem<T, TValue>[]>;
 
-    orderByAsync(field: keyof T, direction: OrderDirection, transactionMode?: TransactionMode): Promise<StoreItem<T, TValue>[]>;
+    orderBy(field: keyof T, direction: OrderDirection, transactionMode?: TransactionMode): Promise<StoreItem<T, TValue>[]>;
 
     filter<S extends T>(filter: (x: T) => x is S): IStoreCollection<S, TValue>;
 
@@ -67,41 +67,41 @@ export interface IStoreCollection<T extends MetadataRecord = MetadataRecord, TVa
 
     offset(n: number): IStoreCollection<T, TValue>;
 
-    getKeysAsync(): Promise<T["key"][]>;
+    getKeys(): Promise<T["key"][]>;
 
-    getCountAsync(): Promise<number>;
+    getCount(): Promise<number>;
 
-    modifyMetadataAsync(callback: (metadataRecord: T) => void, transactionMode?: TransactionMode): Promise<number>;
+    modifyMetadata(callback: (metadataRecord: T) => void, transactionMode?: TransactionMode): Promise<number>;
 
-    modifyDataAsync(callback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
+    modifyData(callback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
 
-    modifyAsync(metadataCallback: (metadataRecord: T) => void, dataCallback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
+    modify(metadataCallback: (metadataRecord: T) => void, dataCallback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
 }
 
 // IKVStore
 export interface IPersistentStore<T extends MetadataRecord = MetadataRecord> {
 
-    openAsync(): Promise<void>;
+    open(): Promise<void>;
 
-    getKeysAsync(): Promise<string[]>;
+    getKeys(): Promise<string[]>;
 
-    containsAsync(key: string): Promise<boolean>;
+    contains(key: string): Promise<boolean>;
 
-    deleteAsync(key: string): Promise<void>;
+    delete(key: string): Promise<void>;
 
-    bulkDeleteAsync(keys: string[]): Promise<void>;
+    bulkDelete(keys: string[]): Promise<void>;
 
-    clearAsync(): Promise<void>;
+    clear(): Promise<void>;
 
-    getAsync<TValue = any>(key: string): Promise<StoreItem<T, TValue>>;
+    get<TValue = any>(key: string): Promise<StoreItem<T, TValue>>;
 
-    setAsync<TValue = any>(metadataRecord: T, value: TValue): Promise<string>;
+    set<TValue = any>(metadataRecord: T, value: TValue): Promise<string>;
 
-    getOrSetAsync<TValue = any>(metadataRecord: MetadataRecord, factory: (metadataRecord: MetadataRecord) => TValue): Promise<StoreItem<T, TValue>>
+    getOrSet<TValue = any>(metadataRecord: MetadataRecord, factory: (metadataRecord: MetadataRecord) => TValue): Promise<StoreItem<T, TValue>>
 
-    bulkGetAsync<TValue = any>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
+    bulkGet<TValue = any>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
 
-    bulkSetAsync<TValue = any>(metadataRecords: MetadataRecord[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
+    bulkSet<TValue = any>(metadataRecords: MetadataRecord[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
 
-    dispose(): void;
+    [Symbol.dispose]: () => void;
 }

@@ -45,16 +45,16 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
 
     private readonly _options: PersistentCacheOptions;
 
-    static deleteAsync(name: string) {
-        return StoreDb.deleteAsync(name);
+    static delete(name: string) {
+        return StoreDb.delete(name);
     }
 
-    static existsAsync(name: string) {
-        return StoreDb.existsAsync(name);
+    static exists(name: string) {
+        return StoreDb.exists(name);
     }
 
-    static openAsync(name: string, options?: PersistentCacheOptions) {
-        return StoreDb.openAsync(name, () => new PersistentCache(name, options));
+    static open(name: string, options?: PersistentCacheOptions) {
+        return StoreDb.open(name, () => new PersistentCache(name, options));
     }
 
     // cleanupTimeout - serviceJobTimeout
@@ -73,47 +73,47 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         this.scheduleServiceJob();
     }
 
-    dispose() {
+    [Symbol.dispose]() {
         if (!this._isDisposed) {
             if (this._jobTimerId) {
                 window.clearTimeout(this._jobTimerId);
                 this._jobTimerId = null;
             }
         }
-        this._db?.dispose();
+        this._db?.[Symbol.dispose]();
         this._db = null;
     }
 
-    openAsync() {
-        return this._db.openAsync()
+    open() {
+        return this._db.open()
     }
 
-    private execAsync<T>(
+    private exec<T>(
         action: () => Promise<T>, // scope
         transactionMode: TransactionMode = "r!") {
-        return this._db.execAsync(action, transactionMode);
+        return this._db.exec(action, transactionMode);
     }
 
-    getKeysAsync() {
-        return this._db.getKeysAsync();
+    getKeys() {
+        return this._db.getKeys();
     }
 
-    containsAsync(key: string) {
-        return this._db.containsAsync(key);
+    contains(key: string) {
+        return this._db.contains(key);
     }
 
-    deleteAsync(key: string) {
-        return this._db.deleteAsync(key);
+    delete(key: string) {
+        return this._db.deleteOne(key);
     }
 
-    // deleteManyAsync
-    bulkDeleteAsync(keys: string[]) {
-        return this._db.bulkDeleteAsync(keys);
+    // deleteMany
+    bulkDelete(keys: string[]) {
+        return this._db.bulkDelete(keys);
     }
 
     // clearAllAsync
-    clearAsync() {
-        return this._db.clearAsync();
+    clear() {
+        return this._db.clear();
     }
 
     private onGetMetadata(record: CacheMetadataRecord) {
@@ -142,7 +142,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             const doWork = async () => {
                 try {
                     // purge expired entries
-                    await this.deleteExpiredAsync();
+                    await this.deleteExpired();
                 } catch (err) {
                     console.error("Cache cleanup failed:", err);
                 } finally {
@@ -154,16 +154,16 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
     }
 
     // evictExpiredAsync/clearExpiredAsync
-    async deleteExpiredAsync(ts?: number) {
+    async deleteExpired(ts?: number) {
         const result: string[] = []; // output keys
         if (!ts) {
             ts = Date.now();
         }
         let metadataRecords: MetadataRecord[];
-        await this.execAsync(async () => {
+        await this.exec(async () => {
             metadataRecords = await this._db.metadata.where(keyOf<CacheMetadataRecord>("expiresAt")).below(ts).toArray();
             const keys = metadataRecords.map(x => x.key);
-            await this.bulkDeleteAsync(keys);
+            await this.bulkDelete(keys);
         }, "rw");
         if (metadataRecords?.length) {
             const evt = new StructEvent<PersistentCacheEventStruct, this>("evict", {
@@ -178,8 +178,8 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         return result;
     }
 
-    getAsync<TValue = any>(key: string): Promise<StoreItem<CacheMetadataRecord, TValue>> {
-        return this.execAsync(async () => {
+    get<TValue = any>(key: string): Promise<StoreItem<CacheMetadataRecord, TValue>> {
+        return this.exec(async () => {
             const metadataRecord = await this._db.metadata.get(key);
             this.onGetMetadata(metadataRecord);
             await this._db.metadata.put(metadataRecord);
@@ -214,8 +214,8 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         this.onGetMetadata(record);
 
     }
-    // upsertAsync
-    setAsync<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue, options: CacheOptions) {
+    // upsert
+    set<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue, options: CacheOptions) {
         if (value === undefined) {
             throw new Error('Invalid parameter: "value".');
         }
@@ -225,7 +225,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
 
         this.onCreateMetadata(metadataRecord, options);
 
-        return this.execAsync(async () => {
+        return this.exec(async () => {
             const result = await this._db.metadata.put(metadataRecord);
             await this._db.data.put({
                 key: metadataRecord.key,
@@ -235,24 +235,24 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         }, "rw");
     }
 
-    // getOrAddAsync
-    getOrSetAsync<TValue = any>(metadataRecord: CacheMetadataRecord, factory: (metadataRecord: CacheMetadataRecord) => TValue, options: CacheOptions) {
+    // getOrAdd
+    getOrSet<TValue = any>(metadataRecord: CacheMetadataRecord, factory: (metadataRecord: CacheMetadataRecord) => TValue, options: CacheOptions) {
         if (!metadataRecord.key) {
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
-        return this.execAsync(async () => {
-            const existingStoreItem = await this.getAsync(metadataRecord.key);
+        return this.exec(async () => {
+            const existingStoreItem = await this.get(metadataRecord.key);
             if (existingStoreItem) {
                 return existingStoreItem;
             }
-            await this.setAsync(metadataRecord, factory(metadataRecord), options);
-            return this.getAsync(metadataRecord.key);
+            await this.set(metadataRecord, factory(metadataRecord), options);
+            return this.get(metadataRecord.key);
         }, "rw");
     }
 
     // getMany
-    bulkGetAsync<TValue = any>(keys: string[]) {
-        return this.execAsync(async () => {
+    bulkGet<TValue = any>(keys: string[]) {
+        return this.exec(async () => {
             const map = new Map<string, StoreItem<CacheMetadataRecord, TValue>>();
             const metadataRecords = await this._db.metadata.bulkGet(keys);
             for (const metadataRecord of metadataRecords) {
@@ -272,7 +272,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
     }
 
     // setMeny
-    bulkSetAsync<TValue = any>(metadataRecords: CacheMetadataRecord[], dataRecords: DataRecord<TValue>[], optionsProvider: (record: MetadataRecord) => CacheOptions) {
+    bulkSet<TValue = any>(metadataRecords: CacheMetadataRecord[], dataRecords: DataRecord<TValue>[], optionsProvider: (record: MetadataRecord) => CacheOptions) {
         let index: number;
         if (metadataRecords && (index = metadataRecords.findIndex(x => !x)) >= 0) {
             throw new Error(`Invalid metadata record. Parameter: "metadataRecords". Index: ${index}.`);
@@ -289,7 +289,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             }
             this.onCreateMetadata(metadataRecord, optionsProvider(metadataRecord));
         }
-        return this.execAsync(async () => {
+        return this.exec(async () => {
             let mKeys: string[], dKeys: string[];
             if (metadataRecords) {
                 mKeys = await this._db.metadata.bulkPut(metadataRecords, undefined, { allKeys: true });

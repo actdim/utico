@@ -60,3 +60,9 @@ export function getPropertyMetadataItem<TMetadataItem>(metadata: WeakMap<any, TM
 
     return result;
 }
+
+export function metadata(value: any, slotName: string) {
+    return function (target: any, propertyKey: PropertyKey) {
+        updatePropertyMetadata(target, propertyKey, value, slotName);
+    }
+}

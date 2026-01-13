@@ -76,7 +76,7 @@ function encodeUnicode(str: any) {
     // return window.unescape(window.encodeURIComponent(str))
 }
 
-export const html2SvgAsync = (() => {
+export const html2Svg = (() => {
     const xmlSerializer = new XMLSerializer();
     return async (elements: HTMLElement[], viewBoxSize: number[], css: string) => {
         const w = viewBoxSize[0];
@@ -142,7 +142,7 @@ export function toObjectUrl(canvas: HTMLCanvasElement, mimeType = "image/png", q
     });
 }
 
-export function drawImageAsync(src: string, context: CanvasRenderingContext2D) {
+export function drawImage(src: string, context: CanvasRenderingContext2D) {
     return new Promise<void>((res, rej) => {
         try {
             const image = new Image();
@@ -160,11 +160,12 @@ export function drawImageAsync(src: string, context: CanvasRenderingContext2D) {
     });
 }
 
-export const drawSvgAsync = (svgData: string, context: CanvasRenderingContext2D, useDataUrl = false) => {
+export const drawSvg = (svgData: string, context: CanvasRenderingContext2D, useDataUrl = false) => {
     const imageSrc = useDataUrl ? getSvgImageDataUrl(svgData) : getSvgImageObjectUrl(svgData);
-    return drawImageAsync(imageSrc, context).finally(() => DOMURL.revokeObjectURL(imageSrc));
+    return drawImage(imageSrc, context).finally(() => DOMURL.revokeObjectURL(imageSrc));
 };
 
+/*
 export function canvasToImage(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
     // const image = document.createElement("img")
     const image = new Image();
@@ -181,8 +182,9 @@ export function canvasToImage(canvas: HTMLCanvasElement, size?: number[], mimeTy
     image.src = imageSrc;
     return image;
 }
+*/
 
-export async function canvasToImageAsync(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
+export async function canvasToImage(canvas: HTMLCanvasElement, size?: number[], mimeType = "image/png", quality?: number) {
     // document.createElement("img")
     const image = new Image();
     image.crossOrigin = "anonymous";

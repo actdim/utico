@@ -67,7 +67,7 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.De
         // ]));
     }
 
-    dispose() {
+    [Symbol.dispose]() {
         if (!this._isDisposed) {
             if (this.isOpen()) {
                 this.close();
@@ -76,25 +76,27 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.De
         }
     }
 
-    async openAsync() {
-        if (!this.isOpen()) {
-            try {
-                await this.open();
-            } catch (err) {
-                if (err instanceof Dexie.Dexie.OpenFailedError) {
-                    await this.open();
-                } else {
-                    throw err;
-                }
-            }
-            // TODO: log (this.verno, this._dbSchema etc)
+    async open() {
+        if (this.isOpen()) {
+            return this;
         }
+        try {
+            return await super.open();
+        } catch (err) {
+            if (err instanceof Dexie.Dexie.OpenFailedError) {
+                return await super.open();
+            } else {
+                throw err;
+            }
+        }
+        // TODO: log (this.verno, this._dbSchema etc)
+
     }
 
-    async execAsync<T>(
+    async exec<T>(
         action: () => Promise<T>, // scope
         transactionMode: TransactionMode = "r!") {
-        await this.openAsync();
+        await this.open();
         try {
             const result = await this.transaction(transactionMode, this.metadata, this.data, async () => {
                 return await action();
@@ -108,41 +110,41 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.De
         }
     }
 
-    async getKeysAsync() {
+    async getKeys() {
         return this.metadata.toCollection().primaryKeys();
     }
 
-    async containsAsync(key: string, transactionMode: TransactionMode = "r") {
-        return await this.execAsync(async () => {
+    async contains(key: string, transactionMode: TransactionMode = "r") {
+        return await this.exec(async () => {
             const metadataRecord = await this.metadata.get(key);
             return metadataRecord !== undefined;
         }, transactionMode);
     }
 
-    async deleteAsync(key: string, transactionMode: TransactionMode = "rw") {
-        await this.execAsync(async () => {
+    async deleteOne(key: string, transactionMode: TransactionMode = "rw") {
+        await this.exec(async () => {
             await this.metadata.delete(key);
             await this.data.delete(key);
         }, transactionMode);
     }
 
     // deleteManyAsync
-    async bulkDeleteAsync(keys: string[], transactionMode: TransactionMode = "rw") {
-        await this.execAsync(async () => {
+    async bulkDelete(keys: string[], transactionMode: TransactionMode = "rw") {
+        await this.exec(async () => {
             await this.metadata.bulkDelete(keys);
             await this.data.bulkDelete(keys);
         }, transactionMode);
     }
 
-    // clearAllAsync
-    async clearAsync(transactionMode: TransactionMode = "rw") {
-        await this.execAsync(async () => {
+    // clearAll
+    async clear(transactionMode: TransactionMode = "rw") {
+        await this.exec(async () => {
             await this.metadata.clear();
             await this.data.clear();
         }, transactionMode);
     }
 
-    static async deleteAsync(name: string) {
+    static async delete(name: string) {
         try {
             await mutex.dispatch(async () => {
                 if (await StoreDb.exists(name)) {
@@ -158,14 +160,14 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.De
         }
     }
 
-    static existsAsync(name: string) {
+    static exists(name: string) {
         return Dexie.Dexie.exists(name);
     }
 
-    static async openAsync<T extends StoreBase>(name: string, factory: (name: string) => T) {
+    static async open<T extends StoreBase>(name: string, factory: (name: string) => T) {
         return await mutex.dispatch(async () => {
             const store = factory(name);
-            await store.openAsync();
+            await store.open();
             return store;
         });
     }

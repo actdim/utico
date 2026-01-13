@@ -1,6 +1,6 @@
 /* /// <reference types="node" /> */
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll, test } from "vitest";
-import { delayAsync, delayErrorAsync, withTimeoutAsync } from "@/utils";
+import { delay, delayError, withTimeout } from "@/utils";
 import { PersistentStore } from "@/store/persistentStore";
 import { IPersistentStore, StoreItem } from "@/store/storeContracts";
 
@@ -48,62 +48,62 @@ describe("persistentStore", () => {
     ];
 
     beforeAll(async () => {
-        sharedStore?.dispose();
-        await PersistentStore.deleteAsync(name);
+        sharedStore?.[Symbol.dispose]();
+        await PersistentStore.delete(name);
         sharedStore = new PersistentStore(name);
     });
 
     afterAll(async () => {
-        sharedStore?.dispose();
+        sharedStore?.[Symbol.dispose]();
     })
 
     // beforeEach(async () => {
-    //     await sharedStore.clearAsync();
+    //     await sharedStore.clear();
     // });
 
     // afterEach(async () => {
-    //     await sharedStore.clearAsync();
+    //     await sharedStore.clear();
     // });
 
-    async function addTestRecordsAsync(store: PersistentStore) {
-        // await store.setAsync(data[0].metadata, data[0].data.value);
-        // await store.setAsync(data[1].metadata, data[1].data.value);
-        await store.bulkSetAsync(data.map(x => x.metadata), data.map(x => x.data));
+    async function addTestRecords(store: PersistentStore) {
+        // await store.set(data[0].metadata, data[0].data.value);
+        // await store.set(data[1].metadata, data[1].data.value);
+        await store.bulkSet(data.map(x => x.metadata), data.map(x => x.data));
     }
 
     it("can set and get data", async () => {
-        const store = await PersistentStore.openAsync(`TestDB_${Date.now()}_${Math.random()}`);
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
         try {
-            await addTestRecordsAsync(store);
-            const storedKeys = (await store.getKeysAsync()).sort();
+            await addTestRecords(store);
+            const storedKeys = (await store.getKeys()).sort();
             expect(storedKeys.length).toBe(dataKeys.length);
             expect(dataKeys[0]).toBe(storedKeys[0]);
             expect(dataKeys[1]).toBe(storedKeys[1]);
             // expect(dataKeys.indexOf(storedKeys[0]) >= 0).toBe(true);
             // expect(dataKeys.indexOf(storedKeys[1]) >= 0).toBe(true);
-            let item = (await store.getAsync(dataKeys[0]));
+            let item = (await store.get(dataKeys[0]));
             expect(item.data).toEqual(data[0].data);
-            item = (await store.getAsync(dataKeys[1]));
+            item = (await store.get(dataKeys[1]));
             expect(item.data).toEqual(data[1].data);
-            let items = await store.bulkGetAsync(dataKeys);
+            let items = await store.bulkGet(dataKeys);
             expect(items.map(x => x.data)).toEqual(data.map(x => x.data));
         }
         finally {
-            store.dispose();
+            store[Symbol.dispose]();
         }
     });
 
     it("can delete data", async () => {
-        const store = await PersistentStore.openAsync(`TestDB_${Date.now()}_${Math.random()}`);
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
         try {
-            await addTestRecordsAsync(store);
-            await store.deleteAsync(dataKeys[0]);
-            const storedKeys = (await store.getKeysAsync()).sort();
+            await addTestRecords(store);
+            await store.delete(dataKeys[0]);
+            const storedKeys = (await store.getKeys()).sort();
             expect(storedKeys.length).toBe(dataKeys.length - 1);
             expect(dataKeys[1]).toBe(storedKeys[0]);
         }
         finally {
-            store.dispose();
+            store[Symbol.dispose]();
         }
     });
 });

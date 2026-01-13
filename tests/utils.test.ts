@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { delayAsync, delayErrorAsync, withTimeoutAsync, memoEffect } from "@/utils";
+import { delay, delayError, withTimeout, memoEffect } from "@/utils";
 
 describe("msgBus", () => {
     // process.on("unhandledRejection", (reason, promise) => {

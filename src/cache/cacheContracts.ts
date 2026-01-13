@@ -10,25 +10,25 @@ export class CacheMetadataRecord extends MetadataRecord {
 
 export interface IPersistentCache<T extends CacheMetadataRecord = CacheMetadataRecord> {
 
-    openAsync(): Promise<void>;
+    open(): Promise<void>;
 
-    getKeysAsync(): Promise<string[]>;
+    getKeys(): Promise<string[]>;
 
-    containsAsync(key: string): Promise<boolean>;
+    contains(key: string): Promise<boolean>;
 
-    deleteAsync(key: string): Promise<void>;
+    delete(key: string): Promise<void>;
 
-    bulkDeleteAsync(keys: string[]): Promise<void>;
+    bulkDelete(keys: string[]): Promise<void>;
 
-    clearAsync(): Promise<void>;
+    clear(): Promise<void>;
 
-    getAsync<TValue = any>(key: string): Promise<StoreItem<T, TValue>>;
+    get<TValue = any>(key: string): Promise<StoreItem<T, TValue>>;
 
-    setAsync<TValue = any>(metadataRecord: T, value: TValue): Promise<string>;
+    set<TValue = any>(metadataRecord: T, value: TValue): Promise<string>;
 
-    getOrSetAsync<TValue = any>(metadataRecord: T, factory: (metadataRecord: T) => TValue): Promise<StoreItem<T, TValue>>
+    getOrSet<TValue = any>(metadataRecord: T, factory: (metadataRecord: T) => TValue): Promise<StoreItem<T, TValue>>
 
-    bulkGetAsync<TValue = any>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
+    bulkGet<TValue = any>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
 
-    bulkSetAsync<TValue = any>(metadataRecords: T[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
+    bulkSet<TValue = any>(metadataRecords: T[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
 }

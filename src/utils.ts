@@ -45,12 +45,12 @@ export const buildFuncArgCacheKey = (() => {
     };
 })();
 
-export const delayAsync = (ms: number) => {
+export const delay = (ms: number) => {
     return new Promise<void>((resolve) => setTimeout(resolve, ms));
 };
 
-// scheduleErrorAsync
-export const delayErrorAsync = (ms: number, errFactory?: () => Error) => {
+// scheduleError
+export const delayError = (ms: number, errFactory?: () => Error) => {
     return new Promise<never>((_, reject) =>
         setTimeout(
             () => {
@@ -63,7 +63,7 @@ export const delayErrorAsync = (ms: number, errFactory?: () => Error) => {
     );
 };
 
-export function withTimeoutAsync<T>(promise: Promise<T>, ms: number): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     // return new Promise((resolve, reject) => {
     //   const timer = setTimeout(() => reject(new Error('Timeout exceeded')), ms);
     //   promise.then((value) => {
@@ -71,7 +71,7 @@ export function withTimeoutAsync<T>(promise: Promise<T>, ms: number): Promise<T>
     //     resolve(value);
     //   }, reject);
     // });
-    return Promise.race([delayErrorAsync(ms), promise]);
+    return Promise.race([delayError(ms), promise]);
 }
 
 /**
@@ -185,6 +185,16 @@ export function lazy<T>(factory: () => T): () => T {
         }
         return instance!;
     };
+}
+
+export function makeNonEnumerable<T>(obj: T, propertyNames: (keyof T)[]) {
+    let propertyDescriptorMap: PropertyDescriptorMap = {};
+    for (const propertyName of propertyNames) {
+        propertyDescriptorMap[propertyName] = {
+            enumerable: false
+        };
+    }
+    Object.defineProperties(obj, propertyDescriptorMap);
 }
 
 // TODO:
