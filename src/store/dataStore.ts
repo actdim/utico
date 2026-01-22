@@ -239,7 +239,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
             const metadataRecord = await this._db.metadata.get(key);
             const dataRecord = await this._db.data.get(key);
             return {
-                metadata: metadataRecord,
+                metadata: metadataRecord, // || { key: key }
                 data: dataRecord
             } as StoreItem<T, TValue>;
         }, transactionMode);
