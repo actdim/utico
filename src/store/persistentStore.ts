@@ -1,5 +1,5 @@
 import { DataStore } from "./dataStore";
-import { FieldDef, IPersistentStore, MetadataRecord } from "./storeContracts";
+import { FieldDef, FieldDefTemplate, IPersistentStore, MetadataRecord } from "./storeContracts";
 import { StoreDb } from "./storeDb";
 
 // TODO: implement real encryption:
@@ -14,9 +14,9 @@ const defaultPersistentStoreOptions = {
 } satisfies PersistentStoreOptions;
 
 // (registry/catalog)fieldNames
-const metadataFieldDefTemplate = ["&key", "createdAt", "updatedAt", "tags"] satisfies (FieldDef<keyof MetadataRecord>)[];
+export const defaultMetadataFieldDefTemplate = ["&key", "createdAt", "updatedAt", "tags"] satisfies FieldDefTemplate<keyof MetadataRecord>;
 // T extends MetadataRecord
-export class PersistentStore extends DataStore<MetadataRecord> implements IPersistentStore<MetadataRecord> {
+export class PersistentStore<TMetadataRecord extends MetadataRecord = MetadataRecord> extends DataStore<TMetadataRecord> implements IPersistentStore<TMetadataRecord> {
 
     private _options: PersistentStoreOptions; // TODO: support
 
@@ -28,12 +28,12 @@ export class PersistentStore extends DataStore<MetadataRecord> implements IPersi
         return StoreDb.exists(name);
     }
 
-    static open(name: string, options?: PersistentStoreOptions) {
-        return StoreDb.open(name, () => new PersistentStore(name, options));
+    static open<TMetadataRecord extends MetadataRecord = MetadataRecord>(name: string, metadataFieldDefTemplate?: keyof TMetadataRecord extends string ? FieldDefTemplate<keyof TMetadataRecord> : never, options?: PersistentStoreOptions) {
+        return StoreDb.open(name, () => new PersistentStore(name, metadataFieldDefTemplate, options));
     }
 
-    constructor(name: string, options?: PersistentStoreOptions) {
-        super(name, metadataFieldDefTemplate);
+    constructor(name: string, metadataFieldDefTemplate?: keyof TMetadataRecord extends string ? FieldDefTemplate<keyof TMetadataRecord> : never, options?: PersistentStoreOptions) {
+        super(name, (metadataFieldDefTemplate ?? defaultMetadataFieldDefTemplate) as keyof TMetadataRecord extends string ? FieldDefTemplate<keyof TMetadataRecord> : never);
         this._options = { ...options, ...defaultPersistentStoreOptions };
     }
 }

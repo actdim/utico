@@ -13,20 +13,20 @@ export class MetadataRecord {
     createdAt?: number;
     updatedAt?: number; // lastModified
     tags?: string[];
-    // timestamp?: number;
-    // weight?: number;
+    // timestamp?: number;    
+    // magnitude?: number;
     // score?: number;
     // startDate?/endDate?
     // validFrom?/validTo?
 }
 
 // DataEntry
-export type DataRecord<TValue = any> = {
+export type DataRecord<TValue = unknown> = {
     key: string;
     value: TValue;
 }
 
-export type StoreItem<T extends MetadataRecord = MetadataRecord, TValue = any> = {
+export type StoreItem<T extends MetadataRecord = MetadataRecord, TValue = unknown> = {
     metadata?: T,
     data?: DataRecord<TValue>;
 }
@@ -51,30 +51,45 @@ export type IndexableTypeArray = Dexie.IndexableTypeArray;
 export type TransactionMode = Dexie.TransactionMode;
 export type OrderDirection = "asc" | "desc";
 
+export type WhereFilter<T extends IndexableType, TResult = unknown> = {
+    above(value: T): TResult;
+    aboveOrEqual(value: T): TResult;
+    anyOf(values: ReadonlyArray<T>): TResult;
+    anyOfIgnoreCase(keys: T extends string ? T[] : never): T extends string ? TResult : never;
+    below(value: T): TResult;
+    belowOrEqual(value: T): TResult;
+    between(lower: T, upper: T, includeLower?: boolean, includeUpper?: boolean): TResult;
+    equals(value: T): TResult;
+    equalsIgnoreCase(value: string): TResult;
+    inAnyRange(ranges: ReadonlyArray<{
+        0: T;
+        1: T;
+    }>, options?: {
+        includeLowers?: boolean;
+        includeUppers?: boolean;
+    }): TResult;
+    startsWith(prefix: T extends string ? T : never): T extends string ? TResult : never;
+    startsWithAnyOf(prefixes: T extends string ? T[] : never): T extends string ? TResult : never;
+    startsWithIgnoreCase(prefix: T extends string ? T : never): T extends string ? TResult : never;
+    startsWithAnyOfIgnoreCase(prefixes: T extends string ? T[] : never): T extends string ? TResult : never;
+    noneOf(values: ReadonlyArray<T>): TResult;
+    notEqual(value: T): TResult;
+}
+
 export type StoreBase = {
     open(): PromiseLike<void>;
 }
 
-export interface IStoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> {
-
+export interface IStoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknown> {
     toArray(orderBy?: keyof T, orderDirection?: OrderDirection, transactionMode?: TransactionMode): Promise<StoreItem<T, TValue>[]>;
-
     orderBy(field: keyof T, direction: OrderDirection, transactionMode?: TransactionMode): Promise<StoreItem<T, TValue>[]>;
-
-    filter<S extends T>(filter: (x: T) => x is S): IStoreCollection<S, TValue>;
-
+    filter(filter: (x: T) => boolean): IStoreCollection<T, TValue>;
     limit(n: number): IStoreCollection<T, TValue>;
-
     offset(n: number): IStoreCollection<T, TValue>;
-
     getKeys(): Promise<T["key"][]>;
-
     getCount(): Promise<number>;
-
     modifyMetadata(callback: (metadataRecord: T) => void, transactionMode?: TransactionMode): Promise<number>;
-
     modifyData(callback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
-
     modify(metadataCallback: (metadataRecord: T) => void, dataCallback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
 }
 
@@ -93,15 +108,24 @@ export interface IPersistentStore<T extends MetadataRecord = MetadataRecord> {
 
     clear(): Promise<void>;
 
-    get<TValue = any>(key: string): Promise<StoreItem<T, TValue>>;
+    get<TValue = unknown>(key: string): Promise<StoreItem<T, TValue> | undefined>;
 
-    set<TValue = any>(metadataRecord: T, value: TValue): Promise<string>;
+    set<TValue = unknown>(metadataRecord: T, value: TValue): Promise<string>;
 
-    getOrSet<TValue = any>(metadataRecord: MetadataRecord, factory: (metadataRecord: MetadataRecord) => TValue): Promise<StoreItem<T, TValue>>
+    getOrSet<TValue = unknown>(metadataRecord: MetadataRecord, factory: (metadataRecord: MetadataRecord) => TValue): Promise<StoreItem<T, TValue>>
 
-    bulkGet<TValue = any>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
+    bulkGet<TValue = unknown>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
 
-    bulkSet<TValue = any>(metadataRecords: MetadataRecord[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
+    bulkSet<TValue = unknown>(metadataRecords: MetadataRecord[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
+
+    orderBy(field: keyof T, direction: OrderDirection, distinct?: boolean): IStoreCollection<T>;
+
+    distinct(field: keyof T): IStoreCollection<T>;
+
+    query<TValue = unknown>(): IStoreCollection<T, TValue>;
+
+    // filter
+    where<K extends keyof T, TValue = unknown>(field: K extends string ? K : never): WhereFilter<T[K] extends IndexableType ? T[K] : never, IStoreCollection<T, TValue>>;
 
     [Symbol.dispose]: () => void;
 }

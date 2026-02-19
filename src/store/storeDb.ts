@@ -8,10 +8,10 @@ const dataFieldDefTemplate: FieldDefTemplate<keyof DataRecord> = ["&key", "value
 
 const mutex = new AsyncMutex();
 
-export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.Dexie {
+export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown> extends Dexie.Dexie {
     // catalog/registry
     metadata: Dexie.Table<T, string>;
-    data: Dexie.Table<DataRecord, string>;
+    data: Dexie.Table<DataRecord<TValue>, string>;
 
     protected _isDisposed: boolean;
 
@@ -148,7 +148,7 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord> extends Dexie.De
         try {
             await mutex.dispatch(async () => {
                 if (await StoreDb.exists(name)) {
-                    await StoreDb.delete(name);
+                    await Dexie.Dexie.delete(name);
                 }
             });
         } catch (err) {

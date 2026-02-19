@@ -2,7 +2,19 @@ import * as Dexie from "dexie";
 import { v4 as uuid } from "uuid";
 import { keyOf } from "@/typeUtils";
 import { KeyPathValueMap } from "@/typeCore";
-import { ChangeSet, DataRecord, FieldDefTemplate, IndexableType, IStoreCollection, MetadataRecord, OrderDirection, StoreBase, StoreItem, TransactionMode } from "./storeContracts";
+import {
+    ChangeSet,
+    DataRecord,
+    FieldDefTemplate,
+    IndexableType,
+    IStoreCollection,
+    WhereFilter,
+    MetadataRecord,
+    OrderDirection,
+    StoreBase,
+    StoreItem,
+    TransactionMode
+} from "./storeContracts";
 import { StoreDb } from "@/store/storeDb";
 
 function* reverseMapValues<K, V>(map: Map<K, V>) {
@@ -12,7 +24,7 @@ function* reverseMapValues<K, V>(map: Map<K, V>) {
     }
 }
 
-class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> implements IStoreCollection<T, TValue> {
+class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknown> implements IStoreCollection<T, TValue> {
     private _metadata: Dexie.Collection<T>;
 
     constructor(
@@ -33,12 +45,12 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
 
         return db.exec(async () => {
             const map = new Map<string, StoreItem<T, TValue>>();
-            let populate: (callback: (metadataRecord: T) => void) => void = this._metadata.each;
+            let populate: (callback: (metadataRecord: T) => void) => void | PromiseLike<void> = this._metadata.each.bind(this._metadata);
             if (orderBy && orderDirection) {
                 const metadataRecords = await this._metadata.sortBy(orderBy as string);
-                populate = metadataRecords.forEach;
+                populate = metadataRecords.forEach.bind(metadataRecords);
             }
-            populate(metadataRecord => {
+            await populate(metadataRecord => {
                 map.set(metadataRecord.key, {
                     metadata: metadataRecord,
                     // data: undefined
@@ -47,7 +59,12 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
             const keys = [...map.keys()];
             const dataRecords = await db.data.bulkGet(keys);
             for (const dataRecord of dataRecords) {
-                map.get(dataRecord.key).data = dataRecord;
+                if (dataRecord) {
+                    const item = map.get(dataRecord.key);
+                    if (item) {
+                        item.data = dataRecord as DataRecord<TValue>;
+                    }
+                }
             }
             // abandoned/orphaned entries:
             // Object.defineProperty(storeItem, keyOf<StoreItem>("data"), {
@@ -68,12 +85,12 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
         return this.toArray(field, direction, transactionMode);
     }
 
-    filter<S extends T>(filter: (x: T) => x is S) {
+    filter(filter: ((x: T) => boolean)): IStoreCollection<T, TValue> {
         const metadata = this._metadata.filter(filter);
-        return new StoreCollection<S, TValue>(metadata);
+        return new StoreCollection<T, TValue>(metadata);
     }
 
-    limit(n: number) {
+    limit(n: number): IStoreCollection<T, TValue> {
         return new StoreCollection<T, TValue>(this._metadata.limit(n));
     }
 
@@ -91,9 +108,9 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
 
     getFilterKeys(distinct: boolean) {
         if (distinct) {
-            return this._metadata.uniqueKeys;
+            return this._metadata.uniqueKeys();
         }
-        return this._metadata.keys;
+        return this._metadata.keys();
     }
 
     modifyMetadata(callback: (metadataRecord: T) => void, transactionMode: TransactionMode = "rw") {
@@ -114,7 +131,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
         return this.db.exec(async () => {
             const keys = await this.getKeys();
             return await this.db.data.where(keyOf<DataRecord>("key")).anyOf(keys).modify(r => {
-                callback(r.value);
+                callback(r);
             });
         }, transactionMode);
     }
@@ -131,7 +148,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
             }
             if (dataCallback) {
                 dc = await this.db.data.where(keyOf<DataRecord>("key")).anyOf(keys).modify(r => {
-                    dataCallback(r.value);
+                    dataCallback(r);
                 });
             }
             return mc;
@@ -139,33 +156,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = any> i
     }
 }
 
-interface IWhereFilter<T extends IndexableType, TResult = any> {
-    constructor(source: Dexie.WhereClause<any, any>)
-    above(value: T): TResult;
-    aboveOrEqual(value: T): TResult;
-    anyOf(values: ReadonlyArray<T>): TResult;
-    anyOfIgnoreCase(keys: T extends string ? T[] : never): T extends string ? TResult : never;
-    below(value: T): TResult;
-    belowOrEqual(value: T): TResult;
-    between(lower: any, upper: any, includeLower?: boolean, includeUpper?: boolean): TResult;
-    equals(value: T): TResult;
-    equalsIgnoreCase(value: string): TResult;
-    inAnyRange(ranges: ReadonlyArray<{
-        0: T;
-        1: T;
-    }>, options?: {
-        includeLowers?: boolean;
-        includeUppers?: boolean;
-    }): TResult;
-    startsWith(prefix: T extends string ? T : never): T extends string ? TResult : never;
-    startsWithAnyOf(prefixes: T extends string ? T[] : never): T extends string ? TResult : never;
-    startsWithIgnoreCase(prefix: T extends string ? T : never): T extends string ? TResult : never;
-    startsWithAnyOfIgnoreCase(prefixes: T extends string ? T[] : never): T extends string ? TResult : never;
-    noneOf(values: ReadonlyArray<T>): TResult;
-    notEqual(value: T): TResult;
-}
-
-function createWhereFilter<T extends IndexableType, TResult>(source: Dexie.WhereClause<any, any>, factory: (source: Dexie.Collection) => TResult) {
+function createWhereFilter<T extends IndexableType, TResult = unknown>(source: Dexie.WhereClause<unknown, unknown>, factory: (source: Dexie.Collection) => TResult) {
     const methodCache = new WeakMap<Function, Function>();
     return new Proxy(source as any, {
         get(target, prop, receiver) {
@@ -182,12 +173,12 @@ function createWhereFilter<T extends IndexableType, TResult>(source: Dexie.Where
             }
             return value;
         },
-    }) as IWhereFilter<T, TResult>;
+    }) as WhereFilter<T, TResult>;
 }
 
 export class DataStore<T extends MetadataRecord> implements StoreBase {
 
-    private _db: StoreDb<T>;
+    private _db: StoreDb<T> | undefined;
 
     constructor(name: string, metadataFieldDefTemplate: keyof T extends string ? FieldDefTemplate<keyof T> : never) {
         if (!name) {
@@ -198,7 +189,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
 
     [Symbol.dispose]() {
         this._db?.[Symbol.dispose]();
-        this._db = null;
+        this._db = undefined;
     }
 
     open() {
@@ -234,51 +225,46 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         return this._db.clear(transactionMode);
     }
 
-    get<TValue = any>(key: string, transactionMode: TransactionMode = "r?"): Promise<StoreItem<T, TValue>> {
-        return this.exec(async () => {
-            const metadataRecord = await this._db.metadata.get(key);
-            const dataRecord = await this._db.data.get(key);
-            return {
-                metadata: metadataRecord, // || { key: key }
-                data: dataRecord
-            } as StoreItem<T, TValue>;
-        }, transactionMode);
+    private async getInternal<TValue>(key: string): Promise<StoreItem<T, TValue> | undefined> {
+        const metadataRecord = await this._db.metadata.get(key);
+        if (!metadataRecord) return undefined;
+        const dataRecord = await this._db.data.get(key);
+        return { metadata: metadataRecord, data: dataRecord } as StoreItem<T, TValue>;
+    }
+
+    private async setInternal<TValue>(metadataRecord: T, value: TValue): Promise<string> {
+        if (!metadataRecord.key) metadataRecord.key = uuid();
+        const result = await this._db.metadata.put(metadataRecord);
+        await this._db.data.put({ key: metadataRecord.key, value });
+        return result;
+    }
+
+    get<TValue = unknown>(key: string, transactionMode: TransactionMode = "r?"): Promise<StoreItem<T, TValue> | undefined> {
+        return this.exec(() => this.getInternal<TValue>(key), transactionMode);
     }
 
     // upsert
-    set<TValue = any>(metadataRecord: T, value: TValue, transactionMode: TransactionMode = "rw") {
+    set<TValue = unknown>(metadataRecord: T, value: TValue, transactionMode: TransactionMode = "rw") {
         if (value === undefined) {
             throw new Error('Invalid parameter: "value".');
         }
-        if (!metadataRecord.key) {
-            metadataRecord.key = uuid();
-        }
-        return this.exec(async () => {
-            const result = await this._db.metadata.put(metadataRecord);
-            await this._db.data.put({
-                key: metadataRecord.key,
-                value: value
-            });
-            return result;
-        }, transactionMode);
+        return this.exec(() => this.setInternal(metadataRecord, value), transactionMode);
     }
 
     // getOrAdd
-    getOrSet<TValue = any>(metadataRecord: T, factory: (metadataRecord: T) => TValue, transactionMode: TransactionMode = "rw") {
+    getOrSet<TValue = unknown>(metadataRecord: T, factory: (metadataRecord: T) => TValue, transactionMode: TransactionMode = "rw") {
         if (!metadataRecord.key) {
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
         return this.exec(async () => {
-            const existingStoreItem = await this.get(metadataRecord.key);
-            if (existingStoreItem) {
-                return existingStoreItem;
-            }
-            await this.set(metadataRecord, factory(metadataRecord));
-            return this.get(metadataRecord.key);
+            const existing = await this.getInternal<TValue>(metadataRecord.key);
+            if (existing) return existing;
+            await this.setInternal(metadataRecord, factory(metadataRecord));
+            return this.getInternal<TValue>(metadataRecord.key);
         }, transactionMode);
     }
 
-    update<TValue = any>(key: string, metadataChanges: KeyPathValueMap<T>, valueChanges?: KeyPathValueMap<TValue>, transactionMode: TransactionMode = "rw") {
+    update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T>, valueChanges?: KeyPathValueMap<TValue>, transactionMode: TransactionMode = "rw") {
         if (!key) {
             throw new Error('Key cannot be empty. Parameter: "key".');
         }
@@ -318,25 +304,29 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     }
 
     // getMany
-    bulkGet<TValue = any>(keys: string[], transactionMode: TransactionMode = "r") {
+    bulkGet<TValue = unknown>(keys: string[], transactionMode: TransactionMode = "r") {
         return this.exec(async () => {
             const map = new Map<string, StoreItem<T, TValue>>();
             const metadataRecords = await this._db.metadata.bulkGet(keys);
             for (const metadataRecord of metadataRecords) {
-                map.set(metadataRecord.key, {
-                    metadata: metadataRecord,
-                    // data: undefined
-                });
+                if (metadataRecord) {
+                    map.set(metadataRecord.key, { metadata: metadataRecord });
+                }
             }
             const dataRecords = await this._db.data.bulkGet(keys);
             for (const dataRecord of dataRecords) {
-                map.get(dataRecord.key).data = dataRecord;
+                if (dataRecord) {
+                    const item = map.get(dataRecord.key);
+                    if (item) {
+                        item.data = dataRecord as DataRecord<TValue>;
+                    }
+                }
             }
             return [...map.values()];
         }, transactionMode);
     }
 
-    bulkSet<TValue = any>(metadataRecords: T[], dataRecords: DataRecord<TValue>[], transactionMode: TransactionMode = "rw") {
+    bulkSet<TValue = unknown>(metadataRecords: T[], dataRecords: DataRecord<TValue>[], transactionMode: TransactionMode = "rw") {
         let index: number;
         if (metadataRecords && (index = metadataRecords.findIndex(x => !x)) >= 0) {
             throw new Error(`Invalid metadata record. Parameter: "metadataRecords". Index: ${index}.`);
@@ -380,14 +370,14 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         return new StoreCollection(metadata);
     }
 
-    query<TValue = any>() {
+    query<TValue = unknown>() {
         return new StoreCollection<T, TValue>(this._db.metadata.toCollection());
     }
 
     // filter
-    where<K extends keyof T, TValue = any>(field: K extends string ? K : never) {
-        const source = this._db.metadata.where(field as string);
-        return createWhereFilter<T[K] extends IndexableType ? T[K] : never, StoreCollection<T, TValue>>(source, c => new StoreCollection<T, TValue>(c));
+    where<K extends keyof T, TValue = unknown>(field: K extends string ? K | K[] : never) {
+        const source = this._db.metadata.where(field);
+        return createWhereFilter<T[K] extends IndexableType ? T[K] : never, IStoreCollection<T, TValue>>(source, c => new StoreCollection<T, TValue>(c));
     }
 }
 

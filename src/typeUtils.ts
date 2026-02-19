@@ -284,10 +284,10 @@ export function jsonClone<T extends object>(obj: T): T {
 }
 
 // freeze
-const lock = Symbol("__lock");
+const $lock = Symbol("__lock");
 
 // IFreezable
-export type ILockable<T = any> = Readonly<T> & { [lock]?: (locked: boolean) => void };
+export type ILockable<T = any> = Readonly<T> & { [$lock]?: (locked: boolean) => void };
 
 // deepFreeze/lock
 export function toReadOnly<T extends object>(obj: T, throwOnSet: boolean = false): ILockable<T> {
@@ -327,10 +327,10 @@ function toReadOnlyInternal<T extends object>(obj: T, throwOnSet: boolean = fals
         }
     });
 
-    result[lock] = (l: boolean) => {
+    result[$lock] = (l: boolean) => {
         locked = l;
     };
-    return result as Readonly<T> & { [lock]: (locked: boolean) => void };
+    return result as Readonly<T> & { [$lock]: (locked: boolean) => void };
 }
 
 export type DeepPropertyKey = PropertyKey[];

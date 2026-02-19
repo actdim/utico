@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { delay, delayError, withTimeout, memoEffect } from "@/utils";
 
-describe("msgBus", () => {
+describe("utils", () => {
     // process.on("unhandledRejection", (reason, promise) => {
     //     console.error("Unhandled Rejection at:", promise, "reason:", reason);
     //     process.exit(1);
