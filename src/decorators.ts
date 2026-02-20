@@ -1,5 +1,4 @@
-// nonEnumerable
-export function notEnumerable(target: any, propertyKey: string | symbol) {
+export function nonEnumerable(target: any, propertyKey: string | symbol) {
 
     Object.defineProperty(target, propertyKey, {
         get() {

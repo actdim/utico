@@ -189,7 +189,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
 
     [Symbol.dispose]() {
         this._db?.[Symbol.dispose]();
-        this._db = undefined;
+        this._db = null;
     }
 
     open() {
@@ -244,7 +244,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     }
 
     // upsert
-    set<TValue = unknown>(metadataRecord: T, value: TValue, transactionMode: TransactionMode = "rw") {
+    async set<TValue = unknown>(metadataRecord: T, value: TValue, transactionMode: TransactionMode = "rw") {
         if (value === undefined) {
             throw new Error('Invalid parameter: "value".');
         }
@@ -252,7 +252,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     }
 
     // getOrAdd
-    getOrSet<TValue = unknown>(metadataRecord: T, factory: (metadataRecord: T) => TValue, transactionMode: TransactionMode = "rw") {
+    async getOrSet<TValue = unknown>(metadataRecord: T, factory: (metadataRecord: T) => TValue, transactionMode: TransactionMode = "rw") {
         if (!metadataRecord.key) {
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
@@ -264,7 +264,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         }, transactionMode);
     }
 
-    update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T>, valueChanges?: KeyPathValueMap<TValue>, transactionMode: TransactionMode = "rw") {
+    async update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T>, valueChanges?: KeyPathValueMap<TValue>, transactionMode: TransactionMode = "rw") {
         if (!key) {
             throw new Error('Key cannot be empty. Parameter: "key".');
         }
@@ -283,7 +283,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         }, transactionMode);
     }
 
-    bulkUpdate(metadataChangeSets: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode: TransactionMode = "rw") {
+    async bulkUpdate(metadataChangeSets: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode: TransactionMode = "rw") {
         let index: number;
         if (metadataChangeSets && (index = metadataChangeSets.findIndex((x) => !x.key)) >= 0) {
             throw new Error(`Key cannot be empty. Parameter: "metadataChangeSets". Invalid item index: ${index}.`);
@@ -326,7 +326,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         }, transactionMode);
     }
 
-    bulkSet<TValue = unknown>(metadataRecords: T[], dataRecords: DataRecord<TValue>[], transactionMode: TransactionMode = "rw") {
+    async bulkSet<TValue = unknown>(metadataRecords: T[], dataRecords: DataRecord<TValue>[], transactionMode: TransactionMode = "rw") {
         let index: number;
         if (metadataRecords && (index = metadataRecords.findIndex(x => !x)) >= 0) {
             throw new Error(`Invalid metadata record. Parameter: "metadataRecords". Index: ${index}.`);

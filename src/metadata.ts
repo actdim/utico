@@ -19,7 +19,7 @@ export function updatePropertyMetadata<T extends object>(target: T, propertyName
 }
 
 // getMemberMetadata
-export function getPropertyMetadata<T extends object>(target: T, propertyName: keyof T, slotName?: string) {
+export function getPropertyMetadata<TInstance, TMetadata = unknown>(target: TInstance, propertyName: keyof TInstance, slotName?: string): TMetadata {
     // target - obj
     if (target && propertyName) {
         // metadata container
@@ -40,11 +40,11 @@ export function getPropertyMetadata<T extends object>(target: T, propertyName: k
     return undefined;
 }
 
-export function getPropertyMetadataItem<TMetadataItem>(metadata: WeakMap<any, TMetadataItem>, obj: any) {
+export function getPropertyMetadataItem<TMetadataItem = unknown>(metadata: WeakMap<any, TMetadataItem>, obj: any) {
 
     // using prototype chain
 
-    let result: TMetadataItem = null;
+    let result: TMetadataItem = undefined;
     let prototype;
     while (true) {
         prototype = Object.getPrototypeOf(prototype || obj);
@@ -61,7 +61,7 @@ export function getPropertyMetadataItem<TMetadataItem>(metadata: WeakMap<any, TM
     return result;
 }
 
-export function metadata(value: any, slotName: string) {
+export function metadata(value: unknown, slotName: string) {
     return function (target: any, propertyKey: PropertyKey) {
         updatePropertyMetadata(target, propertyKey, value, slotName);
     }

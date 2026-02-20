@@ -15,7 +15,7 @@ describe("utils", () => {
     //     console.error("Unhandled rejection:", event.reason);
     // };
 
-    it("can call memoEffect", () => {
+    it("memoEffect works", () => {
         let dep = "test";
         let id = 0;
         let c = 0;

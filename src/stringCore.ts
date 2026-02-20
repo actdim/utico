@@ -60,7 +60,7 @@ function ciIndexOf(str: string, searchStr: string, locale = navigator.language) 
 
 function ciIncludes(str: string, searchStr: string, locale = navigator.language) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
-        return -1;
+        return false;
     }
     return str.toLocaleUpperCase(locale).includes(searchStr.toLocaleUpperCase(locale));
 }

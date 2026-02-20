@@ -1,4 +1,4 @@
-import { keyOf } from "@/typeUtils";
+import { keyOf, typed } from "@/typeUtils";
 import { StructEvent, StructEventTarget } from "@/structEvent";
 import { v4 as uuid } from "uuid";
 import { DataRecord, FieldDef, MetadataRecord, StoreItem, TransactionMode } from "@/store/storeContracts";
@@ -32,6 +32,22 @@ type PersistentCacheEventStruct = {
 
 // (registry/catalog)fieldNames
 const metadataFieldDefTemplate = ["&key", "createdAt", "updatedAt", "tags", "accessedAt", "expiresAt"] satisfies (FieldDef<keyof CacheMetadataRecord>)[];
+
+// ways to create StructEvent<PersistentCacheEventStruct, PersistentCache> type alias:
+
+// 1st:
+// class PersistentCacheEvent extends StructEvent<PersistentCacheEventStruct, PersistentCache> { }
+// 2nd:
+// type PersistentCacheEvent = StructEvent<PersistentCacheEventStruct, PersistentCache>;
+// const PersistentCacheEvent = StructEvent as new (
+//     ...args: ConstructorParameters<typeof StructEvent<PersistentCacheEventStruct, PersistentCache>>
+// ) => PersistentCacheEvent;
+
+// 3rd:
+const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, PersistentCache>);
+
+// 4th:
+// const PersistentCacheEvent = createConstructor(StructEvent<PersistentCacheEventStruct, PersistentCache>);
 
 // implements Struct<StructEventTarget<PersistentCacheEventStruct>>
 // PersistentCacheManager
@@ -166,7 +182,8 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             await this.bulkDelete(keys);
         }, "rw");
         if (metadataRecords?.length) {
-            const evt = new StructEvent<PersistentCacheEventStruct, this>("evict", {
+            // or new StructEvent<PersistentCacheEventStruct, this>
+            const evt = new PersistentCacheEvent("evict", {
                 detail: {
                     records: metadataRecords
                 },
@@ -215,7 +232,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
 
     }
     // upsert
-    set<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue, options: CacheOptions) {
+    async set<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue, options: CacheOptions) {
         if (value === undefined) {
             throw new Error('Invalid parameter: "value".');
         }
@@ -236,7 +253,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
     }
 
     // getOrAdd
-    getOrSet<TValue = any>(metadataRecord: CacheMetadataRecord, factory: (metadataRecord: CacheMetadataRecord) => TValue, options: CacheOptions) {
+    async getOrSet<TValue = any>(metadataRecord: CacheMetadataRecord, factory: (metadataRecord: CacheMetadataRecord) => TValue, options: CacheOptions) {
         if (!metadataRecord.key) {
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
@@ -265,14 +282,17 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             await this._db.metadata.bulkPut(metadataRecords);
             const dataRecords = await this._db.data.bulkGet(keys);
             for (const dataRecord of dataRecords) {
-                map.get(dataRecord.key).data = dataRecord;
+                const item = map.get(dataRecord.key);
+                if (item) {
+                    item.data = dataRecord as DataRecord<TValue>;
+                }
             }
             return [...map.values()];
         }, "rw");
     }
 
     // setMeny
-    bulkSet<TValue = any>(metadataRecords: CacheMetadataRecord[], dataRecords: DataRecord<TValue>[], optionsProvider: (record: MetadataRecord) => CacheOptions) {
+    async bulkSet<TValue = any>(metadataRecords: CacheMetadataRecord[], dataRecords: DataRecord<TValue>[], optionsProvider: (record: MetadataRecord) => CacheOptions) {
         let index: number;
         if (metadataRecords && (index = metadataRecords.findIndex(x => !x)) >= 0) {
             throw new Error(`Invalid metadata record. Parameter: "metadataRecords". Index: ${index}.`);

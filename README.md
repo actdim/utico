@@ -7,6 +7,8 @@ A modern foundation toolkit for complex TypeScript apps.
 - [Installation](#installation)
 - [Modules](#modules)
     - [typeCore — Expressive Type Composition](#typecore--expressive-type-composition)
+    - [typeUtils — Runtime Type Utilities](#typeutils--runtime-type-utilities)
+    - [StructEvent — Typed DOM Events](#structevent--typed-dom-events)
     - [watchable — Promise & Function Tracking](#watchable--promise--function-tracking)
     - [asyncMutex — Async Mutual Exclusion](#asyncmutex--async-mutual-exclusion)
     - [store — Structured Persistence](#store--structured-persistence)
@@ -173,6 +175,342 @@ const prefixKeys = getKeyPrefixer<{ foo: 1; bar: 2 }>('x_');
 prefixKeys({ foo: 1, bar: 2 });
 // => { x_foo: 1, x_bar: 2 }
 ```
+
+---
+
+### typeUtils — Runtime Type Utilities
+
+**Import:** `@actdim/utico/typeUtils`
+
+Runtime helpers that complement the pure-type utilities in `typeCore`: typed object access,
+property-name reflection, constructor binding, proxies, enums, and JSON helpers.
+
+---
+
+#### Constructor Utilities
+
+These utilities solve a common TypeScript problem: creating a reusable, pre-typed alias for a
+generic class without repeating its type arguments everywhere.
+
+**Background.** Consider `StructEvent<TStruct, TTarget>` — a generic typed event class
+(see [StructEvent](#structevent--typed-dom-events)).
+Inside `PersistentCache` you want to work with
+`StructEvent<PersistentCacheEventStruct, PersistentCache>` as if it were its own named type.
+TypeScript offers four ways to achieve this; each has different trade-offs.
+
+---
+
+##### `typed()`
+
+```ts
+function typed<TCtor extends Constructor>(ctor: TCtor): CallableConstructor<TCtor>
+```
+
+Narrows a generic constructor to a pre-typed alias using a TypeScript
+**Instantiation Expression** (TS 4.7+). Zero runtime cost — returns `ctor` as-is.
+The type arguments are bound at the call site by passing `MyClass<A, B>` as a *value expression*
+(without `new`), so the inferred constructor already has the concrete types locked in before
+`typed` is called.
+
+```ts
+const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, PersistentCache>);
+
+const evt = new PersistentCacheEvent("evict", {
+    detail: { records },
+    target: this,
+    cancelable: true,
+});
+```
+
+---
+
+##### `createConstructor()`
+
+```ts
+function createConstructor<TConstructor extends Constructor>(
+    type: TConstructor
+): CallableConstructor<TConstructor>
+```
+
+Same as `typed()` — binds generic type arguments via an Instantiation Expression — but also makes
+the constructor **callable without `new`**. It wraps the class in a plain function that forwards
+all arguments, and patches `prototype` so `instanceof` still works correctly.
+
+```ts
+const PersistentCacheEvent = createConstructor(StructEvent<PersistentCacheEventStruct, PersistentCache>);
+
+// no new required:
+const evt = PersistentCacheEvent("evict", { detail: { records }, target: this });
+```
+
+> For primitive-backed types (`String`, `Number`) the original constructor is returned unchanged,
+> since they are already callable without `new`.
+
+---
+
+#### Comparison: 4 ways to bind a generic constructor
+
+All four examples produce a bound alias for `StructEvent<PersistentCacheEventStruct, PersistentCache>`.
+
+**1. Subclass**
+
+```ts
+class PersistentCacheEvent
+    extends StructEvent<PersistentCacheEventStruct, PersistentCache> {}
+```
+
+**2. Manual cast**
+
+```ts
+type PersistentCacheEvent = StructEvent<PersistentCacheEventStruct, PersistentCache>;
+const PersistentCacheEvent = StructEvent as new (
+    ...args: ConstructorParameters<typeof StructEvent<PersistentCacheEventStruct, PersistentCache>>
+) => PersistentCacheEvent;
+```
+
+**3. `typed()` + Instantiation Expression** *(recommended)*
+
+```ts
+const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, PersistentCache>);
+const evt = new PersistentCacheEvent("evict", { detail: { records }, target: this });
+```
+
+**4. `createConstructor()` — callable without `new`**
+
+```ts
+const PersistentCacheEvent = createConstructor(StructEvent<PersistentCacheEventStruct, PersistentCache>);
+const evt = PersistentCacheEvent("evict", { detail: { records }, target: this }); // no new
+```
+
+---
+
+**Feature comparison**
+
+| | Subclass | Manual cast | `typed()` | `createConstructor()` |
+|---|:---:|:---:|:---:|:---:|
+| Runtime overhead | new class | none | **none** | wrapper function |
+| `new` required | yes | yes | yes | **no** |
+| `instanceof` | **yes** | no | no | no |
+| Can add methods | **yes** | no | no | no |
+| Verbosity | medium | **high** | **low** | **low** |
+| Requires TS | any | any | **4.7+** | **4.7+** |
+
+**When to choose:**
+
+- **Subclass** — when you need `instanceof` checks, want to add methods, or need a distinct runtime type.
+- **Manual cast** — when TS < 4.7 is required, or you prefer zero dependencies (verbose but explicit).
+- **`typed()`** — the default choice: concise, zero runtime cost. Requires TS 4.7+.
+- **`createConstructor()`** — same as `typed()`, but the constructor must be callable without `new`
+  (e.g. factory patterns, functional-style code).
+
+---
+
+#### Object / Key Utilities
+
+| Function | Description |
+|----------|-------------|
+| `keysOf(obj)` | Typed `Object.keys` — returns `(keyof T)[]` instead of `string[]` |
+| `keyOf<T>(key)` | Returns a property name literal narrowed to `keyof T`. No object required — useful for building typed key references |
+| `nameOf<T>(f)` | Extracts a property name from a lambda `x => x.prop` at runtime via `Proxy` |
+| `entry(obj, name, caseInsensitive?)` | Looks up a key (optionally case-insensitive) and returns `[resolvedKey, value]` |
+
+```ts
+keysOf({ a: 1, b: 2 })          // => ["a", "b"] typed as ("a" | "b")[]
+
+keyOf<CacheMetadataRecord>("expiresAt")  // => "expiresAt" — typed, no runtime object needed
+
+nameOf<User>(x => x.email)       // => "email"
+```
+
+---
+
+#### Constraint Helpers
+
+| Function | Description |
+|----------|-------------|
+| `satisfies<TShape>()` | Curried constraint: validates `obj` extends `TShape` without widening the inferred type |
+| `strictSatisfies<T>()` | Like `satisfies`, but also rejects objects with extra keys beyond the shape |
+
+```ts
+const opts = satisfies<{ timeout: number }>()({ timeout: 5000, retries: 3 });
+// opts is inferred as { timeout: number; retries: number }, not widened to { timeout: number }
+```
+
+---
+
+#### Assignment Utilities
+
+| Function | Description |
+|----------|-------------|
+| `assignWith(dst, src, callback?)` | Conditional assign: iterates `src` keys, calls `callback(key, value, set)` to control each assignment |
+| `update(dst, src, props?)` | Typed assign: `src` must be `Partial<T>`; optional `props` list limits which keys are copied |
+| `copy(src, dst, props?)` | Like `update` but with source and destination swapped |
+
+---
+
+#### Path Utilities
+
+| Function | Description |
+|----------|-------------|
+| `getPropertyPath<T>(expr)` | Captures a property access chain from a lambda as `(string \| number \| symbol)[]` via recursive proxy |
+| `combinePropertyPath(path)` | Serialises a path array into bracket-notation: `["nested"]["0"]["name"]` |
+
+```ts
+getPropertyPath<Config>(x => x.server.port)  // => ["server", "port"]
+combinePropertyPath(["server", "port"])       // => '["server"]["port"]'
+```
+
+---
+
+#### Proxy Utilities
+
+| Function | Description |
+|----------|-------------|
+| `proxify<T>(source)` | Lazy proxy: forwards every get/set to `source()` evaluated at access time |
+| `toReadOnly<T>(obj, throwOnSet?)` | Deep read-only proxy; silently ignores writes (or throws if `throwOnSet: true`). Toggle with the `[$lock]` symbol |
+| `createDeepProxy<T>(target, handler)` | Deep-change proxy: `handler.set` and `handler.deleteProperty` receive the full `DeepPropertyKey` path |
+
+---
+
+#### JSON Utilities
+
+| Function | Description |
+|----------|-------------|
+| `orderedStringify(obj, keyCompareFn?, replacer?, space?)` | Stable JSON serialisation: sorts object keys recursively before stringifying |
+| `jsonEquals(obj1, obj2)` | Structural equality via `orderedStringify` |
+| `jsonClone<T>(obj)` | Deep clone via `JSON.parse(JSON.stringify(obj))` — for plain JSON-serialisable data |
+
+```ts
+jsonEquals({ b: 2, a: 1 }, { a: 1, b: 2 }) // => true (key order doesn't matter)
+```
+
+---
+
+#### Enum Utilities
+
+| Function | Description |
+|----------|-------------|
+| `getEnumKeys<T>(enumType)` | Returns the string keys of a TS enum, filtering reverse-mapping numeric keys |
+| `getEnumValues<T>(enumType)` | Returns the values of a TS enum |
+| `getEnumValue<T>(enumType, name, defaultValue)` | Looks up an enum member by name; returns `defaultValue` when missing |
+
+```ts
+enum Color { Red = 0, Green = 1, Blue = 2 }
+
+getEnumKeys(Color)   // => ["Red", "Green", "Blue"]
+getEnumValues(Color) // => [0, 1, 2]
+getEnumValue(Color, "Green", Color.Red) // => 1
+getEnumValue(Color, "Purple", Color.Red) // => 0 (default)
+```
+
+---
+
+### StructEvent — Typed DOM Events
+
+**Import:** `@actdim/utico/structEvent`
+
+`StructEvent` and `StructEventTarget` bring the standard DOM `EventTarget` / `CustomEvent` API
+into TypeScript's type system. You describe every event your class can emit as a **struct** — a
+plain object type where keys are event names and values are the `detail` payload types — and the
+compiler enforces correct event names, `detail` shapes, and listener signatures everywhere.
+
+#### Classes
+
+| Class | Description |
+|-------|-------------|
+| `StructEvent<TStruct, TTarget, TType>` | Typed `CustomEvent`. `.detail` is `TStruct[TType]`; `.target` is `TTarget`. `TType` defaults to all keys of `TStruct` and is inferred automatically when constructing. |
+| `StructEventTarget<TStruct>` | `EventTarget` subclass with typed overloads for `addEventListener`, `removeEventListener`, `dispatchEvent`, and `hasEventListener`. |
+
+#### Constructor: `StructEvent`
+
+```ts
+new StructEvent<TStruct, TTarget, TType>(
+    type: TType,
+    eventInitDict?: CustomEventInit<TStruct[TType]> & { target: TTarget }
+)
+```
+
+#### Methods: `StructEventTarget`
+
+| Method | Description |
+|--------|-------------|
+| `addEventListener<K>(type, listener, options?)` | Adds a typed listener; `listener` receives `StructEvent<TStruct, this, K>` |
+| `removeEventListener<K>(type, listener, options?)` | Removes a previously added typed listener |
+| `dispatchEvent<K>(event)` | Dispatches a `StructEvent`; TypeScript rejects events whose struct does not match |
+| `hasEventListener<K>(type, listener)` | Returns `true` if the exact listener is currently registered |
+
+#### Usage Examples
+
+```typescript
+import { StructEvent, StructEventTarget } from '@actdim/utico/structEvent';
+import { typed } from '@actdim/utico/typeUtils';
+
+// --- 1. Define the event struct ---
+// Keys = event names, values = detail payload types
+
+type PersistentCacheEventStruct = {
+    evict: { records: CacheMetadataRecord[] };
+};
+
+// --- 2. Extend StructEventTarget ---
+
+class PersistentCache extends StructEventTarget<PersistentCacheEventStruct> {
+
+    // --- Dispatching: Option A — inline `this` type (zero boilerplate) ---
+    //
+    // Inside a class method `this` is a polymorphic type, so you can pass it
+    // directly as the second type argument. TypeScript infers "evict",
+    // checks `detail` against the struct, and verifies `target`.
+
+    async deleteExpiredA() {
+        const records = await this.fetchExpired();
+
+        this.dispatchEvent(
+            new StructEvent<PersistentCacheEventStruct, this>("evict", {
+                detail: { records },
+                target: this,
+                cancelable: true,
+            })
+        );
+    }
+
+    // --- Dispatching: Option B — pre-bound alias with typed() (recommended for reuse) ---
+    //
+    // Bind the constructor once at module scope (or as a static field).
+    // See the Constructor Utilities section in typeUtils for all four
+    // binding strategies (subclass, manual cast, typed(), createConstructor()).
+
+    async deleteExpiredB() {
+        const records = await this.fetchExpired();
+
+        this.dispatchEvent(
+            new PersistentCacheEvent("evict", {
+                detail: { records },
+                target: this,
+                cancelable: true,
+            })
+        );
+    }
+}
+
+// Alias created once at module scope — equivalent to a named type for
+// StructEvent<PersistentCacheEventStruct, PersistentCache>
+const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, PersistentCache>);
+
+// --- 3. Listening to typed events ---
+
+const cache = await PersistentCache.open("my-cache");
+
+cache.addEventListener("evict", (e) => {
+    // e.detail  → { records: CacheMetadataRecord[] }   (typed)
+    // e.target  → PersistentCache                       (typed)
+    console.log("Evicted records:", e.detail.records);
+});
+```
+
+**All four ways to create the bound alias** are shown in the
+[Constructor Utilities](#constructor-utilities) section of typeUtils, using exactly
+`StructEvent<PersistentCacheEventStruct, PersistentCache>` as the running example.
 
 ---
 

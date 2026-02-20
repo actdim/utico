@@ -43,21 +43,17 @@ class AsyncMutex { // or Mutex
         }
     }
 
-    tryLock(): () => void | null {
+    tryLock(): (() => void) | null {
         if (this.locked) return null;
 
-        let unlock!: () => void;
         this.locked = true;
-        this.mutex = this.mutex.then(
-            () =>
-                new Promise<void>(res => {
-                    unlock = () => {
-                        this.locked = false;
-                        res();
-                    };
-                })
-        );
-        return unlock;
+        let resolve!: () => void;
+        const promise = new Promise<void>(res => { resolve = res; });
+        this.mutex = this.mutex.then(() => promise);
+        return () => {
+            this.locked = false;
+            resolve();
+        };
     }
 
     async dispatch<T>(fn: Executor<T>, timeoutMs?: number): Promise<T> {

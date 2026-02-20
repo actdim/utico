@@ -48,32 +48,32 @@ export function nameOf(f: (x: any) => any): keyof any {
     return f(p);
 }
 
-type $KeyMap<T extends object> = {
+type _KeyMap<T extends object> = {
     [K in keyof T]: K;
 };
 
-export function $keyMap<T extends object>(obj?: T) {
+export function _keyMap<T extends object>(obj?: T) {
     return new Proxy(
         {},
         {
             get: (target, key) => key
         }
-    ) as $KeyMap<T>;
+    ) as _KeyMap<T>;
 }
 
-// $NU
-type $NH<T> = {
+// _NU
+type _NH<T> = {
     nameOf(f: (x: T) => T[keyof T]): keyof T;
 };
 
 // $nu
 // usage: $nh(obj).nameOf(x => x.prop) or $NH<ClassName>().nameOf(x => x.prop)
-export function $nh<T>(obj?: T) {
+export function _nh<T>(obj?: T) {
     return {
         nameOf: (f: (x: any) => any) => {
             return nameOf(f);
         }
-    } as $NH<T>;
+    } as _NH<T>;
 }
 
 export function getPropertyPath<T>(expr: (x: T) => any) {
@@ -130,6 +130,10 @@ export function createConstructor<TConstructor extends Constructor>(
         createInstance.prototype = type.prototype;
         return createInstance as CallableConstructor<TConstructor>;
     }
+}
+
+export function typed<TCtor extends Constructor>(ctor: TCtor) {
+    return ctor as CallableConstructor<TCtor>;
 }
 
 export function getPrototypes(obj: any) {
@@ -327,7 +331,7 @@ function toReadOnlyInternal<T extends object>(obj: T, throwOnSet: boolean = fals
         }
     });
 
-    result[$lock] = (l: boolean) => {
+    obj[$lock] = (l: boolean) => {
         locked = l;
     };
     return result as Readonly<T> & { [$lock]: (locked: boolean) => void };
