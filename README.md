@@ -2,6 +2,10 @@
 
 A modern foundation toolkit for complex TypeScript apps.
 
+[![npm version](https://img.shields.io/npm/v/@actdim/utico.svg)](https://www.npmjs.com/package/@actdim/utico)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue.svg)](https://www.typescriptlang.org/)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -20,6 +24,18 @@ A modern foundation toolkit for complex TypeScript apps.
 - [License](#license)
 
 ---
+
+## Quick Start
+
+Try @actdim/utico instantly in your browser without any installation:
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/~/github.com/actdim/utico)
+
+Once the project loads, run the tests to see it in action:
+
+```bash
+pnpm run test
+```
 
 ## Installation
 
