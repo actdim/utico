@@ -126,6 +126,74 @@ describe("persistentStore", () => {
         }
     });
 
+    it("update modifies metadata fields", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await addTestRecords(store);
+            await store.update(dataKeys[0], { tags: ["updated"] });
+            const item = await store.get(dataKeys[0]);
+            expect(item.metadata.tags).toEqual(["updated"]);
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("update returns 0 when key does not exist", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            const result = await store.update("nonexistent-key", { tags: ["x"] });
+            expect(result).toBe(0);
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("update throws when key is empty", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await expect(store.update("", { tags: ["x"] })).rejects.toThrow("Key cannot be empty");
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("update throws when no changes are provided", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await expect(store.update("some-key", null, null)).rejects.toThrow("No changes provided");
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("bulkUpdate modifies metadata fields for multiple records", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await addTestRecords(store);
+            await store.bulkUpdate([
+                { key: dataKeys[0], changes: { tags: ["a"] } },
+                { key: dataKeys[1], changes: { tags: ["b"] } },
+            ]);
+            const items = await store.bulkGet(dataKeys);
+            const tagMap = Object.fromEntries(items.map(i => [i.metadata.key, i.metadata.tags]));
+            expect(tagMap[dataKeys[0]]).toEqual(["a"]);
+            expect(tagMap[dataKeys[1]]).toEqual(["b"]);
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("bulkUpdate throws when a change set has an empty key", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await expect(
+                store.bulkUpdate([{ key: "", changes: { tags: ["x"] } }])
+            ).rejects.toThrow("Key cannot be empty");
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
     it("can query custom metadata", async () => {
         type CutomMetadataRecord = MetadataRecord & {
             magnitude: number;

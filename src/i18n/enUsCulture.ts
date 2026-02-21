@@ -29,49 +29,49 @@ Like addresses, the format for telephone numbers around the world varies signifi
 Paper Size
 It's important to set the paper size correctly if your application supports the print function.
 
-Units of Measurement 
+Units of Measurement
 Throughout the world things are measured using different units and scales. The most popular one used is the metric system (meters, liters, grams, etc). Where as the US still uses the imperial system (feet, inches, pounds, etc).
 */
 
-// CultureInfo
+// CultureInfo — all format strings use Luxon tokens
+// Key differences from Moment: YYYY->yyyy, DD->dd, D->d, A->a
 const enUsCulture = {
     dateTime: {
         formats: {
             // The leading zero is more commonly used with the 24-hour notation
             // especially in computer applications because it can help to maintain column alignment in tables and correct sorting order
 
-            // A -> a?
-            // YYYY -> YY? (for short formats)
-            dateTime: "MM/DD/YYYY hh:mm:ss.SSS A",
-            dateTime24: "MM/DD/YYYY HH:mm:ss.SSS",
-            dateTimeShort: "M/D/YYYY h:mm:ss A",
-            dateTime24Short: "M/D/YYYY HH:mm:ss",
+            // a = AM/PM (Luxon), yyyy = 4-digit year, dd = 2-digit day
+            dateTime: "MM/dd/yyyy hh:mm:ss.SSS a",
+            dateTime24: "MM/dd/yyyy HH:mm:ss.SSS",
+            dateTimeShort: "M/d/yyyy h:mm:ss a",
+            dateTime24Short: "M/d/yyyy HH:mm:ss",
 
-            dataTimeHM: "MM/DD/YYYY hh:mm A",
-            dataTimeH24M: "MM/DD/YYYY HH:mm",
-            dataTimeHMShort: "MM/DD/YYYY h:mm A",
-            dataTimeH24MShort: "MM/DD/YYYY H:mm",
+            dataTimeHM: "MM/dd/yyyy hh:mm a",
+            dataTimeH24M: "MM/dd/yyyy HH:mm",
+            dataTimeHMShort: "MM/dd/yyyy h:mm a",
+            dataTimeH24MShort: "MM/dd/yyyy H:mm",
 
-            date: "MM/DD/YYYY",
-            dateShort: "M/D/YYYY",
+            date: "MM/dd/yyyy",
+            dateShort: "M/d/yyyy",
 
             // timeHMSS
-            time: "hh:mm:ss.SSS A",
+            time: "hh:mm:ss.SSS a",
             // timeH24MSS
             time24: "HH:mm:ss.SSS",
             // timeHMSSShort
-            timeShort: "h:mm:ss.SSS A",
+            timeShort: "h:mm:ss.SSS a",
             // timeH24MSSShort
             time24Short: "H:mm:ss.SSS",
 
-            timeHM: "hh:mm A",
+            timeHM: "hh:mm a",
             timeH24M: "HH:mm",
-            timeHMShort: "h:mm A",
+            timeHMShort: "h:mm a",
             timeH24MShort: "H:mm",
 
-            timeHMS: "hh:mm:ss A",
+            timeHMS: "hh:mm:ss a",
             timeH24MS: "HH:mm:ss",
-            timeHMSShort: "h:mm:ss A",
+            timeHMSShort: "h:mm:ss a",
             timeH24MSShort: "H:mm:ss"
         }
     }

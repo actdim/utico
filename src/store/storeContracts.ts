@@ -127,5 +127,9 @@ export interface IPersistentStore<T extends MetadataRecord = MetadataRecord> {
     // filter
     where<K extends keyof T, TValue = unknown>(field: K extends string ? K : never): WhereFilter<T[K] extends IndexableType ? T[K] : never, IStoreCollection<T, TValue>>;
 
+    update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T>, valueChanges?: KeyPathValueMap<TValue>, transactionMode?: TransactionMode): Promise<number>;
+
+    bulkUpdate(metadataChangeSets: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode?: TransactionMode): Promise<number>;
+
     [Symbol.dispose]: () => void;
 }

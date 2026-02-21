@@ -6,7 +6,7 @@ import {
     getEnumValue, getEnumValues, getEnumKeys,
     assignWith, update, copy,
     isPlainObject, orderedStringify, jsonEquals, jsonClone,
-    toReadOnly,
+    toReadOnly, createDeepProxy,
 } from "@/typeUtils";
 
 // ─── keysOf ──────────────────────────────────────────────────────────────────
@@ -370,5 +370,74 @@ describe("toReadOnly", () => {
     it("handles nested objects", () => {
         const ro = toReadOnly({ a: { b: 1 } });
         expect(ro.a.b).toBe(1);
+    });
+});
+
+// ─── createDeepProxy ──────────────────────────────────────────────────────────
+
+describe("createDeepProxy", () => {
+    it("calls handler.set with path and value on top-level assignment", () => {
+        const target = { x: 1 };
+        const onSet = vi.fn();
+        const proxy = createDeepProxy(target, { set: onSet });
+        proxy.x = 42;
+        expect(onSet).toHaveBeenCalledOnce();
+        expect(onSet.mock.calls[0][1]).toEqual(["x"]);
+        expect(onSet.mock.calls[0][2]).toBe(42);
+    });
+
+    it("calls handler.set with full path on nested assignment", () => {
+        const target = { a: { b: 1 } };
+        const onSet = vi.fn();
+        const proxy = createDeepProxy(target, { set: onSet });
+        proxy.a.b = 99;
+        expect(onSet).toHaveBeenCalledOnce();
+        expect(onSet.mock.calls[0][1]).toEqual(["a", "b"]);
+        expect(onSet.mock.calls[0][2]).toBe(99);
+    });
+
+    it("actually mutates the target on assignment", () => {
+        const target = { x: 1 };
+        const proxy = createDeepProxy(target, {});
+        proxy.x = 55;
+        expect(target.x).toBe(55);
+    });
+
+    it("calls handler.deleteProperty with correct path", () => {
+        const target = { x: 1, y: 2 };
+        const onDelete = vi.fn();
+        const proxy = createDeepProxy(target, { deleteProperty: onDelete });
+        delete proxy.x;
+        expect(onDelete).toHaveBeenCalledOnce();
+        expect(onDelete.mock.calls[0][1]).toEqual(["x"]);
+    });
+
+    it("actually removes the property from target on delete", () => {
+        const target: any = { x: 1, y: 2 };
+        const proxy = createDeepProxy(target, {});
+        delete proxy.x;
+        expect("x" in target).toBe(false);
+        expect(target.y).toBe(2);
+    });
+
+    it("succeeds silently when deleting a non-existent property", () => {
+        const target: any = { x: 1 };
+        const proxy = createDeepProxy(target, {});
+        expect(() => delete (proxy as any).missing).not.toThrow();
+    });
+
+    it("does not crash when handler has no set or deleteProperty", () => {
+        const target = { x: 1 };
+        const proxy = createDeepProxy(target, {});
+        expect(() => { proxy.x = 2; }).not.toThrow();
+        expect(() => { delete proxy.x; }).not.toThrow();
+    });
+
+    it("calls handler.set with deep path for 3-level nesting", () => {
+        const target = { a: { b: { c: 0 } } };
+        const onSet = vi.fn();
+        const proxy = createDeepProxy(target, { set: onSet });
+        proxy.a.b.c = 7;
+        expect(onSet.mock.calls[0][1]).toEqual(["a", "b", "c"]);
     });
 });

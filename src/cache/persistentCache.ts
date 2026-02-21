@@ -79,7 +79,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         if (!name) {
             throw new Error("Name cannot be empty.");
         }
-        this._options = { ...options, ...defaultPersistentCacheOptions };
+        this._options = { ...defaultPersistentCacheOptions, ...options };
 
         this._db = new StoreDb<CacheMetadataRecord>(name, metadataFieldDefTemplate);
 
@@ -91,8 +91,9 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
 
     [Symbol.dispose]() {
         if (!this._isDisposed) {
+            this._isDisposed = true;
             if (this._jobTimerId) {
-                window.clearTimeout(this._jobTimerId);
+                clearTimeout(this._jobTimerId);
                 this._jobTimerId = null;
             }
         }
@@ -136,7 +137,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         const now = Date.now();
         record.accessedAt = now;
 
-        let newExpiresAt = record.expiresAt ?? now;
+        let newExpiresAt = record.expiresAt ?? record.absoluteExpiration ?? now;
 
         if (typeof record.slidingExpiration === 'number' && record.slidingExpiration > 0) {
             newExpiresAt = now + record.slidingExpiration;
@@ -153,7 +154,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         record.expiresAt = newExpiresAt;
     }
 
-    scheduleServiceJob() {
+    private scheduleServiceJob() {
         if (this._options.cleanupTimeout) {
             const doWork = async () => {
                 try {
@@ -162,10 +163,12 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
                 } catch (err) {
                     console.error("Cache cleanup failed:", err);
                 } finally {
-                    setTimeout(doWork, this._options.cleanupTimeout);
+                    if (!this._isDisposed) {
+                        this._jobTimerId = setTimeout(doWork, this._options.cleanupTimeout) as unknown as number;
+                    }
                 }
             };
-            setTimeout(doWork, this._options.cleanupTimeout);
+            this._jobTimerId = setTimeout(doWork, this._options.cleanupTimeout) as unknown as number;
         }
     }
 
@@ -179,7 +182,8 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         await this.exec(async () => {
             metadataRecords = await this._db.metadata.where(keyOf<CacheMetadataRecord>("expiresAt")).below(ts).toArray();
             const keys = metadataRecords.map(x => x.key);
-            await this.bulkDelete(keys);
+            result.push(...keys);
+            await this._db.bulkDelete(keys);
         }, "rw");
         if (metadataRecords?.length) {
             // or new StructEvent<PersistentCacheEventStruct, this>
@@ -195,17 +199,19 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         return result;
     }
 
+    private async getInternal<TValue = any>(key: string): Promise<StoreItem<CacheMetadataRecord, TValue>> {
+        const metadataRecord = await this._db.metadata.get(key);
+        this.onGetMetadata(metadataRecord);
+        await this._db.metadata.put(metadataRecord);
+        const dataRecord = await this._db.data.get(key);
+        return {
+            metadata: metadataRecord,
+            data: dataRecord
+        } as StoreItem<CacheMetadataRecord, TValue>;
+    }
+
     get<TValue = any>(key: string): Promise<StoreItem<CacheMetadataRecord, TValue>> {
-        return this.exec(async () => {
-            const metadataRecord = await this._db.metadata.get(key);
-            this.onGetMetadata(metadataRecord);
-            await this._db.metadata.put(metadataRecord);
-            const dataRecord = await this._db.data.get(key);
-            return {
-                metadata: metadataRecord,
-                data: dataRecord
-            } as StoreItem<CacheMetadataRecord, TValue>;
-        }, "rw");
+        return this.exec(() => this.getInternal<TValue>(key), "rw");
     }
 
     private onCreateMetadata(record: CacheMetadataRecord, options: CacheOptions) {
@@ -231,6 +237,12 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         this.onGetMetadata(record);
 
     }
+    private async setInternal<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue) {
+        const result = await this._db.metadata.put(metadataRecord);
+        await this._db.data.put({ key: metadataRecord.key, value });
+        return result;
+    }
+
     // upsert
     async set<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue, options: CacheOptions) {
         if (value === undefined) {
@@ -239,17 +251,8 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         if (!metadataRecord.key) {
             metadataRecord.key = uuid();
         }
-
         this.onCreateMetadata(metadataRecord, options);
-
-        return this.exec(async () => {
-            const result = await this._db.metadata.put(metadataRecord);
-            await this._db.data.put({
-                key: metadataRecord.key,
-                value: value
-            });
-            return result;
-        }, "rw");
+        return this.exec(() => this.setInternal(metadataRecord, value), "rw");
     }
 
     // getOrAdd
@@ -258,12 +261,13 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
         return this.exec(async () => {
-            const existingStoreItem = await this.get(metadataRecord.key);
+            const existingStoreItem = await this.getInternal<TValue>(metadataRecord.key);
             if (existingStoreItem) {
                 return existingStoreItem;
             }
-            await this.set(metadataRecord, factory(metadataRecord), options);
-            return this.get(metadataRecord.key);
+            this.onCreateMetadata(metadataRecord, options);
+            await this.setInternal(metadataRecord, factory(metadataRecord));
+            return this.getInternal<TValue>(metadataRecord.key);
         }, "rw");
     }
 

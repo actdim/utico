@@ -1,27 +1,18 @@
-export interface IMemoryCache<TKey = any, TValue = any> {
+export type IMemoryCache<TKey = any, TValue = any> = {
     get keys(): Iterable<TKey>;
-	getKeys: () => Iterable<TKey>;
-
+    getKeys: () => Iterable<TKey>;
     get: (key: TKey) => TValue;
-
     contains: (key: TKey) => boolean;
-
     remove: (key: TKey) => void;
-
     set: (key: TKey, valueOrValueFactory: TValue | (() => TValue)) => void;
-
-	get values(): Iterable<TValue>;
+    get values(): Iterable<TValue>;
     getValues: () => Iterable<TValue>;
-
     getOrSet: (key: TKey, valueOrValueFactory: TValue | (() => TValue)) => TValue;
-
     clear: () => void;
-
-	get entries(): Iterable<[TKey, TValue]>;
+    get entries(): Iterable<[TKey, TValue]>;
     getEntries: () => Iterable<[TKey, TValue]>;
-}
+};
 
-// TODO: remove class, create factory method
 export class MemoryCache<TKey = any, TValue = any> implements IMemoryCache {
     private map: Map<TKey, TValue>;
 
@@ -68,7 +59,7 @@ export class MemoryCache<TKey = any, TValue = any> implements IMemoryCache {
     getOrSet(key: TKey, valueOrValueFactory: TValue | (() => TValue)) {
         if (!this.contains(key)) {
             // this.set(key, valueOrValueFactory);
-			if (valueOrValueFactory instanceof Function) {
+            if (valueOrValueFactory instanceof Function) {
                 // typeof valueOrValueFactory === "function"
                 this.map.set(key, valueOrValueFactory());
             } else {
@@ -94,5 +85,3 @@ export class MemoryCache<TKey = any, TValue = any> implements IMemoryCache {
         return this.map.entries();
     }
 }
-
-export const globalMemoryCache = new MemoryCache();

@@ -384,7 +384,7 @@ export function createDeepProxy<T extends object>(target: T, handler: DeepProxyH
                     }
                     return deleted;
                 }
-                return false;
+                return true;
             }
         };
     }

@@ -201,14 +201,84 @@ describe("PersistentCache", () => {
         });
     });
 
-    // ─── sliding expiration ───────────────────────────────────────────────────
-    //
-    // NOTE: TTL and absoluteExpiration-only modes have a bug: onGetMetadata
-    // initialises newExpiresAt to `record.expiresAt ?? now`, which for a new
-    // record without a prior expiresAt evaluates to `now` regardless of the
-    // absoluteExpiration value.  Only slidingExpiration forces
-    // `newExpiresAt = now + slidingExpiration`, so expiry works correctly
-    // only when slidingExpiration is provided.
+    // ─── expiration ───────────────────────────────────────────────────────────
+
+    describe("ttl expiration", () => {
+        it("sets expiresAt to now + ttl on create", async () => {
+            const cache = await openCache();
+            try {
+                const before = Date.now();
+                await cache.set({ key: "k1" }, "v", { ttl: 500 });
+                const item = await cache.get("k1");
+                expect(item.metadata.expiresAt).toBeGreaterThanOrEqual(before + 500 - 5);
+                expect(item.metadata.expiresAt).toBeLessThanOrEqual(before + 500 + 50);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+
+        it("deleteExpired removes a ttl entry after it expires", async () => {
+            const cache = await openCache();
+            try {
+                const now = Date.now();
+                await cache.set({ key: "k1" }, "v", { ttl: 100 });
+                await cache.deleteExpired(now + 500);
+                expect(await cache.contains("k1")).toBe(false);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+
+        it("does not expire a ttl entry before the ttl elapses", async () => {
+            const cache = await openCache();
+            try {
+                const now = Date.now();
+                await cache.set({ key: "k1" }, "v", { ttl: 10_000 });
+                await cache.deleteExpired(now + 100);
+                expect(await cache.contains("k1")).toBe(true);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+    });
+
+    describe("absoluteExpiration", () => {
+        it("sets expiresAt to absoluteExpiration on create", async () => {
+            const cache = await openCache();
+            try {
+                const absoluteExp = Date.now() + 1000;
+                await cache.set({ key: "k1" }, "v", { absoluteExpiration: absoluteExp });
+                const item = await cache.get("k1");
+                expect(item.metadata.expiresAt).toBe(absoluteExp);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+
+        it("deleteExpired removes an entry past its absoluteExpiration", async () => {
+            const cache = await openCache();
+            try {
+                const now = Date.now();
+                await cache.set({ key: "k1" }, "v", { absoluteExpiration: now + 100 });
+                await cache.deleteExpired(now + 500);
+                expect(await cache.contains("k1")).toBe(false);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+
+        it("does not expire an entry before its absoluteExpiration", async () => {
+            const cache = await openCache();
+            try {
+                const now = Date.now();
+                await cache.set({ key: "k1" }, "v", { absoluteExpiration: now + 10_000 });
+                await cache.deleteExpired(now + 100);
+                expect(await cache.contains("k1")).toBe(true);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+    });
 
     describe("sliding expiration", () => {
         it("sets expiresAt to now + slidingExpiration on create", async () => {
@@ -308,6 +378,32 @@ describe("PersistentCache", () => {
 
                 await cache.deleteExpired(now + 500);
                 expect(evictedKeys.sort()).toEqual(["k1", "k2"]);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+
+        it("returns the keys of deleted entries", async () => {
+            const cache = await openCache();
+            try {
+                const now = Date.now();
+                await cache.set({ key: "k1" }, "v1", { slidingExpiration: 100 });
+                await cache.set({ key: "k2" }, "v2", { slidingExpiration: 100 });
+                await cache.set({ key: "k3" }, "v3", { slidingExpiration: 10_000 });
+                const deleted = await cache.deleteExpired(now + 500);
+                expect(deleted.sort()).toEqual(["k1", "k2"]);
+            } finally {
+                cache[Symbol.dispose]();
+            }
+        });
+
+        it("returns an empty array when nothing has expired", async () => {
+            const cache = await openCache();
+            try {
+                const now = Date.now();
+                await cache.set({ key: "k1" }, "v", { slidingExpiration: 10_000 });
+                const deleted = await cache.deleteExpired(now + 100);
+                expect(deleted).toEqual([]);
             } finally {
                 cache[Symbol.dispose]();
             }
@@ -426,6 +522,27 @@ describe("PersistentCache", () => {
             } finally {
                 cache[Symbol.dispose]();
             }
+        });
+    });
+
+    // ─── dispose / timer ──────────────────────────────────────────────────────
+
+    describe("dispose / timer", () => {
+        it("cancels the cleanup timer so deleteExpired is not called after dispose", async () => {
+            // Open with a very short cleanup interval so the timer would fire quickly.
+            const cache = await PersistentCache.open(uniqueName(), { cleanupTimeout: 20 });
+
+            // Mock deleteExpired before any timer fires – if the timer leaks
+            // (i.e. _jobTimerId was never saved and clearTimeout had no effect)
+            // this spy will be called after 20 ms.
+            const spy = vi.spyOn(cache, "deleteExpired").mockResolvedValue([]);
+
+            cache[Symbol.dispose]();
+
+            // Wait 4× the cleanupTimeout; a leaked timer would have fired by now.
+            await delay(80);
+
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 });

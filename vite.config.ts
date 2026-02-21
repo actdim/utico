@@ -32,8 +32,9 @@ export default defineConfig({
                 preserveModulesRoot: "src",
                 // preserveEntrySignatures: "strict",
                 format: "esm",
-                entryFileNames: "[name].es.js" // mjs
+                entryFileNames: "[name].es.js", // mjs
                 // inlineDynamicImports: false
+                sourcemapExcludeSources: true
             }
         },
         sourcemap: true

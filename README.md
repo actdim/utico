@@ -8,10 +8,15 @@ A modern foundation toolkit for complex TypeScript apps.
 - [Modules](#modules)
     - [typeCore — Expressive Type Composition](#typecore--expressive-type-composition)
     - [typeUtils — Runtime Type Utilities](#typeutils--runtime-type-utilities)
+    - [stringCore — Locale-Aware String Utilities](#stringcore--locale-aware-string-utilities)
+    - [metadata — Property Metadata](#metadata--property-metadata)
+    - [decorators — Property Decorators](#decorators--property-decorators)
+    - [dateTimeDataFormat — Date/Time Serialisation](#datetimedataformat--datetime-serialisation)
     - [StructEvent — Typed DOM Events](#structevent--typed-dom-events)
     - [watchable — Promise & Function Tracking](#watchable--promise--function-tracking)
     - [asyncMutex — Async Mutual Exclusion](#asyncmutex--async-mutual-exclusion)
     - [store — Structured Persistence](#store--structured-persistence)
+    - [cache — Persistent Cache](#cache--persistent-cache)
 - [License](#license)
 
 ---
@@ -27,10 +32,10 @@ pnpm add @actdim/utico
 **Peer dependencies** (install only what you use):
 
 ```bash
-pnpm add dexie uuid moment
+pnpm add dexie uuid luxon
 ```
 
-> `dexie` and `uuid` are required for the `store` module. `moment` is required for date/time formatting utilities.
+> `dexie` and `uuid` are required for the `store` module. `luxon` is required for the `dateTimeDataFormat` module.
 
 ---
 
@@ -196,7 +201,7 @@ generic class without repeating its type arguments everywhere.
 (see [StructEvent](#structevent--typed-dom-events)).
 Inside `PersistentCache` you want to work with
 `StructEvent<PersistentCacheEventStruct, PersistentCache>` as if it were its own named type.
-TypeScript offers four ways to achieve this; each has different trade-offs.
+TypeScript offers four ways to achieve this; each has different trade-offs — see the [full comparison](#comparison-4-ways-to-bind-a-generic-constructor) at the end of this section.
 
 ---
 
@@ -245,6 +250,136 @@ const evt = PersistentCacheEvent("evict", { detail: { records }, target: this })
 
 > For primitive-backed types (`String`, `Number`) the original constructor is returned unchanged,
 > since they are already callable without `new`.
+
+---
+
+#### Object / Key Utilities
+
+| Function | Description |
+|----------|-------------|
+| `keysOf(obj)` | Typed `Object.keys` — returns `(keyof T)[]` instead of `string[]` |
+| `keyOf<T>(key)` | Returns a property name literal narrowed to `keyof T`. No object required — useful for building typed key references |
+| `nameOf<T>(f)` | Extracts a property name from a lambda `x => x.prop` at runtime via `Proxy` |
+| `entry(obj, name, caseInsensitive?)` | Looks up a key (optionally case-insensitive) and returns `[resolvedKey, value]` |
+| `getPrototypes(obj)` | Returns the prototype chain as an array, from the object's direct prototype up to (but not including) `null` |
+
+```ts
+keysOf({ a: 1, b: 2 })          // => ["a", "b"] typed as ("a" | "b")[]
+
+keyOf<CacheMetadataRecord>("expiresAt")  // => "expiresAt" — typed, no runtime object needed
+
+nameOf<User>(x => x.email)       // => "email"
+```
+
+---
+
+#### Constraint Helpers
+
+| Function | Description |
+|----------|-------------|
+| `satisfies<TShape>()` | Curried constraint: validates `obj` extends `TShape` without widening the inferred type |
+| `strictSatisfies<T>()` | Like `satisfies`, but also rejects objects with extra keys beyond the shape |
+
+```ts
+const opts = satisfies<{ timeout: number }>()({ timeout: 5000, retries: 3 });
+// opts is inferred as { timeout: number; retries: number }, not widened to { timeout: number }
+```
+
+---
+
+#### Assignment Utilities
+
+| Function | Description |
+|----------|-------------|
+| `assignWith(dst, src, callback?)` | Conditional assign: iterates `src` keys, calls `callback(key, value, set)` to control each assignment |
+| `update(dst, src, props?)` | Typed assign: `src` must be `Partial<T>`; optional `props` list limits which keys are copied |
+| `copy(src, dst, props?)` | Like `update` but with source and destination swapped |
+
+---
+
+#### Path Utilities
+
+| Function | Description |
+|----------|-------------|
+| `getPropertyPath<T>(expr)` | Captures a property access chain from a lambda as `(string \| number \| symbol)[]` via recursive proxy |
+| `combinePropertyPath(path)` | Serialises a path array into bracket-notation: `["nested"]["0"]["name"]` |
+
+```ts
+getPropertyPath<Config>(x => x.server.port)  // => ["server", "port"]
+combinePropertyPath(["server", "port"])       // => '["server"]["port"]'
+```
+
+---
+
+#### Proxy Utilities
+
+| Function | Description |
+|----------|-------------|
+| `proxify<T>(source)` | Lazy proxy: forwards every get/set to `source()` evaluated at access time |
+| `toReadOnly<T>(obj, throwOnSet?)` | Deep read-only proxy; silently ignores writes (or throws if `throwOnSet: true`). Toggle with the `[$lock]` symbol |
+| `createDeepProxy<T>(target, handler)` | Deep-change proxy: `handler.set` and `handler.deleteProperty` receive the full `DeepPropertyKey` path |
+
+```ts
+// proxify — lazy proxy that re-evaluates source on every get/set
+let config = { theme: 'dark' };
+const proxy = proxify(() => config);
+proxy.theme;           // => 'dark'
+config = { theme: 'light' };
+proxy.theme;           // => 'light' — picks up the new object
+
+// toReadOnly — deep read-only proxy (writes silently ignored by default)
+const opts = toReadOnly({ server: { port: 3000 } });
+opts.server.port;      // => 3000
+opts.server.port = 80; // silently ignored
+                       // pass true as second arg to throw on write attempts instead
+
+// createDeepProxy — intercept deep mutations with the full property path
+const state = createDeepProxy({ user: { name: 'Alice' } }, {
+    set(target, path, value) {
+        console.log('set', path.map(String).join('.'), '=', value);
+        return true;
+    },
+    deleteProperty(target, path) {
+        console.log('deleted', path.map(String).join('.'));
+        return true;
+    },
+});
+state.user.name = 'Bob';  // logs: "set user.name = Bob"
+delete state.user.name;   // logs: "deleted user.name"
+```
+
+---
+
+#### JSON Utilities
+
+| Function | Description |
+|----------|-------------|
+| `orderedStringify(obj, keyCompareFn?, replacer?, space?)` | Stable JSON serialisation: sorts object keys recursively before stringifying |
+| `jsonEquals(obj1, obj2)` | Structural equality via `orderedStringify` |
+| `jsonClone<T>(obj)` | Deep clone via `JSON.parse(JSON.stringify(obj))` — for plain JSON-serialisable data |
+
+```ts
+jsonEquals({ b: 2, a: 1 }, { a: 1, b: 2 }) // => true (key order doesn't matter)
+```
+
+---
+
+#### Enum Utilities
+
+| Function | Description |
+|----------|-------------|
+| `getEnumKeys<T>(enumType)` | Returns the string keys of a TS enum, filtering reverse-mapping numeric keys |
+| `getEnumValues<T>(enumType)` | Returns the values of a TS enum |
+| `getEnumValue<T>(enumType, name, defaultValue)` | Looks up an enum member by name; returns `defaultValue` when missing |
+
+```ts
+enum Color { Red = 0, Green = 1, Blue = 2 }
+
+getEnumKeys(Color)   // => ["Red", "Green", "Blue"]
+getEnumValues(Color) // => [0, 1, 2]
+getEnumValue(Color, "Green", Color.Red) // => 1
+getEnumValue(Color, "Purple", Color.Red) // => 0 (default)
+```
 
 ---
 
@@ -305,102 +440,238 @@ const evt = PersistentCacheEvent("evict", { detail: { records }, target: this })
 
 ---
 
-#### Object / Key Utilities
+### stringCore — Locale-Aware String Utilities
+
+**Import:** `@actdim/utico/stringCore`
+
+Locale-aware string comparison and search utilities built on `Intl.Collator`. All functions accept an optional `locale` parameter (defaults to `navigator.language`). Non-string inputs fall back to reference equality or a default collator instead of throwing.
+
+#### Functions
 
 | Function | Description |
 |----------|-------------|
-| `keysOf(obj)` | Typed `Object.keys` — returns `(keyof T)[]` instead of `string[]` |
-| `keyOf<T>(key)` | Returns a property name literal narrowed to `keyof T`. No object required — useful for building typed key references |
-| `nameOf<T>(f)` | Extracts a property name from a lambda `x => x.prop` at runtime via `Proxy` |
-| `entry(obj, name, caseInsensitive?)` | Looks up a key (optionally case-insensitive) and returns `[resolvedKey, value]` |
+| `equals(strA, strB, ignoreCase?, locale?)` | Returns `true` when strings are equal. Case-sensitive by default. Uses `Intl.Collator` for locale-correct comparison. |
+| `compare(strA, strB, ignoreCase?, locale?)` | Returns a negative, zero, or positive number — same contract as `Array.prototype.sort`. |
+| `ciCompare(strA, strB, locale?)` | Case-insensitive `compare`. Uses `sensitivity: "accent"` when available, falls back to `toLocaleUpperCase`. |
+| `ciStartsWith(str, searchStr, locale?)` | Case-insensitive `String.prototype.startsWith`. Returns `false` for non-string inputs. |
+| `ciEndsWith(str, searchStr, locale?)` | Case-insensitive `String.prototype.endsWith`. Returns `false` for non-string inputs. |
+| `ciIndexOf(str, searchStr, locale?)` | Case-insensitive `String.prototype.indexOf`. Returns `-1` for non-string inputs or no match. |
+| `ciIncludes(str, searchStr, locale?)` | Case-insensitive `String.prototype.includes`. Returns `false` for non-string inputs. |
 
-```ts
-keysOf({ a: 1, b: 2 })          // => ["a", "b"] typed as ("a" | "b")[]
+#### Usage Examples
 
-keyOf<CacheMetadataRecord>("expiresAt")  // => "expiresAt" — typed, no runtime object needed
+```typescript
+import { equals, compare, ciCompare, ciStartsWith, ciEndsWith, ciIndexOf, ciIncludes } from '@actdim/utico/stringCore';
 
-nameOf<User>(x => x.email)       // => "email"
+// equals
+equals('Hello', 'hello')              // false (case-sensitive)
+equals('Hello', 'hello', true)        // true  (case-insensitive)
+equals('café', 'CAFÉ', true, 'fr')   // true  (locale-aware)
+
+// compare — for sorting
+['banana', 'Apple', 'cherry'].sort((a, b) => compare(a, b, true));
+// => ['Apple', 'banana', 'cherry']
+
+// ciStartsWith / ciEndsWith
+ciStartsWith('Hello World', 'hello') // true
+ciEndsWith('Hello World', 'WORLD')   // true
+
+// ciIndexOf / ciIncludes
+ciIndexOf('Hello World', 'WORLD')    // 6
+ciIncludes('Hello World', 'WORLD')   // true
+ciIncludes('Hello World', 'xyz')     // false
 ```
 
 ---
 
-#### Constraint Helpers
+### metadata — Property Metadata
+
+**Import:** `@actdim/utico/metadata`
+
+A lightweight property metadata system backed by `WeakMap`. Attach arbitrary named slots of metadata to class properties via the `@metadata` decorator or the imperative API. Metadata is resolved through the prototype chain, so subclasses automatically inherit base-class metadata.
+
+#### Functions
 
 | Function | Description |
 |----------|-------------|
-| `satisfies<TShape>()` | Curried constraint: validates `obj` extends `TShape` without widening the inferred type |
-| `strictSatisfies<T>()` | Like `satisfies`, but also rejects objects with extra keys beyond the shape |
+| `metadata(value, slotName)` | Property decorator factory. Attaches `value` to the `slotName` slot of the decorated property. |
+| `getPropertyMetadata<T>(target, propertyName, slotName?)` | Reads metadata for a property. If `slotName` is omitted, returns all slots for that property. Walks the prototype chain. |
+| `updatePropertyMetadata(target, propertyName, value, slotName)` | Imperative equivalent of `@metadata`. |
+| `getPropertyMetadataItem(metadata, obj)` | Low-level: resolves a `WeakMap` entry for `obj` by walking its prototype chain. |
 
-```ts
-const opts = satisfies<{ timeout: number }>()({ timeout: 5000, retries: 3 });
-// opts is inferred as { timeout: number; retries: number }, not widened to { timeout: number }
+#### Usage Examples
+
+```typescript
+import { metadata, getPropertyMetadata, updatePropertyMetadata } from '@actdim/utico/metadata';
+
+// --- Decorator API ---
+
+class Article {
+    @metadata('Title of the article', 'label')
+    @metadata(true, 'required')
+    title: string;
+
+    @metadata('Publication date', 'label')
+    publishedAt: number;
+}
+
+const article = new Article();
+
+getPropertyMetadata(article, 'title', 'label')    // => 'Title of the article'
+getPropertyMetadata(article, 'title', 'required') // => true
+getPropertyMetadata(article, 'title')             // => { label: '...', required: true }
+
+// --- Imperative API ---
+
+class Product {
+    price: number;
+}
+
+updatePropertyMetadata(Product.prototype, 'price', 'EUR price in cents', 'label');
+getPropertyMetadata(new Product(), 'price', 'label'); // => 'EUR price in cents'
+
+// --- Prototype chain inheritance ---
+
+class SpecialArticle extends Article {}
+
+// SpecialArticle inherits metadata from Article.prototype
+getPropertyMetadata(new SpecialArticle(), 'title', 'label'); // => 'Title of the article'
 ```
 
 ---
 
-#### Assignment Utilities
+### decorators — Property Decorators
 
-| Function | Description |
-|----------|-------------|
-| `assignWith(dst, src, callback?)` | Conditional assign: iterates `src` keys, calls `callback(key, value, set)` to control each assignment |
-| `update(dst, src, props?)` | Typed assign: `src` must be `Partial<T>`; optional `props` list limits which keys are copied |
-| `copy(src, dst, props?)` | Like `update` but with source and destination swapped |
+**Import:** `@actdim/utico/decorators`
 
----
+| Decorator | Description |
+|-----------|-------------|
+| `@nonEnumerable` | Makes a class property non-enumerable: it is hidden from `Object.keys`, `for...in`, `JSON.stringify`, and spread (`{...obj}`), while remaining fully readable and writable via direct access. |
 
-#### Path Utilities
+#### Usage Examples
 
-| Function | Description |
-|----------|-------------|
-| `getPropertyPath<T>(expr)` | Captures a property access chain from a lambda as `(string \| number \| symbol)[]` via recursive proxy |
-| `combinePropertyPath(path)` | Serialises a path array into bracket-notation: `["nested"]["0"]["name"]` |
+```typescript
+import { nonEnumerable } from '@actdim/utico/decorators';
 
-```ts
-getPropertyPath<Config>(x => x.server.port)  // => ["server", "port"]
-combinePropertyPath(["server", "port"])       // => '["server"]["port"]'
+class User {
+    name: string;
+
+    @nonEnumerable
+    passwordHash: string;
+}
+
+const user = new User();
+user.name = 'Alice';
+user.passwordHash = 'abc123';
+
+Object.keys(user)       // => ['name']  — passwordHash is hidden
+JSON.stringify(user)    // => '{"name":"Alice"}'
+user.passwordHash       // => 'abc123'  — still directly accessible
 ```
 
----
-
-#### Proxy Utilities
-
-| Function | Description |
-|----------|-------------|
-| `proxify<T>(source)` | Lazy proxy: forwards every get/set to `source()` evaluated at access time |
-| `toReadOnly<T>(obj, throwOnSet?)` | Deep read-only proxy; silently ignores writes (or throws if `throwOnSet: true`). Toggle with the `[$lock]` symbol |
-| `createDeepProxy<T>(target, handler)` | Deep-change proxy: `handler.set` and `handler.deleteProperty` receive the full `DeepPropertyKey` path |
+> **How it works:** the decorator replaces the property with an accessor on the prototype. On the first assignment, the accessor redefines the property as a non-enumerable own value on the specific instance, so subsequent reads are direct (no getter overhead).
 
 ---
 
-#### JSON Utilities
+### dateTimeDataFormat — Date/Time Serialisation
+
+**Import:** `@actdim/utico/dateTimeDataFormat`
+
+**Peer dependency:** `luxon ^3`
+
+UTC-first date/time utilities built on [Luxon](https://moment.github.io/luxon/). Provides a canonical wire format (`yyyy-MM-dd'T'HH:mm:ss.SSS`), serialisation/deserialisation, display formatting, and helpers for OLE Automation and numeric timestamps.
+
+#### Types
+
+| Type | Description |
+|------|-------------|
+| `DateTimeDataFormat` | Interface for the default export: `serialize`, `deserialize`, `tryDeserialize`, `normalize`, `isValid`, `serializationFormat` |
+| `DateValueFormats` | `{ string?: string; number?: DateNumberFormat }` — format hints passed to `toDateTime` |
+
+#### Enum: `DateNumberFormat`
+
+| Member | Description |
+|--------|-------------|
+| `UnixTimeMilliseconds` | Default — milliseconds since Unix epoch |
+| `UnixTimeSeconds` | Seconds since Unix epoch |
+| `OADate` | Microsoft OLE Automation date (fractional days since 1899-12-30) |
+
+#### Functions
 
 | Function | Description |
 |----------|-------------|
-| `orderedStringify(obj, keyCompareFn?, replacer?, space?)` | Stable JSON serialisation: sorts object keys recursively before stringifying |
-| `jsonEquals(obj1, obj2)` | Structural equality via `orderedStringify` |
-| `jsonClone<T>(obj)` | Deep clone via `JSON.parse(JSON.stringify(obj))` — for plain JSON-serialisable data |
+| `toDateTime(source, formats?)` | Converts `string \| number \| Date \| DateTime` -> `DateTime` (UTC). Accepts optional `DateValueFormats` hints |
+| `fromLocalDate(date)` | Reads the local time parts of a `Date` (e.g. from `normalize()`) and places them in UTC. Use to serialize a normalized `Date` back to the wire format |
+| `formatDate(date, format?)` | Formats a `Date` or `DateTime` using a Luxon format string. Auto-selects a locale format when `format` is omitted |
+| `getDateFromNumber(value, fmt?)` | Converts a numeric timestamp to a `Date` according to `DateNumberFormat` |
+| `getDateFromOADate(oaDate)` | Converts a Microsoft OADate number to `Date` |
+| `getOADateFromDate(date)` | Converts a `Date` to a Microsoft OADate string |
 
-```ts
-jsonEquals({ b: 2, a: 1 }, { a: 1, b: 2 }) // => true (key order doesn't matter)
-```
+#### Default export — `dateTimeFormat`
 
----
+| Method / Property | Signature | Description |
+|-------------------|-----------|-------------|
+| `serializationFormat` | `string` | `"yyyy-MM-dd'T'HH:mm:ss.SSS"` — the canonical wire format |
+| `serialize(source)` | `-> string \| null` | Formats any supported source to the wire format |
+| `deserialize(value)` | `-> DateTime` | Parses a wire-format string; throws on invalid input |
+| `tryDeserialize(value)` | `-> DateTime \| null` | Like `deserialize` but returns `null` instead of throwing |
+| `isValid(source)` | `-> boolean` | `true` for `null`, a valid wire-format string, or any `Date` |
+| `normalize(source)` | `-> Date \| null` | Converts any supported source to a native `Date`. The local accessors (`getHours()`, etc.) reflect the original UTC values |
 
-#### Enum Utilities
+#### Usage Examples
 
-| Function | Description |
-|----------|-------------|
-| `getEnumKeys<T>(enumType)` | Returns the string keys of a TS enum, filtering reverse-mapping numeric keys |
-| `getEnumValues<T>(enumType)` | Returns the values of a TS enum |
-| `getEnumValue<T>(enumType, name, defaultValue)` | Looks up an enum member by name; returns `defaultValue` when missing |
+```typescript
+import dateTimeFormat, { toDateTime, fromLocalDate, formatDate, DateNumberFormat } from '@actdim/utico/dateTimeDataFormat';
+import { DateTime } from 'luxon';
 
-```ts
-enum Color { Red = 0, Green = 1, Blue = 2 }
+// Deserialize a wire-format string -> Luxon DateTime (UTC)
+const dt = dateTimeFormat.deserialize("2024-03-15T10:30:45.123");
+dt.year;     // 2024
+dt.hour;     // 10
+dt.zoneName; // "UTC"
 
-getEnumKeys(Color)   // => ["Red", "Green", "Blue"]
-getEnumValues(Color) // => [0, 1, 2]
-getEnumValue(Color, "Green", Color.Red) // => 1
-getEnumValue(Color, "Purple", Color.Red) // => 0 (default)
+// Serialize back to wire format
+dateTimeFormat.serialize(dt);             // "2024-03-15T10:30:45.123"
+dateTimeFormat.serialize(new Date(...));  // same format
+
+// Safe parse — returns null instead of throwing
+dateTimeFormat.tryDeserialize("bad");     // null
+
+// isValid
+dateTimeFormat.isValid("2024-03-15T10:30:45.000"); // true
+dateTimeFormat.isValid("not-a-date");              // false
+dateTimeFormat.isValid(null);                      // true (no value is OK)
+
+// normalize — native Date whose getHours() reflects the UTC hour
+const date = dateTimeFormat.normalize("2024-03-15T10:30:45.000");
+date.getHours(); // 10 — regardless of local timezone
+
+// toDateTime — flexible conversion
+toDateTime("2024-03-15T10:30:45.000");                          // from s11n string
+toDateTime(new Date());                                          // from Date
+toDateTime(1710496245000, { number: DateNumberFormat.UnixTimeMilliseconds });
+toDateTime(1710496245,    { number: DateNumberFormat.UnixTimeSeconds });
+toDateTime("03/15/2024",  { string: "MM/dd/yyyy" });            // custom format
+
+// formatDate — display formatting
+formatDate(dt, "yyyy-MM-dd");          // "2024-03-15"
+formatDate(dt);                        // auto-selected locale format
+
+// fromLocalDate — serialize a normalize()'d Date back to the wire format
+//
+// normalize() produces a Date whose getHours() equals the original UTC hour.
+// toDateTime(date) reads the epoch as UTC, which gives the wrong result for
+// such Dates. fromLocalDate() reads the local time parts instead.
+//
+const normalized = dateTimeFormat.normalize("2024-03-15T10:30:45.123");
+normalized.getHours();                 // 10 — correct for display in <input>
+dateTimeFormat.serialize(fromLocalDate(normalized)); // "2024-03-15T10:30:45.123" ✓
+
+// Typical <input type="datetime-local"> round-trip:
+//   input.valueAsDate = dateTimeFormat.normalize(serverValue)
+//   ...user edits...
+//   const saved = dateTimeFormat.serialize(input.value);          // simplest
+//   const saved = dateTimeFormat.serialize(fromLocalDate(input.valueAsDate)); // via Date
 ```
 
 ---
@@ -502,8 +773,8 @@ const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, Persi
 const cache = await PersistentCache.open("my-cache");
 
 cache.addEventListener("evict", (e) => {
-    // e.detail  → { records: CacheMetadataRecord[] }   (typed)
-    // e.target  → PersistentCache                       (typed)
+    // e.detail  -> { records: CacheMetadataRecord[] }   (typed)
+    // e.target  -> PersistentCache                       (typed)
     console.log("Evicted records:", e.detail.records);
 });
 ```
@@ -525,8 +796,16 @@ Track the execution state of promises and functions — useful for loading indic
 | Type                      | Description                                                      |
 | ------------------------- | ---------------------------------------------------------------- |
 | `PromiseStatus`           | `"pending" \| "fulfilled" \| "rejected"`                         |
-| `WatchablePromise<T>`     | `PromiseLike<T>` extended with `status`, `settled`, and `result` |
+| `WatchablePromise<T>`     | `PromiseLike<T>` with observable state fields (see below)        |
 | `WatchableFunc<TArgs, T>` | Function extended with an `executing` flag                       |
+
+`WatchablePromise<T>` adds three read-only fields to the underlying promise:
+
+| Field      | Type            | Description                                                                 |
+| ---------- | --------------- | --------------------------------------------------------------------------- |
+| `status`   | `PromiseStatus` | `"pending"` immediately; becomes `"fulfilled"` or `"rejected"` when settled |
+| `settled`  | `boolean`       | Computed getter — `true` once `status` is no longer `"pending"`             |
+| `result`   | `T \| undefined`| The resolved value after fulfillment; `undefined` after rejection           |
 
 #### Functions
 
@@ -714,6 +993,8 @@ The main entry point for structured persistence. Key features:
 | `getOrSet<TValue>(metadata, factory)` | Get existing or create via factory |
 | `bulkGet<TValue>(keys)` | Get multiple items |
 | `bulkSet<TValue>(metadataRecords, dataRecords)` | Insert multiple items |
+| `update<TValue>(key, metadataChanges, valueChanges?)` | Patch fields of a single item by key; returns count of records modified (0 if key not found) |
+| `bulkUpdate(metadataChangeSets, dataChangeSets?)` | Patch fields of multiple items; each change set is `{ key, changes: KeyPathValueMap<T> }` |
 | `delete(key)` | Delete an item |
 | `bulkDelete(keys)` | Delete multiple items |
 | `clear()` | Delete all items |
@@ -788,6 +1069,15 @@ const items = await store.bulkGet<{ x: number }>(['item:1', 'item:2']);
 await store.delete('user:42');
 await store.bulkDelete(['item:1', 'item:2']);
 await store.clear();
+
+// Patch individual fields without rewriting the whole record
+await store.update('user:42', { tags: ['admin', 'verified'] });
+
+// Patch multiple records in one transaction
+await store.bulkUpdate([
+  { key: 'item:1', changes: { tags: ['sale'] } },
+  { key: 'item:2', changes: { tags: ['new'] } },
+]);
 ```
 
 ```typescript
@@ -829,6 +1119,129 @@ const page = await store
   .offset(0)
   .limit(10)
   .toArray('publishedAt', 'desc');
+```
+
+---
+
+### cache — Persistent Cache
+
+**Imports:**
+
+- `@actdim/utico/cache/persistentCache` — `PersistentCache`, `CacheOptions`, `PersistentCacheOptions`
+- `@actdim/utico/cache/cacheContracts` — `CacheMetadataRecord`
+
+Built on top of the `store` module. Adds expiration semantics (TTL, absolute expiration, sliding expiration) and a background cleanup job that evicts expired entries automatically.
+
+#### Types
+
+| Type | Description |
+|------|-------------|
+| `CacheMetadataRecord` | Extends `MetadataRecord` with `slidingExpiration`, `absoluteExpiration`, and `expiresAt` |
+| `CacheOptions` | Per-entry expiration options (see below) |
+| `PersistentCacheOptions` | Cache-level options: `cleanupTimeout` (ms between background cleanup runs) |
+| `CacheEvictionEvent` | `{ records: CacheMetadataRecord[] }` — payload of the `"evict"` event |
+
+#### `CacheOptions`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `slidingExpiration` | `number` (ms) | Extends `expiresAt` by this duration on every `get()`. Recommended: combined with `absoluteExpiration` as a cap. |
+| `absoluteExpiration` | `Date \| number` | Hard deadline — `expiresAt` is never pushed past this value. |
+| `ttl` | `number \| { seconds?, minutes?, hours? }` | Sets `absoluteExpiration` relative to the creation time. |
+
+#### Static Methods
+
+| Method | Description |
+|--------|-------------|
+| `PersistentCache.open(name, options?)` | Open or create a named cache. Returns a `PersistentCache` instance. |
+| `PersistentCache.exists(name)` | Check if a named cache database exists. |
+| `PersistentCache.delete(name)` | Delete a named cache database. |
+
+#### Instance Methods
+
+| Method | Description |
+|--------|-------------|
+| `get<TValue>(key)` | Get an item and update `accessedAt` (and `expiresAt` if `slidingExpiration` is set). |
+| `set(metadata, value, options)` | Create or overwrite an item with expiration options. Auto-generates a UUID key if `metadata.key` is absent. |
+| `getOrSet(metadata, factory, options)` | Return the existing item or create it via `factory`. `metadata.key` is required. |
+| `bulkGet<TValue>(keys)` | Get multiple items by key. |
+| `bulkSet(metadataRecords, dataRecords, optionsProvider)` | Insert multiple items. `optionsProvider` is called per-record to produce `CacheOptions`. |
+| `contains(key)` | Check if a key exists. |
+| `getKeys()` | Return all stored keys. |
+| `delete(key)` | Delete a single item. |
+| `bulkDelete(keys)` | Delete multiple items. |
+| `clear()` | Delete all items. |
+| `deleteExpired(ts?)` | Evict entries whose `expiresAt < ts` (defaults to `Date.now()`). Fires the `"evict"` event if anything was removed. |
+| `[Symbol.dispose]()` | Cancel the background cleanup timer and close the database. |
+
+#### Events
+
+`PersistentCache` extends `StructEventTarget`. Subscribe with `addEventListener`.
+
+| Event | Detail type | Description |
+|-------|-------------|-------------|
+| `"evict"` | `{ records: CacheMetadataRecord[] }` | Fired after `deleteExpired` removes at least one entry. |
+
+#### Usage Examples
+
+```typescript
+import { PersistentCache } from '@actdim/utico/cache/persistentCache';
+
+// --- Open a cache ---
+
+const cache = await PersistentCache.open('my-cache');
+
+// --- set / get ---
+
+await cache.set({ key: 'user:42' }, { name: 'Alice' }, {});
+
+const item = await cache.get<{ name: string }>('user:42');
+item.metadata.key        // 'user:42'
+item.metadata.createdAt  // timestamp set automatically
+item.data.value.name     // 'Alice'
+
+// --- Auto-generated key ---
+
+const meta = {};                         // no key provided
+await cache.set(meta, { x: 1 }, {});
+meta.key;                                // UUID filled in by set()
+
+// --- getOrSet ---
+
+const item2 = await cache.getOrSet(
+    { key: 'session:abc' },
+    () => ({ token: crypto.randomUUID() }),
+    {}
+);
+
+// --- Sliding expiration (renewed on every get) ---
+
+await cache.set({ key: 'live' }, 'data', { slidingExpiration: 30_000 });
+// expiresAt = now + 30 s; reset to now + 30 s on each get()
+
+// --- Sliding expiration with absolute cap ---
+
+await cache.set({ key: 'bounded' }, 'data', {
+    slidingExpiration: 5 * 60_000,          // renew up to 5 min on each get
+    absoluteExpiration: Date.now() + 3_600_000, // but never past 1 hour from now
+});
+
+// --- Manual eviction ---
+
+await cache.deleteExpired();   // uses Date.now()
+await cache.deleteExpired(Date.now() + 60_000); // treat everything expiring in the next minute as expired
+
+// --- Eviction event ---
+
+cache.addEventListener('evict', (e) => {
+    console.log('Evicted:', e.detail.records.map(r => r.key));
+});
+
+// --- Cleanup ---
+
+cache[Symbol.dispose]();   // stops background timer, closes DB
+// or:
+using c = await PersistentCache.open('temp');   // auto-disposed at block exit (TS 5.2+)
 ```
 
 ---
