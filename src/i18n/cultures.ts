@@ -1,7 +1,10 @@
 import enUsCulture from './enUsCulture';
+import euCulture from './euCulture';
+import invariantCulture from './invariantCulture';
 
 const cultures = {
     "en-US": enUsCulture,
-    "invariant": enUsCulture // TODO: create invariant culture
+    "eu": euCulture,
+    "invariant": invariantCulture
 };
 export default cultures;

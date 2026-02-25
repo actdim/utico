@@ -142,10 +142,10 @@ Array.prototype.copyTo = function (dst: any[], srcIndex = 0, dstIndex = 0, lengt
 }
 
 function copyArray(src: any[], dst: any[], srcIndex = 0, dstIndex = 0, length?: number) {
-    if (srcIndex == undefined || srcIndex < 0) {
+    if (srcIndex < 0) {
         srcIndex = 0;
     }
-    if (dstIndex == undefined || dstIndex < 0) {
+    if (dstIndex < 0) {
         dstIndex = 0;
     }
     if (length == undefined) {

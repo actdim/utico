@@ -1,4 +1,7 @@
-import dateTimeDataFormat from './dateTimeDataFormat';
+import { dateTimeTransports } from "./dateTimeDataFormat";
+
 export default {
-    dateTime: dateTimeDataFormat
+    dateTime: {
+        transports: dateTimeTransports
+    }
 };

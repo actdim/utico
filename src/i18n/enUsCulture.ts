@@ -47,10 +47,10 @@ const enUsCulture = {
             dateTimeShort: "M/d/yyyy h:mm:ss a",
             dateTime24Short: "M/d/yyyy HH:mm:ss",
 
-            dataTimeHM: "MM/dd/yyyy hh:mm a",
-            dataTimeH24M: "MM/dd/yyyy HH:mm",
-            dataTimeHMShort: "MM/dd/yyyy h:mm a",
-            dataTimeH24MShort: "MM/dd/yyyy H:mm",
+            dateTimeHM: "MM/dd/yyyy hh:mm a",
+            dateTimeH24M: "MM/dd/yyyy HH:mm",
+            dateTimeHMShort: "MM/dd/yyyy h:mm a",
+            dateTimeH24MShort: "MM/dd/yyyy H:mm",
 
             date: "MM/dd/yyyy",
             dateShort: "M/d/yyyy",

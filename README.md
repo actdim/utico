@@ -595,16 +595,23 @@ user.passwordHash       // => 'abc123'  — still directly accessible
 
 **Peer dependency:** `luxon ^3`
 
-UTC-first date/time utilities built on [Luxon](https://moment.github.io/luxon/). Provides a canonical wire format (`yyyy-MM-dd'T'HH:mm:ss.SSS`), serialisation/deserialisation, display formatting, and helpers for OLE Automation and numeric timestamps.
+Date/time conversion utilities built on [Luxon](https://moment.github.io/luxon/).  
+The module converts values from string/number/`Date`/`DateTime`, tracks precision, and exports values either as local ISO (without suffix) or UTC ISO (`Z` suffix).
 
-#### Types
+#### Core Types
 
 | Type | Description |
 |------|-------------|
-| `DateTimeDataFormat` | Interface for the default export: `serialize`, `deserialize`, `tryDeserialize`, `normalize`, `isValid`, `serializationFormat` |
-| `DateValueFormats` | `{ string?: string; number?: DateNumberFormat }` — format hints passed to `toDateTime` |
+| `DateTimeNumberFormat` | Numeric input/output format: Unix ms, Unix seconds, OADate |
+| `DateTimePrecision` | `auto \| date \| minute \| second \| millisecond` |
+| `DateTimeKind` | `local \| utc` |
+| `DateTimeStringInterpretation` | `auto \| local \| utc` for parsing strings |
+| `DateTimeExportInterpretation` | `original \| local \| utc \| match` for `exportToString` |
+| `DateTimeExtended` | Luxon `DateTime` with extra fields: `precision`, `exportToString(...)` |
+| `ToDateTimeOptions` | Options for `toDateTime(...)` |
+| `DateTimeTransport` | `{ serialize(...), deserialize(...) }` pair for wire transport |
 
-#### Enum: `DateNumberFormat`
+#### `DateTimeNumberFormat`
 
 | Member | Description |
 |--------|-------------|
@@ -616,78 +623,81 @@ UTC-first date/time utilities built on [Luxon](https://moment.github.io/luxon/).
 
 | Function | Description |
 |----------|-------------|
-| `toDateTime(source, formats?)` | Converts `string \| number \| Date \| DateTime` -> `DateTime` (UTC). Accepts optional `DateValueFormats` hints |
-| `fromLocalDate(date)` | Reads the local time parts of a `Date` (e.g. from `normalize()`) and places them in UTC. Use to serialize a normalized `Date` back to the wire format |
-| `formatDate(date, format?)` | Formats a `Date` or `DateTime` using a Luxon format string. Auto-selects a locale format when `format` is omitted |
-| `getDateFromNumber(value, fmt?)` | Converts a numeric timestamp to a `Date` according to `DateNumberFormat` |
-| `getDateFromOADate(oaDate)` | Converts a Microsoft OADate number to `Date` |
-| `getOADateFromDate(date)` | Converts a `Date` to a Microsoft OADate string |
+| `toDateTime(source, options?)` | Converts `string \| number \| Date \| DateTime` to `DateTimeExtended` |
+| `getDateTimeFromString(value, format?, precision?, interpretAs?)` | Parses string using explicit format or ISO |
+| `getDateTimeFromNumber(value, numberFormat?, interpretAs?, precision?)` | Parses number into `DateTimeExtended` |
+| `getDateTimeNumber(dt, numberFormat?)` | Converts `DateTime`/`DateTimeExtended` to number |
+| `isDateTimeExtended(obj)` | Type guard for `DateTimeExtended` |
 
-#### Default export — `dateTimeFormat`
+#### Ready-to-use transports
 
-| Method / Property | Signature | Description |
-|-------------------|-----------|-------------|
-| `serializationFormat` | `string` | `"yyyy-MM-dd'T'HH:mm:ss.SSS"` — the canonical wire format |
-| `serialize(source)` | `-> string \| null` | Formats any supported source to the wire format |
-| `deserialize(value)` | `-> DateTime` | Parses a wire-format string; throws on invalid input |
-| `tryDeserialize(value)` | `-> DateTime \| null` | Like `deserialize` but returns `null` instead of throwing |
-| `isValid(source)` | `-> boolean` | `true` for `null`, a valid wire-format string, or any `Date` |
-| `normalize(source)` | `-> Date \| null` | Converts any supported source to a native `Date`. The local accessors (`getHours()`, etc.) reflect the original UTC values |
+| Transport | Serialize | Deserialize |
+|-----------|-----------|-------------|
+| `invariantLocalDateTimeTransport` | local ISO without zone suffix | strings as auto, numbers as local Unix seconds |
+| `utcDateTimeTransport` | UTC ISO with `Z` suffix | strings as auto, numbers as UTC Unix seconds |
 
 #### Usage Examples
 
 ```typescript
-import dateTimeFormat, { toDateTime, fromLocalDate, formatDate, DateNumberFormat } from '@actdim/utico/dateTimeDataFormat';
-import { DateTime } from 'luxon';
+import {
+  toDateTime,
+  getDateTimeFromString,
+  getDateTimeFromNumber,
+  getDateTimeNumber,
+  DateTimeKind,
+  DateTimePrecision,
+  DateTimeNumberFormat,
+  DateTimeStringInterpretation,
+  DateTimeExportInterpretation,
+  invariantLocalDateTimeTransport,
+  utcDateTimeTransport
+} from '@actdim/utico/dateTimeDataFormat';
 
-// Deserialize a wire-format string -> Luxon DateTime (UTC)
-const dt = dateTimeFormat.deserialize("2024-03-15T10:30:45.123");
-dt.year;     // 2024
-dt.hour;     // 10
-dt.zoneName; // "UTC"
+// Parse from string (ISO auto-detect)
+const a = toDateTime("2024-03-15T10:30:45.123");
 
-// Serialize back to wire format
-dateTimeFormat.serialize(dt);             // "2024-03-15T10:30:45.123"
-dateTimeFormat.serialize(new Date(...));  // same format
+// Parse from custom string format
+const b = toDateTime("03/15/2024", { stringFormat: "MM/dd/yyyy" });
 
-// Safe parse — returns null instead of throwing
-dateTimeFormat.tryDeserialize("bad");     // null
+// Parse from number
+const c = getDateTimeFromNumber(1710496245000, DateTimeNumberFormat.UnixTimeMilliseconds);
 
-// isValid
-dateTimeFormat.isValid("2024-03-15T10:30:45.000"); // true
-dateTimeFormat.isValid("not-a-date");              // false
-dateTimeFormat.isValid(null);                      // true (no value is OK)
+// Parse string and force interpretation as UTC
+const d = getDateTimeFromString(
+  "2024-03-15T10:30:45.123",
+  undefined,
+  DateTimePrecision.Auto,
+  DateTimeStringInterpretation.Utc
+);
 
-// normalize — native Date whose getHours() reflects the UTC hour
-const date = dateTimeFormat.normalize("2024-03-15T10:30:45.000");
-date.getHours(); // 10 — regardless of local timezone
+// Export as ISO local (without zone suffix)
+a.exportToString(DateTimeKind.Local); // "2024-03-15T..."
 
-// toDateTime — flexible conversion
-toDateTime("2024-03-15T10:30:45.000");                          // from s11n string
-toDateTime(new Date());                                          // from Date
-toDateTime(1710496245000, { number: DateNumberFormat.UnixTimeMilliseconds });
-toDateTime(1710496245,    { number: DateNumberFormat.UnixTimeSeconds });
-toDateTime("03/15/2024",  { string: "MM/dd/yyyy" });            // custom format
+// Export as ISO UTC (with Z)
+a.exportToString(DateTimeKind.Utc);   // "2024-03-15T...Z"
 
-// formatDate — display formatting
-formatDate(dt, "yyyy-MM-dd");          // "2024-03-15"
-formatDate(dt);                        // auto-selected locale format
+// Export with explicit interpretation
+a.exportToString(
+  DateTimeKind.Local,
+  DateTimeExportInterpretation.Local
+);
 
-// fromLocalDate — serialize a normalize()'d Date back to the wire format
-//
-// normalize() produces a Date whose getHours() equals the original UTC hour.
-// toDateTime(date) reads the epoch as UTC, which gives the wrong result for
-// such Dates. fromLocalDate() reads the local time parts instead.
-//
-const normalized = dateTimeFormat.normalize("2024-03-15T10:30:45.123");
-normalized.getHours();                 // 10 — correct for display in <input>
-dateTimeFormat.serialize(fromLocalDate(normalized)); // "2024-03-15T10:30:45.123" ✓
+// Precision truncation
+const minute = getDateTimeFromString(
+  "2024-03-15T10:30:45.123",
+  "yyyy-MM-dd'T'HH:mm:ss.SSS",
+  DateTimePrecision.Minute
+);
+minute.second;      // 0
+minute.millisecond; // 0
 
-// Typical <input type="datetime-local"> round-trip:
-//   input.valueAsDate = dateTimeFormat.normalize(serverValue)
-//   ...user edits...
-//   const saved = dateTimeFormat.serialize(input.value);          // simplest
-//   const saved = dateTimeFormat.serialize(fromLocalDate(input.valueAsDate)); // via Date
+// Number conversion back
+getDateTimeNumber(a, DateTimeNumberFormat.UnixTimeSeconds);
+
+// Transport helpers
+invariantLocalDateTimeTransport.serialize(a); // local string
+utcDateTimeTransport.serialize(a);            // UTC string with Z
+utcDateTimeTransport.serialize(null);         // null
 ```
 
 ---
