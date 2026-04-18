@@ -6,15 +6,13 @@
         "declarationMap": false,
         "noEmit": true,
         "sourceMap": true,
-        // "outDir": "./.vitest", // tsc --noEmit false
-        // "inlineSources": false
         "types": ["node", "vitest/globals", "vite/client"],
         "paths": {
             "@/*": ["src/*"]
         }
     },
     "include": [
-        "config.ts",
+        "packageConfig.ts",
         "package.json",
         "src/**/*.ts",
         "src/**/*.tsx",

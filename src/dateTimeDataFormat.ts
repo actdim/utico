@@ -31,16 +31,16 @@ export type DateTimeKind = (typeof DateTimeKind)[keyof typeof DateTimeKind];
 // DateTimeImportInterpretation
 export const DateTimeStringInterpretation = {
     Auto: "auto",
-    Local: "local",
-    Utc: "utc"
+    Local: "local", // wall-clock, naive
+    Utc: "utc" // universal, instant, absolute
 } as const;
 
 export type DateTimeStringInterpretation = (typeof DateTimeStringInterpretation)[keyof typeof DateTimeStringInterpretation];
 
 export const DateTimeExportInterpretation = {
     Original: "original",
-    Local: "local",
-    Utc: "utc",
+    Local: "local", // wall-clock, naive
+    Utc: "utc", // universal, instant, absolute
     Match: "match"
 } as const;
 
@@ -96,7 +96,7 @@ function extend(dt: DateTime | DateTimeExtended, precision: DateTimePrecision = 
             options?: LocaleOptions
         ): string => {
             // For date-only values keep calendar date stable; for datetime values
-            // reinterpret from UTC wall-clock to avoid browser zone surprises.
+            // reinterpret from UTC to avoid browser zone surprises.
             const sourceForInterpretation = extended.precision === DateTimePrecision.Date
                 ? extended
                 : extended.toUTC();

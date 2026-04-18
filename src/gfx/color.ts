@@ -31,8 +31,7 @@ export function getRandom32BitColorNumber(alpha: number = null, brightness: numb
     return getColorNumberFromRgba(r, g, b, a);
 }
 
-// getRandom24bitColorNumber
-export function getRandomColorNumber(brightness: number = null) {
+export function getRandom24BitColorNumber(brightness: number = null) {
     // return Math.floor(Math.random() * 0xFFFFFF);
     // typeof brightness !== "number"
     if (brightness == undefined) {
@@ -50,7 +49,7 @@ function refineColorHexString(colorHexString: string) {
 
     if (colorHexString.startsWith("-")) {
         isNegative = true;
-        colorHexString = colorHexString.slice(1).trimLeft();
+        colorHexString = colorHexString.slice(1).trimStart();
     }
 
     if (colorHexString.startsWith("0X")) {
@@ -149,48 +148,50 @@ export function getColorRgbaFromHexString(colorHexString: string) {
     }
 }
 
-// colorNumberToHexString
-export function getColorHexStringFromNumber(color: number) {
-    color = Math.floor(color);
+export function get24bitColorHexStringFromNumber(color: number) {
     if (color == null || Number.isNaN(color)) {
         // color = 0;
         return "";
     }
+    color = Math.floor(color);
     return "#" + ('000000' + color.toString(16)).slice(-6);
 }
 
 export function get32BitColorHexStringFromNumber(color: number) {
+    if (color == null || Number.isNaN(color)) {
+        // color = 0;
+        return "";
+    }
     color = Math.floor(color);
     return "#" + ('00000000' + color.toString(16)).slice(-8);
 }
 
+export const ColorDepthMode = {
+    Bit24: '24bit' as const, // always 24-bit, alpha ignored
+    Bit32: '32bit' as const, // always 32-bit, alpha defaults to 255
+    Auto: 'auto' as const, // 24-bit if alpha not provided, 32-bit otherwise
+} as const;
+
+export type ColorDepthMode = typeof ColorDepthMode[keyof typeof ColorDepthMode];
+
 // colorRgbaToNumber/colorRgbaToInt(Number)
 // { r: number, g: number, b: number, a?: number }
-// use24BitDepthForOpaque
-export function getColorNumberFromRgba(r: number, g: number, b: number, a: number = null, use24BitsForOpaque: boolean = true) {
+export function getColorNumberFromRgba(r: number, g: number, b: number, a: number = undefined, mode: ColorDepthMode = 'auto') {
     let result: number;
-    // typeof a !== "number"
-    if (a == undefined || (a === 255 && use24BitsForOpaque)) { // a === 255?
-        // 24-bit color number
-        result = (r << 16) + (g << 8) + b << 0; // '+' can be replaced with '^' or '|'        
+    const use24 = mode === '24bit' || (mode === 'auto' && a == undefined);
+    if (use24) {
+        result = (r << 16) + (g << 8) + b;
     } else {
-        // 32-bit color number
-        result = (r << 24) + (g << 16) + (b << 8) + a;
+        result = (r << 24) + (g << 16) + (b << 8) + (a ?? 255);
     }
     return result >>> 0; // convert to unsigned int32
 }
 
 // colorRgbaToHexString
 // { r: number, g: number, b: number, a?: number }
-export function getColorHexStringFromRgba(r: number, g: number, b: number, a: number = null) {
+export function getColorHexStringFromRgba(r: number, g: number, b: number, a: number = undefined) {
     const value = getColorNumberFromRgba(r, g, b, a);
-    return getColorHexStringFromNumber(value);
-}
-
-// getColorNumberFromControlEvent
-export function getColorNumberFromEvent(e: Event) {
-    const colorHexString = (e.target as HTMLInputElement)?.value;
-    return getColorNumberFromHexString(colorHexString);
+    return get24bitColorHexStringFromNumber(value);
 }
 
 /*
@@ -198,7 +199,6 @@ function parse(orig: string) {
     if (!orig) {
         return {};
     }
-
     const result = orig.match(/(?:((hsl|rgb)a? *\(([\d.%]+(?:deg|g?rad|turn)?)[ ,]*([\d.%]+)[ ,]*([\d.%]+)[ ,/]*([\d.%]*)\))|(#((?:[\d\w]{3}){1,2})([\d\w]{1,2})?))/i);
     if (!result) {
         return { color: orig, opacity: 1.0 };
