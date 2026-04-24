@@ -9,10 +9,13 @@ importers:
   .:
     dependencies:
       dexie:
-        specifier: ^4.2.0
+        specifier: '>=4.2.0'
         version: 4.2.1
+      luxon:
+        specifier: '>=3.7.2'
+        version: 3.7.2
       uuid:
-        specifier: ^13.0.0
+        specifier: '>=13.0.0'
         version: 13.0.0
     devDependencies:
       '@eslint/js':
@@ -54,9 +57,6 @@ importers:
       globals:
         specifier: ^16.5.0
         version: 16.5.0
-      luxon:
-        specifier: ^3.7.2
-        version: 3.7.2
       mocha:
         specifier: ^11.7.5
         version: 11.7.5

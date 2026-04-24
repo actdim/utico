@@ -6,12 +6,14 @@ import { Executor } from './typeCore';
  */
 // type Executor<T> = () => Promise<T> | T;
 
+export let defaultMutexTimeout = 1000 * 5; // 5 seconds
+
 class AsyncMutex { // or Mutex
     private mutex = Promise.resolve();
 
     private locked = false;
 
-    async lock(timeoutMs?: number): Promise<() => void> {
+    async lock(timeoutMs = defaultMutexTimeout): Promise<() => void> {
         let begin: (unlock: () => void) => void = () => { };
         let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -56,7 +58,7 @@ class AsyncMutex { // or Mutex
         };
     }
 
-    async dispatch<T>(fn: Executor<T>, timeoutMs?: number): Promise<T> {
+    async dispatch<T>(fn: Executor<T>, timeoutMs = defaultMutexTimeout): Promise<T> {
         const unlock = await this.lock(timeoutMs);
         try {
             return await fn();

@@ -146,8 +146,8 @@ export const getKeyPrefixer =
             return Object.fromEntries(Object.keys(obj).map((k) => [`${prefix}${k}`, obj[k]]));
         };
 
-// export type MaybePromise<T> = T extends undefined ? void : T | PromiseLike<Awaited<T>>; // TODO: check
-export type MaybePromise<T> = T extends undefined ? void : T | PromiseLike<T>;
+// export type MaybePromise<T = undefined> = T extends undefined ? void : T | PromiseLike<Awaited<T>>; // TODO: check
+export type MaybePromise<T = undefined> = T extends undefined ? void : T | PromiseLike<T>;
 
 export type Func<TArgs extends any[] = any[], T = any> = {
     (...args: TArgs): T;
