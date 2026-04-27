@@ -1,24 +1,23 @@
 import { Executor } from './typeCore';
 /**
  * Example:
- * const mutex = new Mutex();
- * await mutex.dispatch(async () => {...});
+ * const lock = new AsyncLock();
+ * await lock.dispatch(async () => {...});
  */
-// type Executor<T> = () => Promise<T> | T;
 
-export let defaultMutexTimeout = 1000 * 5; // 5 seconds
+export let defaultLockTimeout = 1000 * 5; // 5 seconds
 
-class AsyncMutex { // or Mutex
-    private mutex = Promise.resolve();
+class AsyncLock {
+    private queue = Promise.resolve();
 
     private locked = false;
 
-    async lock(timeoutMs = defaultMutexTimeout): Promise<() => void> {
+    async lock(timeoutMs = defaultLockTimeout): Promise<() => void> {
         let begin: (unlock: () => void) => void = () => { };
         let timer: ReturnType<typeof setTimeout> | undefined;
 
-        const previous = this.mutex;
-        this.mutex = this.mutex.then(() => new Promise(begin));
+        const previous = this.queue;
+        this.queue = this.queue.then(() => new Promise(begin));
         this.locked = true;
 
         const lockPromise = new Promise<() => void>((resolve, reject) => {
@@ -26,7 +25,7 @@ class AsyncMutex { // or Mutex
 
             if (timeoutMs) {
                 timer = setTimeout(() => {
-                    reject(new Error("Mutex lock timeout"));
+                    reject(new Error("Lock timeout"));
                 }, timeoutMs);
             }
         });
@@ -39,7 +38,7 @@ class AsyncMutex { // or Mutex
                 unlock();
             };
         } catch (err) {
-            this.mutex = previous;
+            this.queue = previous;
             this.locked = false;
             throw err;
         }
@@ -51,14 +50,14 @@ class AsyncMutex { // or Mutex
         this.locked = true;
         let resolve!: () => void;
         const promise = new Promise<void>(res => { resolve = res; });
-        this.mutex = this.mutex.then(() => promise);
+        this.queue = this.queue.then(() => promise);
         return () => {
             this.locked = false;
             resolve();
         };
     }
 
-    async dispatch<T>(fn: Executor<T>, timeoutMs = defaultMutexTimeout): Promise<T> {
+    async dispatch<T>(fn: Executor<T>, timeoutMs = defaultLockTimeout): Promise<T> {
         const unlock = await this.lock(timeoutMs);
         try {
             return await fn();
@@ -70,5 +69,5 @@ class AsyncMutex { // or Mutex
 
 
 export {
-    AsyncMutex
+    AsyncLock
 };

@@ -18,7 +18,7 @@ A modern foundation toolkit for complex TypeScript apps.
     - [dateTimeDataFormat — Date/Time Serialisation](#datetimedataformat--datetime-serialisation)
     - [StructEvent — Typed DOM Events](#structevent--typed-dom-events)
     - [watchable — Promise & Function Tracking](#watchable--promise--function-tracking)
-    - [asyncMutex — Async Mutual Exclusion](#asyncmutex--async-mutual-exclusion)
+    - [asyncLock — Async Lock](#asynclock--async-lock)
     - [store — Structured Persistence](#store--structured-persistence)
     - [cache — Persistent Cache](#cache--persistent-cache)
 - [License](#license)
@@ -889,13 +889,13 @@ submitButton.addEventListener('click', () => {
 
 ---
 
-### asyncMutex — Async Mutual Exclusion
+### asyncLock — Async Lock
 
-**Import:** `@actdim/utico/asyncMutex`
+**Import:** `@actdim/utico/asyncLock`
 
-A lightweight async mutex that serializes concurrent async operations. Prevents race conditions when accessing shared resources.
+A lightweight async lock that serializes concurrent async operations. Prevents race conditions when accessing shared resources.
 
-#### Class: `AsyncMutex`
+#### Class: `AsyncLock`
 
 | Method     | Signature                                             | Description                                                         |
 | ---------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
@@ -906,14 +906,14 @@ A lightweight async mutex that serializes concurrent async operations. Prevents 
 #### Usage Examples
 
 ```typescript
-import { AsyncMutex } from '@actdim/utico/asyncMutex';
+import { AsyncLock } from '@actdim/utico/asyncLock';
 
-const mutex = new AsyncMutex();
+const lock = new AsyncLock();
 
 // --- dispatch: the simplest pattern ---
 
 async function updateCounter() {
-    return mutex.dispatch(async () => {
+    return lock.dispatch(async () => {
         const current = await db.get('counter');
         await db.set('counter', current + 1);
         return current + 1;
@@ -926,7 +926,7 @@ await Promise.all([updateCounter(), updateCounter(), updateCounter()]);
 // --- lock / unlock: manual control ---
 
 async function criticalSection() {
-    const unlock = await mutex.lock();
+    const unlock = await lock.lock();
     try {
         await doWork();
     } finally {
@@ -939,10 +939,10 @@ async function criticalSection() {
 async function timedSection() {
     let unlock: (() => void) | undefined;
     try {
-        unlock = await mutex.lock(5000); // wait at most 5 seconds
+        unlock = await lock.lock(5000); // wait at most 5 seconds
         await doSlowWork();
     } catch (e) {
-        if ((e as Error).message === 'Mutex lock timeout') {
+        if ((e as Error).message === 'Lock timeout') {
             console.warn('Could not acquire lock in time');
         } else {
             throw e;
@@ -955,7 +955,7 @@ async function timedSection() {
 // --- tryLock: fire-and-forget, skip if busy ---
 
 function syncSnapshot() {
-    const unlock = mutex.tryLock();
+    const unlock = lock.tryLock();
     if (!unlock) {
         console.log('Already syncing, skipping...');
         return;
@@ -977,7 +977,7 @@ function syncSnapshot() {
 - `@actdim/utico/store/storeContracts` — types and interfaces
 - `@actdim/utico/store/persistentStore` — `PersistentStore` (main entry point)
 
-Built on [Dexie](https://dexie.org/) (IndexedDB). Uses `AsyncMutex` internally to protect concurrent database access. Transactions are managed automatically — no manual transaction handling needed.
+Built on [Dexie](https://dexie.org/) (IndexedDB). Uses `AsyncLock` internally to protect concurrent database access. Transactions are managed automatically — no manual transaction handling needed.
 
 #### Core Types
 

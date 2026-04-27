@@ -1,4 +1,4 @@
-import { AsyncMutex } from "@/asyncMutex";
+import { AsyncLock } from "@/asyncLock";
 import { DataRecord, FieldDefTemplate, MetadataRecord, StoreBase, TransactionMode } from "./storeContracts";
 import * as Dexie from "dexie";
 
@@ -6,7 +6,7 @@ const metadataTableName = "metadata";
 const dataTableName = "data";
 const dataFieldDefTemplate: FieldDefTemplate<keyof DataRecord> = ["&key", "value"];
 
-const mutex = new AsyncMutex();
+const lock = new AsyncLock();
 
 export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown> extends Dexie.Dexie {
     // catalog/registry
@@ -146,7 +146,7 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown
 
     static async delete(name: string) {
         try {
-            await mutex.dispatch(async () => {
+            await lock.dispatch(async () => {
                 if (await StoreDb.exists(name)) {
                     await Dexie.Dexie.delete(name);
                 }
@@ -165,7 +165,7 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown
     }
 
     static async open<T extends StoreBase>(name: string, factory: (name: string) => T) {
-        return await mutex.dispatch(async () => {
+        return await lock.dispatch(async () => {
             const store = factory(name);
             await store.open();
             return store;

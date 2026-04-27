@@ -1,33 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { AsyncMutex } from "@/asyncMutex";
+import { AsyncLock } from "@/asyncLock";
 
 const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
 // ─── lock ─────────────────────────────────────────────────────────────────────
 
-describe("AsyncMutex.lock", () => {
+describe("AsyncLock.lock", () => {
     it("resolves with an unlock function", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
         expect(typeof unlock).toBe("function");
         unlock();
     });
 
     it("allows immediate re-lock after unlock", async () => {
-        const mutex = new AsyncMutex();
-        const unlock1 = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock1 = await lock.lock();
         unlock1();
-        const unlock2 = await mutex.lock();
+        const unlock2 = await lock.lock();
         unlock2();
     });
 
     it("blocks a second lock until the first is released", async () => {
-        const mutex = new AsyncMutex();
+        const lock = new AsyncLock();
         const log: string[] = [];
 
-        const unlock1 = await mutex.lock();
+        const unlock1 = await lock.lock();
 
-        const pending = mutex.lock().then(unlock2 => {
+        const pending = lock.lock().then(unlock2 => {
             log.push("second acquired");
             unlock2();
         });
@@ -40,12 +40,12 @@ describe("AsyncMutex.lock", () => {
     });
 
     it("queues multiple waiters and releases them in order", async () => {
-        const mutex = new AsyncMutex();
+        const lock = new AsyncLock();
         const log: number[] = [];
 
-        const unlock1 = await mutex.lock();
-        const p2 = mutex.lock().then(u => { log.push(2); u(); });
-        const p3 = mutex.lock().then(u => { log.push(3); u(); });
+        const unlock1 = await lock.lock();
+        const p2 = lock.lock().then(u => { log.push(2); u(); });
+        const p3 = lock.lock().then(u => { log.push(3); u(); });
 
         log.push(1);
         unlock1();
@@ -55,39 +55,37 @@ describe("AsyncMutex.lock", () => {
     });
 
     it("blocks tryLock while held", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
-        expect(mutex.tryLock()).toBeNull();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
+        expect(lock.tryLock()).toBeNull();
         unlock();
     });
 
     it("allows tryLock after unlock", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
         unlock();
-        // tryLock() should return a function, not null, when the mutex is free
-        expect(mutex.tryLock()).not.toBeNull();
+        expect(lock.tryLock()).not.toBeNull();
     });
 
     it("rejects with timeout error when lock is held past the deadline", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
 
-        await expect(mutex.lock(20)).rejects.toThrow("Mutex lock timeout");
+        await expect(lock.lock(20)).rejects.toThrow("Lock timeout");
 
         unlock();
     });
 
     it("restores usability after a timeout", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
 
-        await expect(mutex.lock(20)).rejects.toThrow("Mutex lock timeout");
+        await expect(lock.lock(20)).rejects.toThrow("Lock timeout");
 
         unlock();
 
-        // mutex must still be acquirable after the failed attempt
-        const unlock2 = await mutex.lock();
+        const unlock2 = await lock.lock();
         expect(typeof unlock2).toBe("function");
         unlock2();
     });
@@ -95,47 +93,47 @@ describe("AsyncMutex.lock", () => {
 
 // ─── tryLock ──────────────────────────────────────────────────────────────────
 
-describe("AsyncMutex.tryLock", () => {
+describe("AsyncLock.tryLock", () => {
     it("returns a function (not null) when not locked", () => {
-        const mutex = new AsyncMutex();
-        const unlock = mutex.tryLock();
+        const lock = new AsyncLock();
+        const unlock = lock.tryLock();
         expect(typeof unlock).toBe("function");
     });
 
     it("returns null when already locked via lock()", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
-        expect(mutex.tryLock()).toBeNull();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
+        expect(lock.tryLock()).toBeNull();
         unlock();
     });
 
     it("returns null when a second tryLock() is called while locked", () => {
-        const mutex = new AsyncMutex();
-        const unlock = mutex.tryLock();
+        const lock = new AsyncLock();
+        const unlock = lock.tryLock();
         expect(typeof unlock).toBe("function");
-        expect(mutex.tryLock()).toBeNull();
+        expect(lock.tryLock()).toBeNull();
     });
 
     it("returns a function after lock() unlock", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
         unlock();
-        expect(typeof mutex.tryLock()).toBe("function");
+        expect(typeof lock.tryLock()).toBe("function");
     });
 });
 
 // ─── dispatch ─────────────────────────────────────────────────────────────────
 
-describe("AsyncMutex.dispatch", () => {
+describe("AsyncLock.dispatch", () => {
     it("returns the value produced by the executor", async () => {
-        const mutex = new AsyncMutex();
-        const result = await mutex.dispatch(() => 42);
+        const lock = new AsyncLock();
+        const result = await lock.dispatch(() => 42);
         expect(result).toBe(42);
     });
 
     it("works with an async executor", async () => {
-        const mutex = new AsyncMutex();
-        const result = await mutex.dispatch(async () => {
+        const lock = new AsyncLock();
+        const result = await lock.dispatch(async () => {
             await delay(0);
             return "done";
         });
@@ -143,43 +141,42 @@ describe("AsyncMutex.dispatch", () => {
     });
 
     it("propagates errors thrown by the executor", async () => {
-        const mutex = new AsyncMutex();
+        const lock = new AsyncLock();
         await expect(
-            mutex.dispatch(() => { throw new Error("boom"); })
+            lock.dispatch(() => { throw new Error("boom"); })
         ).rejects.toThrow("boom");
     });
 
     it("propagates rejections from async executors", async () => {
-        const mutex = new AsyncMutex();
+        const lock = new AsyncLock();
         await expect(
-            mutex.dispatch(async () => { throw new Error("async fail"); })
+            lock.dispatch(async () => { throw new Error("async fail"); })
         ).rejects.toThrow("async fail");
     });
 
     it("releases the lock even when the executor throws", async () => {
-        const mutex = new AsyncMutex();
+        const lock = new AsyncLock();
 
         await expect(
-            mutex.dispatch(() => { throw new Error("kaboom"); })
+            lock.dispatch(() => { throw new Error("kaboom"); })
         ).rejects.toThrow();
 
-        // lock must be available again immediately
-        const unlock = await mutex.lock();
+        const unlock = await lock.lock();
         expect(typeof unlock).toBe("function");
         unlock();
     });
 
     it("serializes concurrent dispatch calls", async () => {
-        const mutex = new AsyncMutex();
+        const lock = new AsyncLock();
         const log: number[] = [];
 
         await Promise.all([
-            mutex.dispatch(async () => {
+            lock.dispatch(async () => {
                 log.push(1);
                 await delay(20);
                 log.push(2);
             }),
-            mutex.dispatch(async () => {
+            lock.dispatch(async () => {
                 log.push(3);
                 await delay(0);
                 log.push(4);
@@ -190,23 +187,23 @@ describe("AsyncMutex.dispatch", () => {
     });
 
     it("rejects with timeout error when the lock cannot be acquired in time", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
 
-        await expect(mutex.dispatch(() => {}, 20)).rejects.toThrow("Mutex lock timeout");
+        await expect(lock.dispatch(() => {}, 20)).rejects.toThrow("Lock timeout");
 
         unlock();
     });
 
     it("allows dispatch after a timed-out dispatch", async () => {
-        const mutex = new AsyncMutex();
-        const unlock = await mutex.lock();
+        const lock = new AsyncLock();
+        const unlock = await lock.lock();
 
-        await expect(mutex.dispatch(() => {}, 20)).rejects.toThrow("Mutex lock timeout");
+        await expect(lock.dispatch(() => {}, 20)).rejects.toThrow("Lock timeout");
 
         unlock();
 
-        const result = await mutex.dispatch(() => "recovered");
+        const result = await lock.dispatch(() => "recovered");
         expect(result).toBe("recovered");
     });
 });
