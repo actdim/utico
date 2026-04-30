@@ -146,8 +146,8 @@ export const getKeyPrefixer =
             return Object.fromEntries(Object.keys(obj).map((k) => [`${prefix}${k}`, obj[k]]));
         };
 
-// export type MaybePromise<T = undefined> = T extends undefined ? void : T | PromiseLike<Awaited<T>>; // TODO: check
-export type MaybePromise<T = undefined> = T extends undefined ? void : T | PromiseLike<T>;
+export type MaybePromise<T = void> = T extends undefined ? void | PromiseLike<void> : T | PromiseLike<Awaited<T>>; // better!
+// export type MaybePromise<T = void> = T extends undefined ? void | PromiseLike<void> : T | PromiseLike<T>;
 
 export type Func<TArgs extends any[] = any[], T = any> = {
     (...args: TArgs): T;
@@ -288,3 +288,14 @@ export type KeyPathValue<T, P extends string> =
 export type KeyPathValueMap<T> = {
     [K in KeyPath<T>]?: KeyPathValue<T, K>;
 };
+
+export function getByKeyPath<T, P extends KeyPath<T>>(obj: T, path: P): KeyPathValue<T, P> {
+    return path.split('.').reduce((acc: any, key) => acc?.[key], obj) as KeyPathValue<T, P>;
+}
+
+export function setByKeyPath<T, P extends KeyPath<T>>(obj: T, path: P, value: KeyPathValue<T, P>): void {
+    const keys = path.split('.');
+    const last = keys.pop()!;
+    const target = keys.reduce((acc: any, key) => acc?.[key], obj);
+    if (target != null) target[last] = value;
+}
