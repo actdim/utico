@@ -33,10 +33,8 @@ export function strictSatisfies<T>() {
     return <U extends T>(u: U & Record<Exclude<keyof U, keyof T>, never>) => u;
 }
 
-// $keyOf
 export const keyOf = <T extends object, TKey extends keyof T = keyof T>(key: TKey, obj?: T) => key;
 
-// $nameOf/$n
 export function nameOf<T extends object>(f: (x: T) => T[keyof T]): keyof T;
 export function nameOf(f: (x: any) => any): keyof any {
     const p = new Proxy(
@@ -46,34 +44,6 @@ export function nameOf(f: (x: any) => any): keyof any {
         }
     );
     return f(p);
-}
-
-type _KeyMap<T extends object> = {
-    [K in keyof T]: K;
-};
-
-export function _keyMap<T extends object>(obj?: T) {
-    return new Proxy(
-        {},
-        {
-            get: (target, key) => key
-        }
-    ) as _KeyMap<T>;
-}
-
-// _NU
-type _NH<T> = {
-    nameOf(f: (x: T) => T[keyof T]): keyof T;
-};
-
-// $nu
-// usage: $nh(obj).nameOf(x => x.prop) or $NH<ClassName>().nameOf(x => x.prop)
-export function _nh<T>(obj?: T) {
-    return {
-        nameOf: (f: (x: any) => any) => {
-            return nameOf(f);
-        }
-    } as _NH<T>;
 }
 
 export function getPropertyPath<T>(expr: (x: T) => any) {
@@ -359,7 +329,8 @@ export interface DeepProxyHandler<T extends object> {
 }
 
 export function createDeepProxy<T extends object>(target: T, handler: DeepProxyHandler<T>) {
-    const proxyMap = new WeakMap();
+    const proxyMap = new WeakMap(); // proxy → original
+    const cache = new WeakMap();    // original → proxy
 
     function makeHandler(path: DeepPropertyKey) {
         return {
@@ -404,6 +375,7 @@ export function createDeepProxy<T extends object>(target: T, handler: DeepProxyH
     }
 
     function proxify(obj: any, path: DeepPropertyKey) {
+        if (cache.has(obj)) return cache.get(obj);
         for (let key of Object.keys(obj)) {
             if (typeof obj[key] === "object") {
                 obj[key] = proxify(obj[key], [...path, key]);
@@ -411,6 +383,7 @@ export function createDeepProxy<T extends object>(target: T, handler: DeepProxyH
         }
         let p = new Proxy(obj, makeHandler(path));
         proxyMap.set(p, obj);
+        cache.set(obj, p);
         return p;
     }
 

@@ -53,7 +53,7 @@ export class MemoryCache<TKey = any, TValue = any> implements IMemoryCache {
     }
 
     getValues() {
-        return this.values;
+        return this.map.values();
     }
 
     getOrSet(key: TKey, valueOrValueFactory: TValue | (() => TValue)) {

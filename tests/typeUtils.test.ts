@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-    keysOf, entry, keyOf, nameOf, _nh, _keyMap,
+    keysOf, entry, keyOf, nameOf,
     getPropertyPath, combinePropertyPath,
     createConstructor, typed, getPrototypes, proxify,
     getEnumValue, getEnumValues, getEnumKeys,
@@ -71,26 +71,6 @@ describe("nameOf", () => {
     });
 });
 
-// ─── $nh ──────────────────────────────────────────────────────────────────────
-
-describe("$nh", () => {
-    it("nameOf works same as standalone nameOf", () => {
-        type T = { value: string };
-        expect(_nh<T>().nameOf(x => x.value)).toBe("value");
-    });
-});
-
-// ─── $keyMap ──────────────────────────────────────────────────────────────────
-
-describe("$keyMap", () => {
-    it("returns property name as value", () => {
-        type T = { x: number; y: number };
-        const m = _keyMap<T>();
-        expect(m.x).toBe("x");
-        expect(m.y).toBe("y");
-    });
-});
-
 // ─── getPropertyPath ──────────────────────────────────────────────────────────
 
 describe("getPropertyPath", () => {
@@ -121,19 +101,19 @@ describe("combinePropertyPath", () => {
 
 describe("createConstructor", () => {
     it("creates instance via new", () => {
-        class Foo { constructor(public x: number) {} }
+        class Foo { constructor(public x: number) { } }
         const FooCtor = createConstructor(Foo);
         expect(new FooCtor(42).x).toBe(42);
     });
 
     it("creates instance without new (callable)", () => {
-        class Foo { constructor(public x: number) {} }
+        class Foo { constructor(public x: number) { } }
         const FooCtor = createConstructor(Foo) as any;
         expect(FooCtor(42).x).toBe(42);
     });
 
     it("preserves instanceof for non-primitive", () => {
-        class Bar {}
+        class Bar { }
         const BarCtor = createConstructor(Bar) as any;
         expect(BarCtor() instanceof Bar).toBe(true);
     });
@@ -153,7 +133,7 @@ describe("createConstructor", () => {
 
 describe("typed", () => {
     it("returns the same constructor reference", () => {
-        class Foo {}
+        class Foo { }
         expect(typed(Foo)).toBe(Foo);
     });
 });
@@ -167,8 +147,8 @@ describe("getPrototypes", () => {
     });
 
     it("includes parent prototype for subclass", () => {
-        class A {}
-        class B extends A {}
+        class A { }
+        class B extends A { }
         const chain = getPrototypes(new B());
         expect(chain).toContain(A.prototype);
         expect(chain).toContain(B.prototype);
@@ -287,7 +267,7 @@ describe("isPlainObject", () => {
     });
 
     it("returns false for class instance", () => {
-        expect(isPlainObject(new class Foo {}())).toBe(false);
+        expect(isPlainObject(new class Foo { }())).toBe(false);
     });
 
     it("returns false for array", () => {

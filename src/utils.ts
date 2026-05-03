@@ -13,16 +13,6 @@ import { v4 as uuid } from "uuid";
 
 export const normalize = (v: number) => (!v || !isFinite(v) ? 0 : v);
 
-// numericalOr
-export function numericOr(...values: number[]) {
-    for (const value of values) {
-        if (value != undefined) {
-            return value;
-        }
-    }
-    return undefined;
-}
-
 // funcArgCacheKeyResolver(Provider/Builder)
 export const buildFuncArgCacheKey = (() => {
     const weakMap = new WeakMap<any, string>();

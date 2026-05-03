@@ -1,5 +1,4 @@
-// const currentLocale = new Intl.Locale(navigator.language);
-// const currentCollator = Intl.Collator(navigator.language);
+const defaultLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
 const defaulCollator = Intl.Collator();
 
 const ciCompare = (() => {
@@ -8,7 +7,7 @@ const ciCompare = (() => {
     };
     ;
     // feature detection
-    return 'A'.localeCompare('a', undefined, collatorOptions) ? (strA: string, strB: string, locale = navigator.language) => {
+    return 'A'.localeCompare('a', undefined, collatorOptions) ? (strA: string, strB: string, locale = defaultLocale) => {
         return strA.localeCompare(strB, locale, collatorOptions)
     } : (strA: string, strB: string, locale?: string) => {
         // fallback approach
@@ -16,7 +15,7 @@ const ciCompare = (() => {
     };
 })();
 
-function compare(strA: string, strB: string, ignoreCase = false, locale = navigator.language) {
+function compare(strA: string, strB: string, ignoreCase = false, locale = defaultLocale) {
     if (typeof strA !== 'string' || typeof strB !== 'string') {
         return defaulCollator.compare(strA, strB);
     }
@@ -27,7 +26,7 @@ function compare(strA: string, strB: string, ignoreCase = false, locale = naviga
 }
 
 // isEqual
-function equals(strA: string, strB: string, ignoreCase = false, locale = navigator.language) {
+function equals(strA: string, strB: string, ignoreCase = false, locale = defaultLocale) {
     if (typeof strA !== 'string' || typeof strB !== 'string') {
         return strA === strB;
     }
@@ -37,28 +36,28 @@ function equals(strA: string, strB: string, ignoreCase = false, locale = navigat
     return strA.localeCompare(strB, locale) === 0;
 }
 
-function ciStartsWith(str: string, searchStr: string, locale = navigator.language) {
+function ciStartsWith(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return false;
     }
     return equals(str.substring(0, searchStr.length), searchStr, true, locale);
 }
 
-function ciEndsWith(str: string, searchStr: string, locale = navigator.language) {
+function ciEndsWith(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return false;
     }
     return equals(str.substring(str.length - searchStr.length), searchStr, true, locale);
 }
 
-function ciIndexOf(str: string, searchStr: string, locale = navigator.language) {
+function ciIndexOf(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return -1;
     }
     return str.toLocaleUpperCase(locale).indexOf(searchStr.toLocaleUpperCase(locale));
 }
 
-function ciIncludes(str: string, searchStr: string, locale = navigator.language) {
+function ciIncludes(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return false;
     }

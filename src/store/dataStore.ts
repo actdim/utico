@@ -264,7 +264,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         }, transactionMode);
     }
 
-    async update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T>, valueChanges?: KeyPathValueMap<TValue>, transactionMode: TransactionMode = "rw") {
+    async update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T, false>, valueChanges?: KeyPathValueMap<TValue, false>, transactionMode: TransactionMode = "rw") {
         if (!key) {
             throw new Error('Key cannot be empty. Parameter: "key".');
         }

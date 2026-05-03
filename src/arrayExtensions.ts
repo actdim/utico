@@ -16,30 +16,6 @@ interface Array<T> {
     copyTo(dst: any[], srcIndex?: number, dstIndex?: number, length?: number): this;
 }
 
-// Comparers
-class Sorters {
-    static asc(a: any, b: any) {
-        // comparison
-        return (a === b) ? 0
-            : (a > b) ? 1
-                : -1;
-        // if (a < b) {
-        //     return -1;
-        // }
-        // if (a > b) {
-        //     return 1;
-        // }
-        // // a must be equal to b
-        // return 0;
-        // localeCompare?
-        // numeric: a - b
-    }
-
-    static desc(a: any, b: any) {
-        return -Sorters.asc(a, b);
-        // return Sorters.asc(b, a);
-    }
-}
 
 Array.prototype.unfold = function (callback: (element: any) => any[]): any[] {
     return this.reduce((res, element) => {
@@ -52,83 +28,55 @@ Array.prototype.max = function (selector: (element: any) => any, defaultValue?: 
     if (this.length == 0) {
         return defaultValue;
     }
-    return this.map(selector).sort(Sorters.desc)[0];
-
-    // return this.reduce((x, el) => {
-    //     let order = el.Order();
-    //     return x == undefined ? order : (order > x ? order : o);
-    // }, undefined);
+    return this.reduce((best: any, el: any) => {
+        const v = selector(el);
+        return best === undefined || v > best ? v : best;
+    }, undefined);
 };
 
 Array.prototype.min = function (selector: (element: any) => any, defaultValue?: any): any {
     if (this.length == 0) {
         return defaultValue;
     }
-    return this.map(selector).sort(Sorters.asc)[0];
+    return this.reduce((best: any, el: any) => {
+        const v = selector(el);
+        return best === undefined || v < best ? v : best;
+    }, undefined);
 };
 
 Array.prototype.orderBy = function (selector: (element: any) => any): any[] {
-    return this.slice(0).sort((a, b) => Sorters.asc(selector(a), selector(b)));
+    return this.slice(0).sort((a, b) => {
+        const va = selector(a), vb = selector(b);
+        return va === vb ? 0 : va > vb ? 1 : -1;
+    });
 };
 
 Array.prototype.orderByDesc = function (selector: (element: any) => any): any[] {
-    return this.slice(0).sort((a, b) => Sorters.desc(selector(a), selector(b)));
+    return this.slice(0).sort((a, b) => {
+        const va = selector(a), vb = selector(b);
+        return va === vb ? 0 : va > vb ? -1 : 1;
+    });
 };
-
-// Array.prototype.groupBy = function (key: string): { [key: string]: any[] } {
-// 	return this.reduce((result, item) => {
-// 		const value = item[key].toString();
-// 		(result[item[key]] = result[item[key]] || []).push(item);
-// 		return result;
-// 	}, {});
-// };
 
 Array.prototype.groupBy = function (selector: (element: any) => string): { [key: string]: any[] } {
     return this.reduce((result, item) => {
-        const value = selector(item); //.toString()
+        const value = selector(item);
         (result[value] = result[value] || []).push(item);
         return result;
     }, {});
 };
 
-class Filters {
-    static notNull(element: any): boolean {
-        return element != null;
-    }
-
-    static notUndefined(element: any): boolean { // notMissing
-        return element != undefined;
-    }
-
-    static notEmpty(element: any): boolean {
-        return element !== '';
-    }
-
-    // unique
-    static distinct(element, index, self) {
-        return self.indexOf(element) === index;
-    }
-}
-
 // distinctBy/uniqueBy
 Array.prototype.distinct = function (selector?: (element: any) => any): any[] {
     if (!selector) {
-        return this.filter(Filters.distinct);
-        // return this.sort().filter(function (element, index, self) {
-        //     return !index || element != self[index - 1];
-        // });
+        return [...new Set(this)];
     }
-
-    // let keys = {}; // elements/items
-    // return this.filter(function (element) {
-    //     const key = selector(element);
-    //     return keys.hasOwnProperty(key) ? false : (keys[key] = true);
-    // });
-
-    let keys = []; // elements/items
+    const seen = new Set();
     return this.filter(function (element) {
         const key = selector(element);
-        return keys.indexOf(key) >= 0 ? false : keys.push(key);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
     });
 };
 
@@ -149,10 +97,10 @@ function copyArray(src: any[], dst: any[], srcIndex = 0, dstIndex = 0, length?: 
         dstIndex = 0;
     }
     if (length == undefined) {
-        length = Math.min(src.length, src.length - srcIndex);
+        length = src.length - srcIndex;
     }
     let j = dstIndex;
-    for (let i = srcIndex; i < length; i++) {
+    for (let i = srcIndex; i < srcIndex + length; i++) {
         dst[j] = src[i];
         j++;
     }

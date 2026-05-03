@@ -250,21 +250,24 @@ type NextDepthMap = {
 };
 type NextDepth<D extends number> = D extends keyof NextDepthMap ? NextDepthMap[D] : 5;
 
-export type KeyPath<T, D extends number = 0> =
-    D extends 5 ? never :
+type PropertyKeys<T, IncludeFunctions extends boolean> =
+    IncludeFunctions extends true ? keyof T : NonFunctionPropertyKeys<T>;
+
+export type KeyPath<T, IncludeFunctions extends boolean = true, MaxDepth extends number = 5, D extends number = 0> =
+    D extends MaxDepth ? never :
     T extends readonly any[]
-    ? `${number}` | `${number}.${KeyPath<T[number], NextDepth<D>>}`
+    ? `${number}` | `${number}.${KeyPath<T[number], IncludeFunctions, MaxDepth, NextDepth<D>>}`
     : T extends object
     ? {
-        [K in NonFunctionPropertyKeys<T> & (string | number)]:
+        [K in PropertyKeys<T, IncludeFunctions> & (string | number)]:
         T[K] extends readonly any[]
         ? `${K}` |
         `${K}.${number}` |
-        `${K}.${number}.${KeyPath<T[K][number], NextDepth<D>>}`
+        `${K}.${number}.${KeyPath<T[K][number], IncludeFunctions, MaxDepth, NextDepth<D>>}`
         : T[K] extends object
-        ? `${K}` | `${K}.${KeyPath<T[K], NextDepth<D>>}`
+        ? `${K}` | `${K}.${KeyPath<T[K], IncludeFunctions, MaxDepth, NextDepth<D>>}`
         : `${K}`;
-    }[NonFunctionPropertyKeys<T> & (string | number)]
+    }[PropertyKeys<T, IncludeFunctions> & (string | number)]
     : never;
 
 export type KeyPathValue<T, P extends string> =
@@ -285,15 +288,15 @@ export type KeyPathValue<T, P extends string> =
     : never;
 
 // Slice
-export type KeyPathValueMap<T> = {
-    [K in KeyPath<T>]?: KeyPathValue<T, K>;
+export type KeyPathValueMap<T, IncludeFunctions extends boolean = true> = {
+    [K in KeyPath<T, IncludeFunctions>]?: KeyPathValue<T, K>;
 };
 
-export function getByKeyPath<T, P extends KeyPath<T>>(obj: T, path: P): KeyPathValue<T, P> {
+export function getByKeyPath<T, P extends KeyPath<T, boolean>>(obj: T, path: P): KeyPathValue<T, P> {
     return path.split('.').reduce((acc: any, key) => acc?.[key], obj) as KeyPathValue<T, P>;
 }
 
-export function setByKeyPath<T, P extends KeyPath<T>>(obj: T, path: P, value: KeyPathValue<T, P>): void {
+export function setByKeyPath<T, P extends KeyPath<T, boolean>>(obj: T, path: P, value: KeyPathValue<T, P>): void {
     const keys = path.split('.');
     const last = keys.pop()!;
     const target = keys.reduce((acc: any, key) => acc?.[key], obj);

@@ -21,6 +21,14 @@ A modern foundation toolkit for complex TypeScript apps.
     - [asyncLock — Async Lock](#asynclock--async-lock)
     - [store — Structured Persistence](#store--structured-persistence)
     - [cache — Persistent Cache](#cache--persistent-cache)
+    - [arrayExtensions — Array Prototype Extensions](#arrayextensions--array-prototype-extensions)
+    - [memoryCache — In-Memory Cache](#memorycache--in-memory-cache)
+    - [utils — General Utilities](#utils--general-utilities)
+    - [math — Math Utilities](#math--math-utilities)
+    - [i18n — Culture Definitions](#i18n--culture-definitions)
+    - [gfx/color — Color Utilities](#gfxcolor--color-utilities)
+    - [gfx/canvasUtils — Canvas Utilities](#gfxcanvasutils--canvas-utilities)
+    - [dataFormats — Data Format Shortcuts](#dataformats--data-format-shortcuts)
 - [License](#license)
 
 ---
@@ -75,9 +83,9 @@ A comprehensive set of TypeScript utility types and helper functions for advance
 | `CommonKeys<T, U>`           | Union of keys shared by `T` and `U`                               |
 | `UnionToIntersection<U>`     | Converts a union type to an intersection type                     |
 | `ValueUnion<T>`              | Union of all property value types in `T`                          |
-| `KeyPath<T>`                 | Dot-notation path strings for all nested properties of `T`        |
+| `KeyPath<T, IncludeFunctions?, MaxDepth?>` | Dot-notation path strings for all nested properties of `T`. `IncludeFunctions` (default `true`) controls whether function-typed properties are included. `MaxDepth` (default `5`) limits recursion depth. `D` is internal. |
 | `KeyPathValue<T, P>`         | Value type at a given `KeyPath` `P` in `T`                        |
-| `KeyPathValueMap<T>`         | Partial map of `KeyPath` strings to their values                  |
+| `KeyPathValueMap<T, IncludeFunctions?>` | Partial map of `KeyPath` strings to their values. `IncludeFunctions` mirrors `KeyPath` (default `true`) |
 | `OneOfType<T>`               | Discriminated union — exactly one property of `T` is set          |
 | `Weaken<T, K>`               | Replaces specified keys in `T` with `any`                         |
 | `Mutable<T>`                 | Removes `readonly` from all properties                            |
@@ -107,6 +115,8 @@ A comprehensive set of TypeScript utility types and helper functions for advance
 | `getPrefixer(prefix)`         | Returns `(value: string) => string` that prepends `prefix`            |
 | `getValuePrefixer<T>(prefix)` | Returns a function that prefixes all values of a string-valued object |
 | `getKeyPrefixer<T>(prefix)`   | Returns a function that prefixes all keys of an object                |
+| `getByKeyPath<T, P>(obj, path)` | Gets the value at a dot-notation `KeyPath` in `obj` at runtime      |
+| `setByKeyPath<T, P>(obj, path, value)` | Sets the value at a dot-notation `KeyPath` in `obj` at runtime |
 
 #### Usage Examples
 
@@ -149,16 +159,25 @@ type OnlyInA = Diff<A, B>;
 type Common = CommonPart<{ a: number; b: string }, { b: string; c: boolean }>;
 // => { b: string }
 
-// KeyPath — deeply nested dot-notation paths
+// KeyPath — deeply nested dot-notation paths (functions included by default)
 type Config = { server: { host: string; port: number }; debug: boolean };
 type Paths = KeyPath<Config>;
 // => "server" | "debug" | "server.host" | "server.port"
+
+type PathsNoFn = KeyPath<Config, false>;        // exclude function-typed properties
+type PathsShallow = KeyPath<Config, true, 2>;   // include functions, max depth 2
 
 type HostType = KeyPathValue<Config, 'server.host'>;
 // => string
 
 // Partial deep-update patch object
 const patch: KeyPathValueMap<Config> = { 'server.port': 8080 };
+const patchNoFn: KeyPathValueMap<Config, false> = { 'server.port': 8080 };
+
+// Runtime get/set by dot-notation path
+const cfg: Config = { server: { host: 'localhost', port: 3000 }, debug: false };
+getByKeyPath(cfg, 'server.port');              // => 3000
+setByKeyPath(cfg, 'server.host', '0.0.0.0'); // mutates cfg.server.host
 
 // OneOfType — exactly one property set
 type Payload = OneOfType<{ text: string; html: string; json: object }>;
@@ -631,10 +650,12 @@ The module converts values from string/number/`Date`/`DateTime`, tracks precisio
 
 #### Ready-to-use transports
 
-| Transport | Serialize | Deserialize |
-|-----------|-----------|-------------|
-| `invariantLocalDateTimeTransport` | local ISO without zone suffix | strings as auto, numbers as local Unix seconds |
-| `utcDateTimeTransport` | UTC ISO with `Z` suffix | strings as auto, numbers as UTC Unix seconds |
+Exported as `dateTimeTransports` object:
+
+| Key | Serialize | Deserialize |
+|-----|-----------|-------------|
+| `dateTimeTransports.commonLocal` | local ISO without zone suffix | strings as auto, numbers as local Unix seconds |
+| `dateTimeTransports.utc` | UTC ISO with `Z` suffix | strings as auto, numbers as UTC Unix seconds |
 
 #### Usage Examples
 
@@ -644,13 +665,12 @@ import {
   getDateTimeFromString,
   getDateTimeFromNumber,
   getDateTimeNumber,
+  dateTimeTransports,
   DateTimeKind,
   DateTimePrecision,
   DateTimeNumberFormat,
   DateTimeStringInterpretation,
   DateTimeExportInterpretation,
-  invariantLocalDateTimeTransport,
-  utcDateTimeTransport
 } from '@actdim/utico/dateTimeDataFormat';
 
 // Parse from string (ISO auto-detect)
@@ -695,9 +715,9 @@ minute.millisecond; // 0
 getDateTimeNumber(a, DateTimeNumberFormat.UnixTimeSeconds);
 
 // Transport helpers
-invariantLocalDateTimeTransport.serialize(a); // local string
-utcDateTimeTransport.serialize(a);            // UTC string with Z
-utcDateTimeTransport.serialize(null);         // null
+dateTimeTransports.commonLocal.serialize(a); // local string
+dateTimeTransports.utc.serialize(a);         // UTC string with Z
+dateTimeTransports.utc.serialize(null);      // null
 ```
 
 ---
@@ -1029,6 +1049,25 @@ The main entry point for structured persistence. Key features:
 | `orderBy(field, direction)` | Get items ordered by an indexed field |
 | `distinct(field)` | Get items with unique values of an indexed field |
 
+#### Transaction Modes
+
+`TransactionMode` (re-exported from Dexie) controls how a Dexie transaction is opened or joined.
+Most `IPersistentStore` methods accept an optional `transactionMode` parameter with a sensible default — callers rarely need to override it.
+
+| Mode | Meaning |
+|------|---------|
+| `"r"` | Readonly — always opens a new readonly transaction |
+| `"rw"` | Read-write — always opens a new read-write transaction |
+| `"r?"` | Readonly, reuse — joins an existing transaction if one is open; otherwise opens a new readonly one |
+| `"rw?"` | Read-write, reuse — joins an existing transaction if one is open; otherwise opens a new read-write one |
+| `"r!"` | Readonly, required — must already be inside an enclosing transaction (throws otherwise) |
+| `"rw!"` | Read-write, required — must already be inside an enclosing transaction (throws otherwise) |
+
+Defaults used by `PersistentStore` internally:
+- Reads (`get`, `bulkGet`, `contains`, `toArray`): `"r"` or `"r?"`
+- Writes (`set`, `update`, `delete`, `clear`): `"rw"`
+- General `exec` wrapper: `"r!"` (runs inside caller-provided transaction)
+
 #### Index Schema
 
 The field template is an array of `FieldDef` strings. The first entry is always the primary key.
@@ -1269,6 +1308,251 @@ cache[Symbol.dispose]();   // stops background timer, closes DB
 // or:
 using c = await PersistentCache.open('temp');   // auto-disposed at block exit (TS 5.2+)
 ```
+
+---
+
+### arrayExtensions — Array Prototype Extensions
+
+**Import:** `@actdim/utico/arrayExtensions`
+
+> **Side-effect import** — augments `Array.prototype` globally. Import once at the application entry point.
+
+Extends the native `Array<T>` with LINQ-style collection utilities.
+
+#### Methods
+
+| Method | Description |
+|--------|-------------|
+| `unfold<TItem>(callback)` | Flat-maps each element to an array and concatenates results (`selectMany`) |
+| `max<TItem>(selector, defaultValue?)` | Returns the maximum projected value; `defaultValue` when the array is empty |
+| `min<TItem>(selector, defaultValue?)` | Returns the minimum projected value; `defaultValue` when the array is empty |
+| `orderBy<TItem>(selector)` | Returns a new array sorted ascending by the projected key |
+| `orderByDesc<TItem>(selector)` | Returns a new array sorted descending by the projected key |
+| `groupBy(selector)` | Groups elements into `{ [key: string]: T[] }` by the projected string key |
+| `distinct()` | Returns unique elements (reference/value equality) via `Set` |
+| `distinct<TItem>(selector)` | Returns elements with unique projected keys |
+| `copy(src, srcIndex?, dstIndex?, length?)` | Copies elements from `src` into this array |
+| `copyTo(dst, srcIndex?, dstIndex?, length?)` | Copies elements from this array into `dst` |
+
+#### Usage Examples
+
+```typescript
+import '@actdim/utico/arrayExtensions';
+
+// unfold — flat-map
+[[1, 2], [3, 4]].unfold(x => x);           // [1, 2, 3, 4]
+
+// max / min
+[{ v: 3 }, { v: 1 }, { v: 2 }].max(x => x.v);  // 3
+[{ v: 3 }, { v: 1 }, { v: 2 }].min(x => x.v);  // 1
+[].min(x => x, 0);                               // 0 (defaultValue)
+
+// orderBy / orderByDesc
+[3, 1, 2].orderBy(x => x);       // [1, 2, 3]
+[3, 1, 2].orderByDesc(x => x);   // [3, 2, 1]
+
+// groupBy
+['apple', 'avocado', 'banana'].groupBy(s => s[0]);
+// { a: ['apple', 'avocado'], b: ['banana'] }
+
+// distinct
+[1, 2, 2, 3].distinct();                              // [1, 2, 3]
+[{ id: 1 }, { id: 2 }, { id: 1 }].distinct(x => x.id); // [{ id: 1 }, { id: 2 }]
+```
+
+---
+
+### memoryCache — In-Memory Cache
+
+**Import:** `@actdim/utico/cache/memoryCache`
+
+A simple generic in-memory key-value cache backed by `Map`.
+
+#### Class: `MemoryCache<TKey, TValue>`
+
+| Member | Description |
+|--------|-------------|
+| `get(key)` | Returns the stored value, or `undefined` |
+| `set(key, valueOrFactory)` | Stores a value or calls a factory to produce it |
+| `getOrSet(key, valueOrFactory)` | Returns existing value or creates and stores it |
+| `contains(key)` | Returns `true` if the key exists |
+| `remove(key)` | Removes an entry |
+| `clear()` | Removes all entries |
+| `keys` / `getKeys()` | Iterable of all keys |
+| `values` / `getValues()` | Iterable of all values |
+| `entries` / `getEntries()` | Iterable of `[key, value]` pairs |
+| `size` | Number of stored entries |
+
+```typescript
+import { MemoryCache } from '@actdim/utico/cache/memoryCache';
+
+const cache = new MemoryCache<string, number>();
+cache.set('a', 1);
+cache.getOrSet('b', () => 2);
+cache.get('a');       // 1
+cache.contains('b');  // true
+cache.size;           // 2
+```
+
+---
+
+### utils — General Utilities
+
+**Import:** `@actdim/utico/utils`
+
+| Function | Description |
+|----------|-------------|
+| `delay(ms)` | Returns a `Promise` that resolves after `ms` milliseconds |
+| `delayError(ms, errFactory?)` | Returns a `Promise` that rejects after `ms` milliseconds |
+| `withTimeout(promise, ms)` | Races `promise` against a timeout rejection |
+| `lazy(factory)` | Wraps a factory in a once-evaluated lazy initializer |
+| `memoEffect(getValue, callback, comparator?)` | Calls `callback` only when the value from `getValue` changes |
+| `searchTree(nodes, predicate, childSelector)` | Depth-first search over a tree structure |
+| `buildFuncArgCacheKey(...args)` | Produces a stable string cache key from any argument list |
+| `normalize(v)` | Returns `0` for `NaN`, `Infinity`, or falsy numbers; otherwise `v` |
+| `removePrefix(str, prefixes)` | Strips any leading prefixes from `str` (repeats until stable) |
+| `removeSuffix(str, suffixes)` | Strips any trailing suffixes from `str` (repeats until stable) |
+| `makeNonEnumerable(obj, propertyNames)` | Makes the given properties non-enumerable on `obj` |
+| `suppressConsole(action)` | Runs `action` while capturing `console.log` calls; returns the captured log entries |
+
+```typescript
+import { delay, withTimeout, lazy, memoEffect, searchTree } from '@actdim/utico/utils';
+
+await delay(500);
+
+const result = await withTimeout(fetch('/api'), 3000);
+
+const getInstance = lazy(() => new ExpensiveClass());
+getInstance(); // created once
+
+const recompute = memoEffect(
+    () => items.length,
+    (len) => computeSomething(len)
+);
+recompute(); // runs callback only when items.length changes
+
+const node = searchTree(tree, n => n.id === 42, n => n.children);
+```
+
+---
+
+### math — Math Utilities
+
+**Import:** `@actdim/utico/math`
+
+| Function | Description |
+|----------|-------------|
+| `round(number, digits?)` | Rounds to `digits` decimal places (default `0`). Uses `Number.EPSILON` correction to avoid floating-point drift (e.g. `1.005 → 1.01`). |
+
+```typescript
+import { round } from '@actdim/utico/math';
+
+round(1.005, 2)  // 1.01
+round(1.555, 2)  // 1.56
+round(123.456)   // 123
+```
+
+---
+
+### i18n — Culture Definitions
+
+**Import:** `@actdim/utico/i18n/cultures` (index) or individual culture files.
+
+Provides Luxon-compatible date/time format strings for different locales.
+All format tokens follow Luxon conventions (`yyyy`, `MM`, `dd`, `HH`, `hh`, `a`, etc.).
+
+| Import | Culture |
+|--------|---------|
+| `@actdim/utico/i18n/cultures` | `{ "en-US": ..., "eu": ..., "invariant": ... }` |
+| `@actdim/utico/i18n/enUsCulture` | US English — `MM/dd/yyyy`, 12-hour clock |
+| `@actdim/utico/i18n/euCulture` | European — `dd.MM.yyyy`, 24-hour clock |
+| `@actdim/utico/i18n/invariantCulture` | Locale-neutral ISO-style formats |
+
+Each culture exports a `dateTime.formats` object with keys:
+`dateTime`, `dateTime24`, `dateTimeShort`, `date`, `dateShort`, `time`, `time24`, `timeHM`, `timeH24M`, etc.
+
+```typescript
+import enUs from '@actdim/utico/i18n/enUsCulture';
+import cultures from '@actdim/utico/i18n/cultures';
+
+enUs.dateTime.formats.date         // "MM/dd/yyyy"
+enUs.dateTime.formats.timeH24M     // "HH:mm"
+
+cultures['eu'].dateTime.formats.date  // "dd.MM.yyyy"
+```
+
+---
+
+### gfx/color — Color Utilities
+
+**Import:** `@actdim/utico/gfx/color`
+
+Converts between hex strings, RGBA components, and packed 24/32-bit integers.
+
+| Function | Description |
+|----------|-------------|
+| `getColorNumberFromRgba(r, g, b, a?, mode?)` | Packs RGBA into a 32-bit unsigned int. `mode`: `'24bit'`, `'32bit'`, or `'auto'` (default — 24-bit when `a` is omitted) |
+| `getColorRgbaFromHexString(hex)` | Parses a hex string (`#RGB`, `#RRGGBB`, `#RRGGBBAA`) into `{ r, g, b, a }` |
+| `getColorNumberFromHexString(hex)` | Parses a hex string into a number |
+| `get24bitColorHexStringFromNumber(color)` | Formats a number as `#rrggbb` |
+| `get32BitColorHexStringFromNumber(color)` | Formats a number as `#rrggbbaa` |
+| `getColorHexStringFromRgba(r, g, b, a?)` | Converts RGBA components to a hex string |
+| `getRandom24BitColorNumber(brightness?)` | Generates a random 24-bit color |
+| `getRandom32BitColorNumber(alpha?, brightness?)` | Generates a random 32-bit color |
+| `getRandomColorChannelString(brightness)` | Random single channel as a 2-char hex string |
+| `ColorDepthMode` | Const enum: `'24bit' \| '32bit' \| 'auto'` |
+
+```typescript
+import { getColorNumberFromRgba, get24bitColorHexStringFromNumber, getColorRgbaFromHexString } from '@actdim/utico/gfx/color';
+
+const n = getColorNumberFromRgba(255, 128, 0);   // 0xFF8000
+get24bitColorHexStringFromNumber(n);              // "#ff8000"
+getColorRgbaFromHexString('#ff8000');             // { r: 255, g: 128, b: 0, a: 255 }
+```
+
+---
+
+### gfx/canvasUtils — Canvas Utilities
+
+**Import:** `@actdim/utico/gfx/canvasUtils`
+
+> **Browser-only** — uses `document`, `window`, `Canvas`, `SVG`, and `FileReader` APIs.
+
+| Function / Value | Description |
+|------------------|-------------|
+| `createCanvas(w, h)` | Creates an offscreen `<canvas>` with a 2D context and high-quality image smoothing |
+| `fitText(ctx, text, sizeProvider, targetWidth?, fontFamily?)` | Finds the largest font size that fits `text` within `targetWidth`, then draws it |
+| `html2Svg(elements, viewBoxSize, css)` | Serialises HTML elements into an SVG string via `<foreignObject>` |
+| `getSvgImageObjectUrl(svgData)` | Creates a Blob object URL from an SVG string |
+| `getSvgImageDataUrl(svgData)` | Creates a `data:image/svg+xml;base64,...` URL from an SVG string |
+| `querySvgData(selector)` | Serialises the first matching SVG element to a string |
+| `toObjectUrl(canvas, mimeType?, quality?)` | Converts a canvas to a Blob object URL |
+| `drawImage(src, context)` | Draws an image URL onto a canvas context |
+| `drawSvg(svgData, context, useDataUrl?)` | Draws an SVG string onto a canvas context |
+| `canvasToImage(canvas, size?, mimeType?, quality?)` | Converts a canvas to an `HTMLImageElement` |
+| `objectUrlToDataURL(objectUrl)` | Converts a Blob object URL to a `data:` URL |
+| `getSvgSize(svg)` | Returns `[width, height]` from an SVG string |
+| `getSvgElementSize(svgDoc)` | Returns `[width, height]` from an `SVGSVGElement` |
+| `refineSvg(data)` | Normalises SVG dimensions (workaround for Firefox bug) |
+| `drawRoundedRect(ctx, x, y, w, h, r)` | Draws a rounded rectangle path; `r` is a number or `{tl, tr, br, bl}` |
+
+---
+
+### dataFormats — Data Format Shortcuts
+
+**Import:** `@actdim/utico/dataFormats`
+
+A convenience re-export that groups format helpers under a single object.
+
+```typescript
+import dataFormats from '@actdim/utico/dataFormats';
+
+// Equivalent to importing dateTimeTransports directly:
+dataFormats.dateTime.transports.commonLocal.serialize(dt);
+dataFormats.dateTime.transports.utc.serialize(dt);
+```
+
+See [dateTimeDataFormat](#datetimedataformat--datetime-serialisation) for full transport documentation.
 
 ---
 
