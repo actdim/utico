@@ -292,11 +292,11 @@ export type KeyPathValueMap<T, IncludeFunctions extends boolean = true> = {
     [K in KeyPath<T, IncludeFunctions>]?: KeyPathValue<T, K>;
 };
 
-export function getByKeyPath<T, P extends KeyPath<T, boolean>>(obj: T, path: P): KeyPathValue<T, P> {
+export function getByKeyPath<T, P extends KeyPath<T, boolean, MaxDepth>, MaxDepth extends number = 5>(obj: T, path: P): KeyPathValue<T, P> {
     return path.split('.').reduce((acc: any, key) => acc?.[key], obj) as KeyPathValue<T, P>;
 }
 
-export function setByKeyPath<T, P extends KeyPath<T, boolean>>(obj: T, path: P, value: KeyPathValue<T, P>): void {
+export function setByKeyPath<T, P extends KeyPath<T, boolean, MaxDepth>, MaxDepth extends number = 5>(obj: T, path: P, value: KeyPathValue<T, P>): void {
     const keys = path.split('.');
     const last = keys.pop()!;
     const target = keys.reduce((acc: any, key) => acc?.[key], obj);
