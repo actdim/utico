@@ -197,10 +197,12 @@ export function copy<T extends object, U extends object>(src: T, dst: U, props?:
     return update(dst, src, props);
 }
 
-export function isPlainObject(value) {
-    if (Object.prototype.toString.call(value) !== '[object Object]') return false;
-    const proto = Object.getPrototypeOf(value);
-    return proto === null || proto === Object.prototype;
+// "val is Record<string, unknown>" is better type guard than "val is object"
+// "Object.prototype.toString.call(val) !== '[object Object]'" is not safe
+export function isPlainObject(val: unknown): val is Record<string, unknown> {
+    if (val === null || typeof val !== 'object') return false;
+    const proto = Object.getPrototypeOf(val);
+    return proto === Object.prototype || proto === null;
 }
 
 const sort = (() => {
