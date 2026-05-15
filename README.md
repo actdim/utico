@@ -83,9 +83,9 @@ A comprehensive set of TypeScript utility types and helper functions for advance
 | `CommonKeys<T, U>`           | Union of keys shared by `T` and `U`                               |
 | `UnionToIntersection<U>`     | Converts a union type to an intersection type                     |
 | `ValueUnion<T>`              | Union of all property value types in `T`                          |
-| `KeyPath<T, IncludeFunctions?, MaxDepth?>` | Dot-notation path strings for all nested properties of `T`. `IncludeFunctions` (default `true`) controls whether function-typed properties are included. `MaxDepth` (default `5`) limits recursion depth. `D` is internal. |
+| `KeyPath<T, IncludeFunctions?, MaxDepth?, D?, TLeaf?>` | Dot-notation path strings for all nested properties of `T`. `IncludeFunctions` (default `true`) controls whether function-typed properties are included. `MaxDepth` (default `3`) limits recursion depth. `D` is internal. `TLeaf` (default `KeyPathLeaf`) defines which types are treated as leaves — recursion stops at them. |
 | `KeyPathValue<T, P>`         | Value type at a given `KeyPath` `P` in `T`                        |
-| `KeyPathValueMap<T, IncludeFunctions?>` | Partial map of `KeyPath` strings to their values. `IncludeFunctions` mirrors `KeyPath` (default `true`) |
+| `KeyPathValueMap<T, IncludeFunctions?, TLeaf?>` | Partial map of `KeyPath` strings to their values. `IncludeFunctions` and `TLeaf` mirror `KeyPath`. |
 | `OneOfType<T>`               | Discriminated union — exactly one property of `T` is set          |
 | `Weaken<T, K>`               | Replaces specified keys in `T` with `any`                         |
 | `Mutable<T>`                 | Removes `readonly` from all properties                            |
@@ -115,8 +115,8 @@ A comprehensive set of TypeScript utility types and helper functions for advance
 | `getPrefixer(prefix)`         | Returns `(value: string) => string` that prepends `prefix`            |
 | `getValuePrefixer<T>(prefix)` | Returns a function that prefixes all values of a string-valued object |
 | `getKeyPrefixer<T>(prefix)`   | Returns a function that prefixes all keys of an object                |
-| `getByKeyPath<T, P>(obj, path)` | Gets the value at a dot-notation `KeyPath` in `obj` at runtime      |
-| `setByKeyPath<T, P>(obj, path, value)` | Sets the value at a dot-notation `KeyPath` in `obj` at runtime |
+| `getByKeyPath<T, P, MaxDepth?, TLeaf?>(obj, path)` | Gets the value at a dot-notation `KeyPath` in `obj` at runtime      |
+| `setByKeyPath<T, P, MaxDepth?, TLeaf?>(obj, path, value)` | Sets the value at a dot-notation `KeyPath` in `obj` at runtime |
 
 #### Usage Examples
 
@@ -164,8 +164,9 @@ type Config = { server: { host: string; port: number }; debug: boolean };
 type Paths = KeyPath<Config>;
 // => "server" | "debug" | "server.host" | "server.port"
 
-type PathsNoFn = KeyPath<Config, false>;        // exclude function-typed properties
-type PathsShallow = KeyPath<Config, true, 2>;   // include functions, max depth 2
+type PathsNoFn = KeyPath<Config, false>;              // exclude function-typed properties
+type PathsShallow = KeyPath<Config, true, 2>;         // include functions, max depth 2
+type PathsCustomLeaf = KeyPath<Config, true, 3, 0, Date | RegExp>; // treat only Date/RegExp as leaves
 
 type HostType = KeyPathValue<Config, 'server.host'>;
 // => string

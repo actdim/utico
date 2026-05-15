@@ -240,6 +240,33 @@ type NonFunctionPropertyKeys<T> = {
     [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K
 }[keyof T];
 
+// Types that are treated as leaves — recursing into them causes exponential expansion
+// (e.g. EventTarget covers all DOM elements; Date/Map/Promise are class instances, not plain data)
+export type DefaultKeyPathLeaf =
+    | Function
+    | Date
+    | RegExp
+    | Error
+    | Map<any, any>
+    | Set<any>
+    | WeakMap<any, any>
+    | WeakSet<any>
+    | Promise<any>
+    | ArrayBuffer
+    | SharedArrayBuffer
+    | ArrayBufferView // covers all TypedArrays + DataView
+    | Blob
+    | CryptoKey
+    | ImageBitmap
+    | ImageData
+    | FileList
+    | FileSystemFileHandle
+    | FileSystemDirectoryHandle
+    | ReadableStream<any>
+    | ReadableStreamDefaultReader<any>
+    | ReadableStreamDefaultController<any>
+    | EventTarget; // covers all DOM types: HTMLElement, Node, Document, XHR…
+
 type NextDepthMap = {
     0: 1;
     1: 2;
@@ -253,19 +280,21 @@ type NextDepth<D extends number> = D extends keyof NextDepthMap ? NextDepthMap[D
 type PropertyKeys<T, IncludeFunctions extends boolean> =
     IncludeFunctions extends true ? keyof T : NonFunctionPropertyKeys<T>;
 
-export type KeyPath<T, IncludeFunctions extends boolean = true, MaxDepth extends number = 5, D extends number = 0> =
+export type KeyPath<T, IncludeFunctions extends boolean = true, MaxDepth extends number = 3, D extends number = 0, TLeaf = DefaultKeyPathLeaf> =
     D extends MaxDepth ? never :
     T extends readonly any[]
-    ? `${number}` | `${number}.${KeyPath<T[number], IncludeFunctions, MaxDepth, NextDepth<D>>}`
+    ? `${number}` | `${number}.${KeyPath<T[number], IncludeFunctions, MaxDepth, NextDepth<D>, TLeaf>}`
     : T extends object
     ? {
         [K in PropertyKeys<T, IncludeFunctions> & (string | number)]:
         T[K] extends readonly any[]
         ? `${K}` |
         `${K}.${number}` |
-        `${K}.${number}.${KeyPath<T[K][number], IncludeFunctions, MaxDepth, NextDepth<D>>}`
+        `${K}.${number}.${KeyPath<T[K][number], IncludeFunctions, MaxDepth, NextDepth<D>, TLeaf>}`
+        : T[K] extends TLeaf
+        ? `${K}`
         : T[K] extends object
-        ? `${K}` | `${K}.${KeyPath<T[K], IncludeFunctions, MaxDepth, NextDepth<D>>}`
+        ? `${K}` | `${K}.${KeyPath<T[K], IncludeFunctions, MaxDepth, NextDepth<D>, TLeaf>}`
         : `${K}`;
     }[PropertyKeys<T, IncludeFunctions> & (string | number)]
     : never;
@@ -288,15 +317,15 @@ export type KeyPathValue<T, P extends string> =
     : never;
 
 // Slice
-export type KeyPathValueMap<T, IncludeFunctions extends boolean = true> = {
-    [K in KeyPath<T, IncludeFunctions>]?: KeyPathValue<T, K>;
+export type KeyPathValueMap<T, IncludeFunctions extends boolean = true, TLeaf = DefaultKeyPathLeaf> = {
+    [K in KeyPath<T, IncludeFunctions, 3, 0, TLeaf>]?: KeyPathValue<T, K>;
 };
 
-export function getByKeyPath<T, P extends KeyPath<T, boolean, MaxDepth>, MaxDepth extends number = 5>(obj: T, path: P): KeyPathValue<T, P> {
+export function getByKeyPath<T, P extends KeyPath<T, boolean, MaxDepth, 0, TLeaf>, MaxDepth extends number = 3, TLeaf = DefaultKeyPathLeaf>(obj: T, path: P): KeyPathValue<T, P> {
     return path.split('.').reduce((acc: any, key) => acc?.[key], obj) as KeyPathValue<T, P>;
 }
 
-export function setByKeyPath<T, P extends KeyPath<T, boolean, MaxDepth>, MaxDepth extends number = 5>(obj: T, path: P, value: KeyPathValue<T, P>): void {
+export function setByKeyPath<T, P extends KeyPath<T, boolean, MaxDepth, 0, TLeaf>, MaxDepth extends number = 3, TLeaf = DefaultKeyPathLeaf>(obj: T, path: P, value: KeyPathValue<T, P>): void {
     const keys = path.split('.');
     const last = keys.pop()!;
     const target = keys.reduce((acc: any, key) => acc?.[key], obj);
