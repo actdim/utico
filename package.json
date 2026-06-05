@@ -1,6 +1,6 @@
 {
     "name": "@actdim/utico",
-    "version": "1.2.4",
+    "version": "1.2.5",
     "description": "A modern foundation toolkit for complex TypeScript apps",
     "author": "Pavel Borodaev",
     "license": "Proprietary",
@@ -44,6 +44,9 @@
                 "dist/*.d.ts"
             ]
         }
+    },
+    "publishConfig": {
+        "access": "public"
     },
     "sideEffects": false,
     "sideEffects?": [],

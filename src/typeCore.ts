@@ -146,8 +146,7 @@ export const getKeyPrefixer =
             return Object.fromEntries(Object.keys(obj).map((k) => [`${prefix}${k}`, obj[k]]));
         };
 
-export type MaybePromise<T = void> = T extends undefined ? void | PromiseLike<void> : T | PromiseLike<Awaited<T>>; // better!
-// export type MaybePromise<T = void> = T extends undefined ? void | PromiseLike<void> : T | PromiseLike<T>;
+export type MaybePromise<T = void> = [T] extends [undefined] ? void | PromiseLike<void> : T | PromiseLike<Awaited<T>>;
 
 export type Func<TArgs extends any[] = any[], T = any> = {
     (...args: TArgs): T;
@@ -216,9 +215,7 @@ export type IsEmpty<T> = HasKeys<T> extends false ? true : false;
 
 export type Require<T, TCondition extends boolean> = TCondition extends true ? T : never;
 
-export type IF<TCondition extends boolean, Then, Else = never> = TCondition extends true ? Then : Else;
-
-export type Conditional<TCondition extends boolean, Then, Else = never> = IF<TCondition, Then, Else>;
+export type If<TCondition extends boolean, Then, Else = never> = TCondition extends true ? Then : Else;
 
 export type IsKeyOf<T, TKey> = TKey extends keyof T ? true : false;
 
