@@ -1403,9 +1403,9 @@ cache.size;           // 2
 
 | Function | Description |
 |----------|-------------|
-| `delay(ms)` | Returns a `Promise` that resolves after `ms` milliseconds |
-| `delayError(ms, errFactory?)` | Returns a `Promise` that rejects after `ms` milliseconds |
-| `withTimeout(promise, ms)` | Races `promise` against a timeout rejection |
+| `delay(ms, abortSignal?)` | Returns a `Promise` that resolves after `ms` milliseconds; rejects early if `abortSignal` is aborted |
+| `delayError(ms, errFactory?, abortSignal?)` | Returns a `Promise` that rejects after `ms` milliseconds; rejects early if `abortSignal` is aborted |
+| `withTimeout(promise, ms, abortSignal?)` | Races `promise` against a timeout rejection; rejects early if `abortSignal` is aborted |
 | `lazy(factory)` | Wraps a factory in a once-evaluated lazy initializer |
 | `memoEffect(getValue, callback, comparator?)` | Calls `callback` only when the value from `getValue` changes |
 | `searchTree(nodes, predicate, childSelector)` | Depth-first search over a tree structure |
@@ -1420,6 +1420,9 @@ cache.size;           // 2
 import { delay, withTimeout, lazy, memoEffect, searchTree } from '@actdim/utico/utils';
 
 await delay(500);
+
+const ac = new AbortController();
+await delay(500, ac.signal); // rejects if ac.abort() is called
 
 const result = await withTimeout(fetch('/api'), 3000);
 
@@ -1554,6 +1557,73 @@ dataFormats.dateTime.transports.utc.serialize(dt);
 ```
 
 See [dateTimeDataFormat](#datetimedataformat--datetime-serialisation) for full transport documentation.
+
+---
+
+## Changelog
+
+### 1.2.5
+- `typeCore`: core type additions and refinements
+
+### 1.2.4
+- `typeCore`: `KeyPath` fixes and improvements
+- Added `tests/typeCore.test.ts`
+
+### 1.2.3
+- `typeCore`: `KeyPath` further improved
+- `typeUtils`: `isPlainObject` fix
+
+### 1.2.2
+- `arrayExtensions`: fixes; `src/array.ts` merged in and removed
+- Minor cleanup across `memoryCache`, `dataStore`, `storeContracts`, `stringCore`, `typeUtils`
+
+### 1.2.0
+- `typeCore`: new utility types
+
+### 1.1.8
+- `AsyncMutex` renamed to `AsyncLock` (`src/asyncLock.ts`); old module removed
+
+### 1.1.6
+- `dateTimeDataFormat`: overhaul with new parsing/serialization logic
+- `i18n`: added `euCulture` and `invariantCulture`
+
+### 1.1.5
+- `dateTimeDataFormat`: migrated from `moment` to `Luxon`
+- Added `tests/dateTimeDataFormat.test.ts`, `tests/watchable.test.ts`
+
+### 1.1.3
+- `decorators`: new `@nonEnumerable` decorator (`src/decorators.ts`)
+- Store fixes (`dataStore`, `persistentStore`, `storeDb`)
+- Added tests: `asyncMutex`, `metadata`, `persistentCache`, `stringCore`, `structEvent`, `typeUtils`
+
+### 1.1.2
+- Breaking API changes across `cache` and `store` modules
+
+### 1.1.0 – 1.1.1
+- `typeCore`, `utils`: internal refactoring
+
+### 1.0.6
+- `utils`: added `removePrefix`, `removeSuffix`
+
+### 1.0.5
+- `utils`: added `lazy`
+
+### 1.0.4
+- `utils`: `delayError` updated
+
+### 1.0.0
+- Stable release; switched to `pnpm` and `Vitest`
+- `cacheContracts` introduced as a separate module
+
+### 0.9.7
+- New store layer: `dataStore`, `persistentStore`, `storeContracts`, `storeDb`
+- Migrated test runner from Jest to Vitest
+
+### 0.9.1
+- `utils`: added `memoEffect`; first `utils` tests
+
+### 0.9.0
+- Initial public release: `persistentCache`, `memoryCache`, `typeCore`, `typeUtils`, `stringCore`, `metadata`, `structEvent`, `watchable`, `asyncMutex`, `dateTimeDataFormat`
 
 ---
 

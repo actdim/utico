@@ -35,33 +35,28 @@ export const buildFuncArgCacheKey = (() => {
     };
 })();
 
-export const delay = (ms: number) => {
-    return new Promise<void>((resolve) => setTimeout(resolve, ms));
+export const delay = (ms: number, abortSignal?: AbortSignal) => {
+    return new Promise<void>((resolve, reject) => {
+        if (abortSignal?.aborted) {
+            reject(abortSignal.reason);
+            return;
+        }
+        const id = setTimeout(resolve, ms);
+        abortSignal?.addEventListener("abort", () => {
+            clearTimeout(id);
+            reject(abortSignal.reason);
+        }, { once: true });
+    });
 };
 
 // scheduleError
-export const delayError = (ms: number, errFactory?: () => Error) => {
-    return new Promise<never>((_, reject) =>
-        setTimeout(
-            () => {
-                // Do not throw!
-                const err = errFactory ? errFactory() : new Error("Timeout exceeded");
-                reject(err);
-            },
-            ms
-        )
-    );
+export const delayError = async (ms: number, errFactory?: () => Error, abortSignal?: AbortSignal): Promise<never> => {
+    await delay(ms, abortSignal);
+    throw errFactory ? errFactory() : new Error("Timeout exceeded");
 };
 
-export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-    // return new Promise((resolve, reject) => {
-    //   const timer = setTimeout(() => reject(new Error('Timeout exceeded')), ms);
-    //   promise.then((value) => {
-    //     clearTimeout(timer);
-    //     resolve(value);
-    //   }, reject);
-    // });
-    return Promise.race([delayError(ms), promise]);
+export function withTimeout<T>(promise: Promise<T>, ms: number, abortSignal?: AbortSignal): Promise<T> {
+    return Promise.race([delayError(ms, undefined, abortSignal), promise]);
 }
 
 /**

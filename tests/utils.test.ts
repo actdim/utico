@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { delay, delayError, withTimeout, memoEffect } from "@/utils";
+import { memoEffect } from "@/utils";
 
 describe("utils", () => {
     // process.on("unhandledRejection", (reason, promise) => {
