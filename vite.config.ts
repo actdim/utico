@@ -28,17 +28,17 @@ export default defineConfig({
             external: config.externals,
             output: {
                 exports: "named",
-                preserveModules: true,
+                preserveModules: true, // incompatible with inlineDynamicImports: true
                 preserveModulesRoot: "src",
                 // preserveEntrySignatures: "strict",
                 format: "esm",
-                entryFileNames: "[name].es.js", // mjs
-                // inlineDynamicImports: false
-                sourcemapExcludeSources: true
+                entryFileNames: "[name].es.js", // mjs                
+                sourcemapExcludeSources: false
             }
         },
-        sourcemap: true
-        // emptyOutDir: true
+        sourcemap: true,
+        minify: false,
+        emptyOutDir: true
     },
     server: {
         port: 5173,
@@ -48,12 +48,14 @@ export default defineConfig({
         }
     },
     esbuild: {
-        // sourcemap: "inline",
-        // target: "es2020",
+        // sourcemap: true,
+        // target: "esnext",
+        keepNames: true // important if minify: "esbuild"
     },
     plugins: [
         tsConfigPaths(),
         dts({
+            tsconfigPath: "./tsconfig.build.json",
             outDir: "dist",
             entryRoot: "src",
             include: ["src/**/*.ts"],

@@ -1,6 +1,6 @@
 {
     "name": "@actdim/utico",
-    "version": "1.2.6",
+    "version": "1.2.7",
     "description": "A modern foundation toolkit for complex TypeScript apps",
     "author": "Pavel Borodaev",
     "license": "Proprietary",
@@ -66,7 +66,7 @@
         "nvm:il": "nvm install lts",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "typecheck": "tsc -p tsconfig.json --noEmit"
+        "typecheck": "tsc -b tsconfig.json"
     },
     "peerDependencies": {
         "dexie": ">=4.2.0",
