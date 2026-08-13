@@ -1,3 +1,5 @@
+See @AGENTS.md for project instructions and guidance.
+
 # @actdim/utico — Agent Instructions
 
 TypeScript utility toolkit published as `@actdim/utico`. ESM-only, built with Vite,
@@ -74,7 +76,7 @@ Solution-style split — do not collapse it back into one config:
 
 Rules:
 - Root Node files (`packageConfig.ts`, `vite.config.ts`, `vitest*.config.ts`) get node types via `types: ["node"]` in the build/dev projects — NOT by editing includes elsewhere or adding `node` to a shared `types` array (that leaks node globals into browser `src`). If the editor shows "Cannot find name 'path'/'__dirname'" on such a file, it means the file isn't routed to a project — check the `references` chain, don't hack the source with `/// <reference>`.
-- Always type-check the solution with `tsc -b` (build mode), never `tsc -p` — `-p` sees `files: []` and checks nothing. Both `typecheck` and `build` scripts already use `tsc -b tsconfig.json --noEmit`.
+- Always type-check the solution with `tsc -b` (build mode), never `tsc -p` — `-p` sees `files: []` and checks nothing. Both `typecheck` and `build` scripts already use `tsc -b tsconfig.json`.
 
 ---
 
