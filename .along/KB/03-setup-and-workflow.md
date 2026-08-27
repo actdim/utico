@@ -1,3 +1,13 @@
+---
+protocol: along
+slug: 03-setup-and-workflow
+title: 03 Setup And Workflow
+type: topic
+created: 2026-08-27
+updated: 2026-08-27
+tags: []
+---
+
 # @actdim/utico Setup, Build & Workflow
 
 ## 1. Prerequisites & Installation
@@ -35,8 +45,8 @@ pnpm add dexie@^4.2.0 uuid@^13.0.0 luxon@^3.7.2
 - **Time Freezing**: Vitest `vi.useFakeTimers()` is used to assert timer cleanup and eviction intervals.
 
 ## 4. Cross-Links
-- [[INDEX.md]] — Knowledge Base Root
-- [[01-architecture.md]] — System Architecture
-- [[02-domain-model.md]] — Domain Model
-- [[04-api-reference.md]] — API Reference
-- [[05-patterns-and-recipes.md]] — Practical Recipes
+- [[INDEX.md]] - Knowledge Base Root
+- [[01-architecture.md]] - System Architecture
+- [[02-domain-model.md]] - Domain Model
+- [[04-api-reference.md]] - API Reference
+- [[05-patterns-and-recipes.md]] - Practical Recipes

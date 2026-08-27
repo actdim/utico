@@ -1,14 +1,24 @@
+---
+protocol: along
+slug: INDEX
+title: Index
+type: topic
+created: 2026-08-27
+updated: 2026-08-27
+tags: []
+---
+
 # @actdim/utico Knowledge Base Index
 
 Welcome to the **@actdim/utico** package Knowledge Base. This knowledge base provides comprehensive architectural documentation, domain models, API references, workflows, and practical patterns for the foundational TypeScript utility toolkit.
 
 ## Knowledge Base Articles
 
-- [[01-architecture.md]] — **Architecture & Module Topology**: Foundational design principles, module boundaries, type engine, and storage pipeline.
-- [[02-domain-model.md]] — **Domain Model & Type Hierarchy**: Contracts for `KeyPath`, `StructEvent`, `MetadataRecord`, `CacheOptions`, `AsyncLock`, and `DateTimeTransport`.
-- [[03-setup-and-workflow.md]] — **Setup, Build & Workflow**: Build scripts, testing strategies (`fake-indexeddb`, concurrency tests), and developer tooling.
-- [[04-api-reference.md]] — **Exhaustive API Reference**: Complete function signatures, class methods, options, and parameters across all modules.
-- [[05-patterns-and-recipes.md]] — **Patterns & Recipes**: Production recipes for `AsyncLock`, IndexedDB stores, persistent cache with auto-eviction, and `watchable`.
+- [[01-architecture.md]] - **Architecture & Module Topology**: Foundational design principles, module boundaries, type engine, and storage pipeline.
+- [[02-domain-model.md]] - **Domain Model & Type Hierarchy**: Contracts for `KeyPath`, `StructEvent`, `MetadataRecord`, `CacheOptions`, `AsyncLock`, and `DateTimeTransport`.
+- [[03-setup-and-workflow.md]] - **Setup, Build & Workflow**: Build scripts, testing strategies (`fake-indexeddb`, concurrency tests), and developer tooling.
+- [[04-api-reference.md]] - **Exhaustive API Reference**: Complete function signatures, class methods, options, and parameters across all modules.
+- [[05-patterns-and-recipes.md]] - **Patterns & Recipes**: Production recipes for `AsyncLock`, IndexedDB stores, persistent cache with auto-eviction, and `watchable`.
 
 ## Module Map
 

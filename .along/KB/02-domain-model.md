@@ -1,3 +1,13 @@
+---
+protocol: along
+slug: 02-domain-model
+title: 02 Domain Model
+type: topic
+created: 2026-08-27
+updated: 2026-08-27
+tags: []
+---
+
 # @actdim/utico Domain Model & Type Hierarchy
 
 ## 1. Domain Model Overview
@@ -82,8 +92,8 @@ The domain model of `@actdim/utico` centers around contract-driven type manipula
   ```
 
 ## 3. Cross-Links
-- [[INDEX.md]] — Knowledge Base Root
-- [[01-architecture.md]] — System Architecture
-- [[03-setup-and-workflow.md]] — Setup and Workflow
-- [[04-api-reference.md]] — API Reference
-- [[05-patterns-and-recipes.md]] — Practical Recipes
+- [[INDEX.md]] - Knowledge Base Root
+- [[01-architecture.md]] - System Architecture
+- [[03-setup-and-workflow.md]] - Setup and Workflow
+- [[04-api-reference.md]] - API Reference
+- [[05-patterns-and-recipes.md]] - Practical Recipes

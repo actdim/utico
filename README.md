@@ -1627,6 +1627,28 @@ See [dateTimeDataFormat](#datetimedataformat--datetime-serialisation) for full t
 
 ---
 
+## Ecosystem & Git Repositories
+
+The `@actdim` architecture consists of four modular packages:
+
+| Package | Repository | Description |
+|---|---|---|
+| [`@actdim/utico`](https://www.npmjs.com/package/@actdim/utico) | [`github.com/actdim/utico`](https://github.com/actdim/utico) | Foundational TypeScript utilities, concurrency locks, and storage. |
+| [`@actdim/dynstruct`](https://www.npmjs.com/package/@actdim/dynstruct) | [`github.com/actdim/dynstruct`](https://github.com/actdim/dynstruct) | Core structure-first component model and runtime. |
+| [`@actdim/dynstruct-mui`](https://www.npmjs.com/package/@actdim/dynstruct-mui) | [`github.com/actdim/dynstruct-mui`](https://github.com/actdim/dynstruct-mui) | Material UI (MUI) wrapper components built for dynstruct. |
+| [`@actdim/msgmesh`](https://www.npmjs.com/package/@actdim/msgmesh) | [`github.com/actdim/msgmesh`](https://github.com/actdim/msgmesh) | Type-safe async message bus, pub/sub, RPC, and service adapters. |
+
+---
+
+## AI Agent & LLM Support
+
+This package ships with native AI agent instructions and Knowledge Base metadata:
+- **`AGENTS.md`** / **`CLAUDE.md`**: Complete agent guidelines for using and extending utico modules.
+- **`llms.txt`**: Condensed LLM-friendly documentation index according to the [llms.txt standard](https://llmstxt.org).
+- Consuming projects can reference `node_modules/@actdim/utico/AGENTS.md` or `node_modules/@actdim/utico/llms.txt` directly.
+
+---
+
 ## License
 
-Proprietary — © Pavel Borodaev
+Proprietary. (c) Pavel Borodaev

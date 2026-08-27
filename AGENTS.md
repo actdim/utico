@@ -1,17 +1,24 @@
-<!-- BEGIN ACTDIM-AGENTS-PROTOCOL ref=../../../AGENTS.md (managed by init-agents — do not edit by hand) -->
-This folder belongs to a repository that uses the ACTDIM-AGENTS structure. The full working
-guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../../../AGENTS.md`) —
-read it there. This folder keeps its OWN `.agents/` state; use the nearest one.
+<!-- BEGIN ALONG-PROTOCOL ref=../../../AGENTS.md (managed by along-init - do not edit by hand) -->
+This folder belongs to a repository that uses the ALONG structure. The full working
+guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../../../AGENTS.md`) -
+read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ACTDIM-AGENTS-PROTOCOL -->
+<!-- END ALONG-PROTOCOL -->
 
 
 See @AGENTS.md for project instructions and guidance.
 
-# @actdim/utico — Agent Instructions
+# @actdim/utico - Agent Instructions
 
 TypeScript utility toolkit published as `@actdim/utico`. ESM-only, built with Vite,
 tested with Vitest + Chai. All source in `src/`, all tests in `tests/`.
+
+## Ecosystem Repositories
+
+- **`@actdim/utico`** (TypeScript Utilities & Concurrency): `https://github.com/actdim/utico.git`
+- **`@actdim/dynstruct`** (Component Framework): `https://github.com/actdim/dynstruct.git`
+- **`@actdim/dynstruct-mui`** (Material UI Wrappers): `https://github.com/actdim/dynstruct-mui.git`
+- **`@actdim/msgmesh`** (Message Mesh & Service Bus): `https://github.com/actdim/msgmesh.git`
 
 ---
 

@@ -1,0 +1,28 @@
+# @actdim/utico
+
+> Modern Foundation Toolkit for Complex TypeScript Applications
+
+## Summary
+@actdim/utico provides foundational utilities for TypeScript applications: advanced compile-time type composition (typeCore), runtime type and proxy utilities (typeUtils), locale-aware string manipulation (stringCore), typed DOM event structures (structEvent), reactive promise tracking (watchable), asynchronous locks (asyncLock), and IndexedDB structured persistence (store/persistentStore, cache/persistentCache).
+
+## Ecosystem & Repositories
+- @actdim/utico: https://github.com/actdim/utico.git
+- @actdim/dynstruct: https://github.com/actdim/dynstruct.git (Component Framework)
+- @actdim/dynstruct-mui: https://github.com/actdim/dynstruct-mui.git (Material UI component wrappers)
+- @actdim/msgmesh: https://github.com/actdim/msgmesh.git (Type-Safe Async Message Bus)
+
+## Core Guidelines for LLMs & Agents
+- Modules are imported via subpaths: `@actdim/utico/<module>`
+- Key modules:
+  - `typeCore`: `Skip`, `Filter`, `Diff`, `CommonPart`, `KeyPath`, `KeyPathValue`, `Overwrite`, `MaybePromise`, `getByKeyPath`, `setByKeyPath`
+  - `typeUtils`: `typed` (bind constructor), `createConstructor`, `keysOf`, `keyOf`, `nameOf`, `proxify`, `toReadOnly`, `createDeepProxy`, `orderedStringify`, `jsonEquals`
+  - `structEvent`: `StructEvent<TStruct, TTarget>`, `StructEventTarget<TStruct>`
+  - `asyncLock`: `AsyncLock` for serializing async operations
+  - `watchable`: `watch(promise/executor)`, `toWatchable(fn)`
+  - `store`: `PersistentStore.open(dbName)`
+  - `cache`: `PersistentCache.open(dbName)`
+
+## Documentation Files
+- Detailed AI Instructions: ./AGENTS.md
+- Readme: ./README.md
+

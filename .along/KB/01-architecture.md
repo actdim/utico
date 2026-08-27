@@ -1,3 +1,13 @@
+---
+protocol: along
+slug: 01-architecture
+title: 01 Architecture
+type: topic
+created: 2026-08-27
+updated: 2026-08-27
+tags: []
+---
+
 # @actdim/utico Architecture
 
 ## 1. System Overview
@@ -73,8 +83,8 @@ To avoid repetitive generic instantiation for classes like `StructEvent<TStruct,
 - **Explicit Resource Management**: Implements `[Symbol.dispose]()` for automatic cleanup via TypeScript 5.2+ `using`.
 
 ## 4. Cross-Links
-- [[INDEX.md]] — Knowledge Base Root
-- [[02-domain-model.md]] — Domain Contracts and Entities
-- [[03-setup-and-workflow.md]] — Build and Test Instructions
-- [[04-api-reference.md]] — Exhaustive API Reference
-- [[05-patterns-and-recipes.md]] — Practical Recipes and Integration Patterns
+- [[INDEX.md]] - Knowledge Base Root
+- [[02-domain-model.md]] - Domain Contracts and Entities
+- [[03-setup-and-workflow.md]] - Build and Test Instructions
+- [[04-api-reference.md]] - Exhaustive API Reference
+- [[05-patterns-and-recipes.md]] - Practical Recipes and Integration Patterns
