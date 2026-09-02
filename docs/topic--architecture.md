@@ -1,11 +1,12 @@
 ---
 protocol: along
-slug: 01-architecture
+protocol_version: "2.2.5"
+slug: architecture
 title: 01 Architecture
 type: topic
 created: 2026-08-27
-updated: 2026-08-27
-tags: []
+updated: 2026-09-02
+tags: [architecture]
 ---
 
 # @actdim/utico Architecture

@@ -1,11 +1,12 @@
 ---
 protocol: along
-slug: 02-domain-model
+protocol_version: "2.2.5"
+slug: domain-model
 title: 02 Domain Model
 type: topic
 created: 2026-08-27
-updated: 2026-08-27
-tags: []
+updated: 2026-09-02
+tags: [domain-model]
 ---
 
 # @actdim/utico Domain Model & Type Hierarchy

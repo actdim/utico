@@ -1,11 +1,12 @@
 ---
 protocol: along
-slug: 03-setup-and-workflow
+protocol_version: "2.2.5"
+slug: setup-and-workflow
 title: 03 Setup And Workflow
 type: topic
 created: 2026-08-27
-updated: 2026-08-27
-tags: []
+updated: 2026-09-02
+tags: [setup-and-workflow]
 ---
 
 # @actdim/utico Setup, Build & Workflow
