@@ -219,3 +219,11 @@ Install only what you use. Modules that don't use a peer dep have no hard depend
 `dist/` contains per-module `.es.js` + `.d.ts` files with source maps.
 `dist/store/storeDb.d.ts` is intentionally deleted post-build to hide the internal Dexie schema.
 The package is `"type": "module"` — ESM only, no CJS output.
+
+## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/typescript.md](.along/rules/languages/typescript.md)`
+- `[platforms/web.md](.along/rules/platforms/web.md)`
+<!-- END ALONG-RULES -->

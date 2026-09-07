@@ -1,6 +1,6 @@
 {
     "name": "@actdim/utico",
-    "version": "1.5.13",
+    "version": "1.5.14",
     "description": "A modern foundation toolkit for complex TypeScript apps",
     "author": "Pavel Borodaev",
     "license": "Proprietary",
@@ -26,17 +26,26 @@
         "README.md",
         "LICENSE",
         "AGENTS.md",
-        "CLAUDE.md"
+        "CLAUDE.md",
+        "llms.txt",
+        "llms-full.txt"
     ],
     "ai": {
         "instructions": "./AGENTS.md",
-        "docs": "./docs"
+        "docs": "./docs",
+        "llms": "./llms.txt",
+        "llms-full": "./llms-full.txt"
     },
+    "llms": "./llms.txt",
     "files(src)": [
         "src",
         "docs",
         "README.md",
-        "LICENSE"
+        "LICENSE",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "llms.txt",
+        "llms-full.txt"
     ],
     "exports": {
         "./*": {
