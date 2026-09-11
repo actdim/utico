@@ -38,6 +38,9 @@ flowchart TD
 - **[01 Architecture](./topic--architecture.md)** (topic) `architecture`
 - **[02 Domain Model](./topic--domain-model.md)** (topic) `domain-model`
 - **[03 Setup And Workflow](./topic--setup-and-workflow.md)** (topic) `setup-and-workflow`
+- **[04 API Reference](./topic--04-api-reference.md)** (topic) `04-api-reference`
+- **[05 Patterns and Recipes](./topic--05-patterns-and-recipes.md)** (topic) `05-patterns-and-recipes`
+- **[License](./topic--license.md)** (license) `license`
 
 ---
 

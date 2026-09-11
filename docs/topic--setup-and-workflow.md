@@ -45,8 +45,11 @@ pnpm add dexie@^4.2.0 uuid@^13.0.0 luxon@^3.7.2
 - **Time Freezing**: Vitest `vi.useFakeTimers()` is used to assert timer cleanup and eviction intervals.
 
 ## 4. Cross-Links
-- [[INDEX.md]] - Knowledge Base Root
-- [[01-[architecture](./topic--architecture.md).md]] - System Architecture
-- [[02-[domain-model](./topic--domain-model.md).md]] - Domain Model
-- [[[04-api-reference](./topic--04-api-reference.md).md]] - API Reference
-- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [01 Architecture](./topic--architecture.md) - System Architecture
+- [02 Domain Model](./topic--domain-model.md) - Domain Model
+- [API Reference](./topic--04-api-reference.md) - API Reference
+- [Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Practical Recipes
+- [License](./topic--license.md) - License Information
+

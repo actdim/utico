@@ -92,8 +92,11 @@ The domain model of `@actdim/utico` centers around contract-driven type manipula
   ```
 
 ## 3. Cross-Links
-- [[INDEX.md]] - Knowledge Base Root
-- [[01-[architecture](./topic--architecture.md).md]] - System Architecture
-- [[03-[setup-and-workflow](./topic--setup-and-workflow.md).md]] - Setup and Workflow
-- [[[04-api-reference](./topic--04-api-reference.md).md]] - API Reference
-- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [01 Architecture](./topic--architecture.md) - System Architecture
+- [Setup & Workflow](./topic--setup-and-workflow.md) - Setup and Workflow
+- [API Reference](./topic--04-api-reference.md) - API Reference
+- [Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Practical Recipes
+- [License](./topic--license.md) - License Information
+

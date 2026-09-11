@@ -83,8 +83,11 @@ To avoid repetitive generic instantiation for classes like `StructEvent<TStruct,
 - **Explicit Resource Management**: Implements `[Symbol.dispose]()` for automatic cleanup via TypeScript 5.2+ `using`.
 
 ## 4. Cross-Links
-- [[INDEX.md]] - Knowledge Base Root
-- [[02-[domain-model](./topic--domain-model.md).md]] - Domain Contracts and Entities
-- [[03-[setup-and-workflow](./topic--setup-and-workflow.md).md]] - Build and Test Instructions
-- [[[04-api-reference](./topic--04-api-reference.md).md]] - Exhaustive API Reference
-- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes and Integration Patterns
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [Domain Model](./topic--domain-model.md) - Domain Contracts and Entities
+- [Setup & Workflow](./topic--setup-and-workflow.md) - Build and Test Instructions
+- [API Reference](./topic--04-api-reference.md) - Exhaustive API Reference
+- [Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Practical Recipes and Integration Patterns
+- [License](./topic--license.md) - License Information
+
