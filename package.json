@@ -1,6 +1,6 @@
 {
     "name": "@actdim/utico",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "description": "TypeScript utility toolkit featuring type-level metaprogramming, runtime metadata, structured persistence, and high-performance caching.",
     "author": "Pavel Borodaev",
     "license": "MIT",
