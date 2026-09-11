@@ -5,30 +5,31 @@ A modern foundation toolkit for complex TypeScript apps.
 [![npm version](https://img.shields.io/npm/v/@actdim/utico.svg)](https://www.npmjs.com/package/@actdim/utico)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue.svg)](https://www.typescriptlang.org/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Modules](#modules)
-    - [typeCore — Expressive Type Composition](#typecore--expressive-type-composition)
-    - [typeUtils — Runtime Type Utilities](#typeutils--runtime-type-utilities)
-    - [stringCore — Locale-Aware String Utilities](#stringcore--locale-aware-string-utilities)
-    - [metadata — Property Metadata](#metadata--property-metadata)
-    - [decorators — Property Decorators](#decorators--property-decorators)
-    - [dateTimeDataFormat — Date/Time Serialisation](#datetimedataformat--datetime-serialisation)
-    - [StructEvent — Typed DOM Events](#structevent--typed-dom-events)
-    - [watchable — Promise & Function Tracking](#watchable--promise--function-tracking)
-    - [asyncLock — Async Lock](#asynclock--async-lock)
-    - [store — Structured Persistence](#store--structured-persistence)
-    - [cache — Persistent Cache](#cache--persistent-cache)
-    - [arrayExtensions — Array Prototype Extensions](#arrayextensions--array-prototype-extensions)
-    - [memoryCache — In-Memory Cache](#memorycache--in-memory-cache)
-    - [utils — General Utilities](#utils--general-utilities)
-    - [math — Math Utilities](#math--math-utilities)
-    - [i18n — Culture Definitions](#i18n--culture-definitions)
-    - [gfx/color — Color Utilities](#gfxcolor--color-utilities)
-    - [gfx/canvasUtils — Canvas Utilities](#gfxcanvasutils--canvas-utilities)
-    - [dataFormats — Data Format Shortcuts](#dataformats--data-format-shortcuts)
+    - [typeCore - Expressive Type Composition](#typecore--expressive-type-composition)
+    - [typeUtils - Runtime Type Utilities](#typeutils--runtime-type-utilities)
+    - [stringCore - Locale-Aware String Utilities](#stringcore--locale-aware-string-utilities)
+    - [metadata - Property Metadata](#metadata--property-metadata)
+    - [decorators - Property Decorators](#decorators--property-decorators)
+    - [dateTimeDataFormat - Date/Time Serialisation](#datetimedataformat--datetime-serialisation)
+    - [StructEvent - Typed DOM Events](#structevent--typed-dom-events)
+    - [watchable - Promise & Function Tracking](#watchable--promise--function-tracking)
+    - [asyncLock - Async Lock](#asynclock--async-lock)
+    - [store - Structured Persistence](#store--structured-persistence)
+    - [cache - Persistent Cache](#cache--persistent-cache)
+    - [arrayExtensions - Array Prototype Extensions](#arrayextensions--array-prototype-extensions)
+    - [memoryCache - In-Memory Cache](#memorycache--in-memory-cache)
+    - [utils - General Utilities](#utils--general-utilities)
+    - [math - Math Utilities](#math--math-utilities)
+    - [i18n - Culture Definitions](#i18n--culture-definitions)
+    - [gfx/color - Color Utilities](#gfxcolor--color-utilities)
+    - [gfx/canvasUtils - Canvas Utilities](#gfxcanvasutils--canvas-utilities)
+    - [dataFormats - Data Format Shortcuts](#dataformats--data-format-shortcuts)
 - [License](#license)
 
 ---
@@ -63,9 +64,22 @@ pnpm add dexie uuid luxon
 
 ---
 
+## AI Coding Assistants (Cursor, Claude Code, Copilot, Antigravity)
+
+To enable AI coding agents in your project to leverage Utico utility types, helper functions, and data structures, add a reference to the bundled LLM documentation in your project's `AGENTS.md`, `CLAUDE.md`, or `.cursorrules`:
+
+```markdown
+## Utico Toolkit Guidelines
+- Reference: `node_modules/@actdim/utico/llms.txt`
+```
+
+This provides agents with indexed utility type definitions and helpers from `node_modules/@actdim/utico/docs/` matching your installed version.
+
+---
+
 ## Modules
 
-### typeCore — Expressive Type Composition
+### typeCore - Expressive Type Composition
 
 **Import:** `@actdim/utico/typeCore`
 
@@ -75,18 +89,18 @@ A comprehensive set of TypeScript utility types and helper functions for advance
 
 | Type                         | Description                                                       |
 | ---------------------------- | ----------------------------------------------------------------- |
-| `Skip<T, K>`                 | A more useful version of `Omit` — removes keys `K` from `T`       |
+| `Skip<T, K>`                 | A more useful version of `Omit` - removes keys `K` from `T`       |
 | `Filter<T, V>`               | Keeps only properties of `T` whose values extend `V`              |
 | `Diff<T, U>`                 | Properties in `T` that are not in `U`                             |
 | `StrictDiff<T, U>`           | Properties in `T` that differ from `U` (by type)                  |
-| `CommonPart<T, U>`           | Mathematical intersection — shared properties with types from `T` |
+| `CommonPart<T, U>`           | Mathematical intersection - shared properties with types from `T` |
 | `CommonKeys<T, U>`           | Union of keys shared by `T` and `U`                               |
 | `UnionToIntersection<U>`     | Converts a union type to an intersection type                     |
 | `ValueUnion<T>`              | Union of all property value types in `T`                          |
-| `KeyPath<T, IncludeFunctions?, MaxDepth?, D?, TLeaf?>` | Dot-notation path strings for all nested properties of `T`. `IncludeFunctions` (default `true`) controls whether function-typed properties are included. `MaxDepth` (default `3`) limits recursion depth. `D` is internal. `TLeaf` (default `KeyPathLeaf`) defines which types are treated as leaves — recursion stops at them. |
+| `KeyPath<T, IncludeFunctions?, MaxDepth?, D?, TLeaf?>` | Dot-notation path strings for all nested properties of `T`. `IncludeFunctions` (default `true`) controls whether function-typed properties are included. `MaxDepth` (default `3`) limits recursion depth. `D` is internal. `TLeaf` (default `KeyPathLeaf`) defines which types are treated as leaves - recursion stops at them. |
 | `KeyPathValue<T, P>`         | Value type at a given `KeyPath` `P` in `T`                        |
 | `KeyPathValueMap<T, IncludeFunctions?, TLeaf?>` | Partial map of `KeyPath` strings to their values. `IncludeFunctions` and `TLeaf` mirror `KeyPath`. |
-| `OneOfType<T>`               | Discriminated union — exactly one property of `T` is set          |
+| `OneOfType<T>`               | Discriminated union - exactly one property of `T` is set          |
 | `Weaken<T, K>`               | Replaces specified keys in `T` with `any`                         |
 | `Mutable<T>`                 | Removes `readonly` from all properties                            |
 | `Overwrite<Base, Overrides>` | Merges types, with `Overrides` taking precedence                  |
@@ -140,26 +154,26 @@ import type {
 } from '@actdim/utico/typeCore';
 import { getPrefixer, getValuePrefixer, getKeyPrefixer } from '@actdim/utico/typeCore';
 
-// Skip — remove specific keys
+// Skip - remove specific keys
 type User = { id: number; name: string; password: string };
 type PublicUser = Skip<User, 'password'>;
 // => { id: number; name: string }
 
-// Filter — keep only properties of a given type
+// Filter - keep only properties of a given type
 type StringProps = Filter<User, string>;
 // => { name: string; password: string }
 
-// Diff — remove overlapping keys
+// Diff - remove overlapping keys
 type A = { x: number; y: number; z: number };
 type B = { y: number };
 type OnlyInA = Diff<A, B>;
 // => { x: number; z: number }
 
-// CommonPart — shared properties
+// CommonPart - shared properties
 type Common = CommonPart<{ a: number; b: string }, { b: string; c: boolean }>;
 // => { b: string }
 
-// KeyPath — deeply nested dot-notation paths (functions included by default)
+// KeyPath - deeply nested dot-notation paths (functions included by default)
 type Config = { server: { host: string; port: number }; debug: boolean };
 type Paths = KeyPath<Config>;
 // => "server" | "debug" | "server.host" | "server.port"
@@ -180,17 +194,17 @@ const cfg: Config = { server: { host: 'localhost', port: 3000 }, debug: false };
 getByKeyPath(cfg, 'server.port');              // => 3000
 setByKeyPath(cfg, 'server.host', '0.0.0.0'); // mutates cfg.server.host
 
-// OneOfType — exactly one property set
+// OneOfType - exactly one property set
 type Payload = OneOfType<{ text: string; html: string; json: object }>;
 // valid: { text: "hello", html: null, json: null }
 // valid: { text: null, html: "<b>hi</b>", json: null }
 
-// Mutable — remove readonly
+// Mutable - remove readonly
 type ReadonlyPoint = { readonly x: number; readonly y: number };
 type Point = Mutable<ReadonlyPoint>;
 // => { x: number; y: number }
 
-// Overwrite — merge with override
+// Overwrite - merge with override
 type Base = { id: number; name: string; active: boolean };
 type Updated = Overwrite<Base, { active: string }>;
 // => { id: number; name: string; active: string }
@@ -219,7 +233,7 @@ prefixKeys({ foo: 1, bar: 2 });
 
 ---
 
-### typeUtils — Runtime Type Utilities
+### typeUtils - Runtime Type Utilities
 
 **Import:** `@actdim/utico/typeUtils`
 
@@ -233,11 +247,11 @@ property-name reflection, constructor binding, proxies, enums, and JSON helpers.
 These utilities solve a common TypeScript problem: creating a reusable, pre-typed alias for a
 generic class without repeating its type arguments everywhere.
 
-**Background.** Consider `StructEvent<TStruct, TTarget>` — a generic typed event class
+**Background.** Consider `StructEvent<TStruct, TTarget>` - a generic typed event class
 (see [StructEvent](#structevent--typed-dom-events)).
 Inside `PersistentCache` you want to work with
 `StructEvent<PersistentCacheEventStruct, PersistentCache>` as if it were its own named type.
-TypeScript offers four ways to achieve this; each has different trade-offs — see the [full comparison](#comparison-4-ways-to-bind-a-generic-constructor) at the end of this section.
+TypeScript offers four ways to achieve this; each has different trade-offs - see the [full comparison](#comparison-4-ways-to-bind-a-generic-constructor) at the end of this section.
 
 ---
 
@@ -248,7 +262,7 @@ function typed<TCtor extends Constructor>(ctor: TCtor): CallableConstructor<TCto
 ```
 
 Narrows a generic constructor to a pre-typed alias using a TypeScript
-**Instantiation Expression** (TS 4.7+). Zero runtime cost — returns `ctor` as-is.
+**Instantiation Expression** (TS 4.7+). Zero runtime cost - returns `ctor` as-is.
 The type arguments are bound at the call site by passing `MyClass<A, B>` as a *value expression*
 (without `new`), so the inferred constructor already has the concrete types locked in before
 `typed` is called.
@@ -273,7 +287,7 @@ function createConstructor<TConstructor extends Constructor>(
 ): CallableConstructor<TConstructor>
 ```
 
-Same as `typed()` — binds generic type arguments via an Instantiation Expression — but also makes
+Same as `typed()` - binds generic type arguments via an Instantiation Expression - but also makes
 the constructor **callable without `new`**. It wraps the class in a plain function that forwards
 all arguments, and patches `prototype` so `instanceof` still works correctly.
 
@@ -293,8 +307,8 @@ const evt = PersistentCacheEvent("evict", { detail: { records }, target: this })
 
 | Function | Description |
 |----------|-------------|
-| `keysOf(obj)` | Typed `Object.keys` — returns `(keyof T)[]` instead of `string[]` |
-| `keyOf<T>(key)` | Returns a property name literal narrowed to `keyof T`. No object required — useful for building typed key references |
+| `keysOf(obj)` | Typed `Object.keys` - returns `(keyof T)[]` instead of `string[]` |
+| `keyOf<T>(key)` | Returns a property name literal narrowed to `keyof T`. No object required - useful for building typed key references |
 | `nameOf<T>(f)` | Extracts a property name from a lambda `x => x.prop` at runtime via `Proxy` |
 | `entry(obj, name, caseInsensitive?)` | Looks up a key (optionally case-insensitive) and returns `[resolvedKey, value]` |
 | `getPrototypes(obj)` | Returns the prototype chain as an array, from the object's direct prototype up to (but not including) `null` |
@@ -302,7 +316,7 @@ const evt = PersistentCacheEvent("evict", { detail: { records }, target: this })
 ```ts
 keysOf({ a: 1, b: 2 })          // => ["a", "b"] typed as ("a" | "b")[]
 
-keyOf<CacheMetadataRecord>("expiresAt")  // => "expiresAt" — typed, no runtime object needed
+keyOf<CacheMetadataRecord>("expiresAt")  // => "expiresAt" - typed, no runtime object needed
 
 nameOf<User>(x => x.email)       // => "email"
 ```
@@ -356,20 +370,20 @@ combinePropertyPath(["server", "port"])       // => '["server"]["port"]'
 | `createDeepProxy<T>(target, handler)` | Deep-change proxy: `handler.set` and `handler.deleteProperty` receive the full `DeepPropertyKey` path |
 
 ```ts
-// proxify — lazy proxy that re-evaluates source on every get/set
+// proxify - lazy proxy that re-evaluates source on every get/set
 let config = { theme: 'dark' };
 const proxy = proxify(() => config);
 proxy.theme;           // => 'dark'
 config = { theme: 'light' };
-proxy.theme;           // => 'light' — picks up the new object
+proxy.theme;           // => 'light' - picks up the new object
 
-// toReadOnly — deep read-only proxy (writes silently ignored by default)
+// toReadOnly - deep read-only proxy (writes silently ignored by default)
 const opts = toReadOnly({ server: { port: 3000 } });
 opts.server.port;      // => 3000
 opts.server.port = 80; // silently ignored
                        // pass true as second arg to throw on write attempts instead
 
-// createDeepProxy — intercept deep mutations with the full property path
+// createDeepProxy - intercept deep mutations with the full property path
 const state = createDeepProxy({ user: { name: 'Alice' } }, {
     set(target, path, value) {
         console.log('set', path.map(String).join('.'), '=', value);
@@ -392,7 +406,7 @@ delete state.user.name;   // logs: "deleted user.name"
 |----------|-------------|
 | `orderedStringify(obj, keyCompareFn?, replacer?, space?)` | Stable JSON serialisation: sorts object keys recursively before stringifying |
 | `jsonEquals(obj1, obj2)` | Structural equality via `orderedStringify` |
-| `jsonClone<T>(obj)` | Deep clone via `JSON.parse(JSON.stringify(obj))` — for plain JSON-serialisable data |
+| `jsonClone<T>(obj)` | Deep clone via `JSON.parse(JSON.stringify(obj))` - for plain JSON-serialisable data |
 
 ```ts
 jsonEquals({ b: 2, a: 1 }, { a: 1, b: 2 }) // => true (key order doesn't matter)
@@ -446,7 +460,7 @@ const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, Persi
 const evt = new PersistentCacheEvent("evict", { detail: { records }, target: this });
 ```
 
-**4. `createConstructor()` — callable without `new`**
+**4. `createConstructor()` - callable without `new`**
 
 ```ts
 const PersistentCacheEvent = createConstructor(StructEvent<PersistentCacheEventStruct, PersistentCache>);
@@ -468,15 +482,15 @@ const evt = PersistentCacheEvent("evict", { detail: { records }, target: this })
 
 **When to choose:**
 
-- **Subclass** — when you need `instanceof` checks, want to add methods, or need a distinct runtime type.
-- **Manual cast** — when TS < 4.7 is required, or you prefer zero dependencies (verbose but explicit).
-- **`typed()`** — the default choice: concise, zero runtime cost. Requires TS 4.7+.
-- **`createConstructor()`** — same as `typed()`, but the constructor must be callable without `new`
+- **Subclass** - when you need `instanceof` checks, want to add methods, or need a distinct runtime type.
+- **Manual cast** - when TS < 4.7 is required, or you prefer zero dependencies (verbose but explicit).
+- **`typed()`** - the default choice: concise, zero runtime cost. Requires TS 4.7+.
+- **`createConstructor()`** - same as `typed()`, but the constructor must be callable without `new`
   (e.g. factory patterns, functional-style code).
 
 ---
 
-### stringCore — Locale-Aware String Utilities
+### stringCore - Locale-Aware String Utilities
 
 **Import:** `@actdim/utico/stringCore`
 
@@ -487,7 +501,7 @@ Locale-aware string comparison and search utilities built on `Intl.Collator`. Al
 | Function | Description |
 |----------|-------------|
 | `equals(strA, strB, ignoreCase?, locale?)` | Returns `true` when strings are equal. Case-sensitive by default. Uses `Intl.Collator` for locale-correct comparison. |
-| `compare(strA, strB, ignoreCase?, locale?)` | Returns a negative, zero, or positive number — same contract as `Array.prototype.sort`. |
+| `compare(strA, strB, ignoreCase?, locale?)` | Returns a negative, zero, or positive number - same contract as `Array.prototype.sort`. |
 | `ciCompare(strA, strB, locale?)` | Case-insensitive `compare`. Uses `sensitivity: "accent"` when available, falls back to `toLocaleUpperCase`. |
 | `ciStartsWith(str, searchStr, locale?)` | Case-insensitive `String.prototype.startsWith`. Returns `false` for non-string inputs. |
 | `ciEndsWith(str, searchStr, locale?)` | Case-insensitive `String.prototype.endsWith`. Returns `false` for non-string inputs. |
@@ -504,7 +518,7 @@ equals('Hello', 'hello')              // false (case-sensitive)
 equals('Hello', 'hello', true)        // true  (case-insensitive)
 equals('café', 'CAFÉ', true, 'fr')   // true  (locale-aware)
 
-// compare — for sorting
+// compare - for sorting
 ['banana', 'Apple', 'cherry'].sort((a, b) => compare(a, b, true));
 // => ['Apple', 'banana', 'cherry']
 
@@ -520,7 +534,7 @@ ciIncludes('Hello World', 'xyz')     // false
 
 ---
 
-### metadata — Property Metadata
+### metadata - Property Metadata
 
 **Import:** `@actdim/utico/metadata`
 
@@ -576,7 +590,7 @@ getPropertyMetadata(new SpecialArticle(), 'title', 'label'); // => 'Title of the
 
 ---
 
-### decorators — Property Decorators
+### decorators - Property Decorators
 
 **Import:** `@actdim/utico/decorators`
 
@@ -600,16 +614,16 @@ const user = new User();
 user.name = 'Alice';
 user.passwordHash = 'abc123';
 
-Object.keys(user)       // => ['name']  — passwordHash is hidden
+Object.keys(user)       // => ['name']  - passwordHash is hidden
 JSON.stringify(user)    // => '{"name":"Alice"}'
-user.passwordHash       // => 'abc123'  — still directly accessible
+user.passwordHash       // => 'abc123'  - still directly accessible
 ```
 
 > **How it works:** the decorator replaces the property with an accessor on the prototype. On the first assignment, the accessor redefines the property as a non-enumerable own value on the specific instance, so subsequent reads are direct (no getter overhead).
 
 ---
 
-### dateTimeDataFormat — Date/Time Serialisation
+### dateTimeDataFormat - Date/Time Serialisation
 
 **Import:** `@actdim/utico/dateTimeDataFormat`
 
@@ -635,7 +649,7 @@ The module converts values from string/number/`Date`/`DateTime`, tracks precisio
 
 | Member | Description |
 |--------|-------------|
-| `UnixTimeMilliseconds` | Default — milliseconds since Unix epoch |
+| `UnixTimeMilliseconds` | Default - milliseconds since Unix epoch |
 | `UnixTimeSeconds` | Seconds since Unix epoch |
 | `OADate` | Microsoft OLE Automation date (fractional days since 1899-12-30) |
 
@@ -723,13 +737,13 @@ dateTimeTransports.utc.serialize(null);      // null
 
 ---
 
-### StructEvent — Typed DOM Events
+### StructEvent - Typed DOM Events
 
 **Import:** `@actdim/utico/structEvent`
 
 `StructEvent` and `StructEventTarget` bring the standard DOM `EventTarget` / `CustomEvent` API
-into TypeScript's type system. You describe every event your class can emit as a **struct** — a
-plain object type where keys are event names and values are the `detail` payload types — and the
+into TypeScript's type system. You describe every event your class can emit as a **struct** - a
+plain object type where keys are event names and values are the `detail` payload types - and the
 compiler enforces correct event names, `detail` shapes, and listener signatures everywhere.
 
 #### Classes
@@ -774,7 +788,7 @@ type PersistentCacheEventStruct = {
 
 class PersistentCache extends StructEventTarget<PersistentCacheEventStruct> {
 
-    // --- Dispatching: Option A — inline `this` type (zero boilerplate) ---
+    // --- Dispatching: Option A - inline `this` type (zero boilerplate) ---
     //
     // Inside a class method `this` is a polymorphic type, so you can pass it
     // directly as the second type argument. TypeScript infers "evict",
@@ -792,7 +806,7 @@ class PersistentCache extends StructEventTarget<PersistentCacheEventStruct> {
         );
     }
 
-    // --- Dispatching: Option B — pre-bound alias with typed() (recommended for reuse) ---
+    // --- Dispatching: Option B - pre-bound alias with typed() (recommended for reuse) ---
     //
     // Bind the constructor once at module scope (or as a static field).
     // See the Constructor Utilities section in typeUtils for all four
@@ -811,7 +825,7 @@ class PersistentCache extends StructEventTarget<PersistentCacheEventStruct> {
     }
 }
 
-// Alias created once at module scope — equivalent to a named type for
+// Alias created once at module scope - equivalent to a named type for
 // StructEvent<PersistentCacheEventStruct, PersistentCache>
 const PersistentCacheEvent = typed(StructEvent<PersistentCacheEventStruct, PersistentCache>);
 
@@ -832,11 +846,11 @@ cache.addEventListener("evict", (e) => {
 
 ---
 
-### watchable — Promise & Function Tracking
+### watchable - Promise & Function Tracking
 
 **Import:** `@actdim/utico/watchable`
 
-Track the execution state of promises and functions — useful for loading indicators, UI state, and conditional logic without `try/catch` boilerplate.
+Track the execution state of promises and functions - useful for loading indicators, UI state, and conditional logic without `try/catch` boilerplate.
 
 #### Types
 
@@ -851,7 +865,7 @@ Track the execution state of promises and functions — useful for loading indic
 | Field      | Type            | Description                                                                 |
 | ---------- | --------------- | --------------------------------------------------------------------------- |
 | `status`   | `PromiseStatus` | `"pending"` immediately; becomes `"fulfilled"` or `"rejected"` when settled |
-| `settled`  | `boolean`       | Computed getter — `true` once `status` is no longer `"pending"`             |
+| `settled`  | `boolean`       | Computed getter - `true` once `status` is no longer `"pending"`             |
 | `result`   | `T \| undefined`| The resolved value after fulfillment; `undefined` after rejection           |
 
 #### Functions
@@ -910,7 +924,7 @@ submitButton.addEventListener('click', () => {
 
 ---
 
-### asyncLock — Async Lock
+### asyncLock - Async Lock
 
 **Import:** `@actdim/utico/asyncLock`
 
@@ -922,7 +936,7 @@ A lightweight async lock that serializes concurrent async operations. Prevents r
 | ---------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
 | `lock`     | `(timeoutMs?: number) => Promise<() => void>`         | Acquires the lock; returns an `unlock` function. Throws on timeout. |
 | `tryLock`  | `() => (() => void) \| null`                          | Non-blocking acquire; returns `unlock` or `null` if already locked. |
-| `dispatch` | `(fn: Executor<T>, timeoutMs?: number) => Promise<T>` | Acquires lock, runs `fn`, releases lock — the recommended pattern.  |
+| `dispatch` | `(fn: Executor<T>, timeoutMs?: number) => Promise<T>` | Acquires lock, runs `fn`, releases lock - the recommended pattern.  |
 
 #### Usage Examples
 
@@ -941,7 +955,7 @@ async function updateCounter() {
     });
 }
 
-// Safe to call concurrently — operations are serialized
+// Safe to call concurrently - operations are serialized
 await Promise.all([updateCounter(), updateCounter(), updateCounter()]);
 
 // --- lock / unlock: manual control ---
@@ -991,14 +1005,14 @@ function syncSnapshot() {
 
 ---
 
-### store — Structured Persistence
+### store - Structured Persistence
 
 **Imports:**
 
-- `@actdim/utico/store/storeContracts` — types and interfaces
-- `@actdim/utico/store/persistentStore` — `PersistentStore` (main entry point)
+- `@actdim/utico/store/storeContracts` - types and interfaces
+- `@actdim/utico/store/persistentStore` - `PersistentStore` (main entry point)
 
-Built on [Dexie](https://dexie.org/) (IndexedDB). Uses `AsyncLock` internally to protect concurrent database access. Transactions are managed automatically — no manual transaction handling needed.
+Built on [Dexie](https://dexie.org/) (IndexedDB). Uses `AsyncLock` internally to protect concurrent database access. Transactions are managed automatically - no manual transaction handling needed.
 
 #### Core Types
 
@@ -1009,18 +1023,18 @@ Built on [Dexie](https://dexie.org/) (IndexedDB). Uses `AsyncLock` internally to
 | `StoreItem<T, TValue>` | Combined: `{ metadata?: T; data?: DataRecord<TValue> }` |
 | `ChangeSet<T>` | `{ key: string; changes: KeyPathValueMap<T> }` |
 | `FieldDef<T>` | Index definition for a field of `T`: `"field"`, `"&field"` (unique), `"*field"` (multi-entry), `"++field"` (auto-increment) |
-| `FieldDefTemplate<T>` | `FieldDef<T>[]` — full index schema; TypeScript enforces valid field names and modifier combinations |
+| `FieldDefTemplate<T>` | `FieldDef<T>[]` - full index schema; TypeScript enforces valid field names and modifier combinations |
 | `OrderDirection` | `"asc" \| "desc"` |
 
 #### Class: `PersistentStore<T extends MetadataRecord>`
 
 The main entry point for structured persistence. Key features:
 
-- **Standard metadata out of the box** — `key`, `createdAt` (auto), `updatedAt` (auto), `tags`
-- **Custom metadata types** — extend `MetadataRecord` with your own fields and pass a generic type parameter
-- **Custom indexed fields** — declare additional indexes via `FieldDefTemplate` to enable fast index-based queries
-- **Type-safe querying** — `where()` accepts only declared indexed fields; value types match the field type
-- **No transaction boilerplate** — all operations run in optimal transactions automatically
+- **Standard metadata out of the box** - `key`, `createdAt` (auto), `updatedAt` (auto), `tags`
+- **Custom metadata types** - extend `MetadataRecord` with your own fields and pass a generic type parameter
+- **Custom indexed fields** - declare additional indexes via `FieldDefTemplate` to enable fast index-based queries
+- **Type-safe querying** - `where()` accepts only declared indexed fields; value types match the field type
+- **No transaction boilerplate** - all operations run in optimal transactions automatically
 
 | Static Method | Description |
 |---------------|-------------|
@@ -1053,16 +1067,16 @@ The main entry point for structured persistence. Key features:
 #### Transaction Modes
 
 `TransactionMode` (re-exported from Dexie) controls how a Dexie transaction is opened or joined.
-Most `IPersistentStore` methods accept an optional `transactionMode` parameter with a sensible default — callers rarely need to override it.
+Most `IPersistentStore` methods accept an optional `transactionMode` parameter with a sensible default - callers rarely need to override it.
 
 | Mode | Meaning |
 |------|---------|
-| `"r"` | Readonly — always opens a new readonly transaction |
-| `"rw"` | Read-write — always opens a new read-write transaction |
-| `"r?"` | Readonly, reuse — joins an existing transaction if one is open; otherwise opens a new readonly one |
-| `"rw?"` | Read-write, reuse — joins an existing transaction if one is open; otherwise opens a new read-write one |
-| `"r!"` | Readonly, required — must already be inside an enclosing transaction (throws otherwise) |
-| `"rw!"` | Read-write, required — must already be inside an enclosing transaction (throws otherwise) |
+| `"r"` | Readonly - always opens a new readonly transaction |
+| `"rw"` | Read-write - always opens a new read-write transaction |
+| `"r?"` | Readonly, reuse - joins an existing transaction if one is open; otherwise opens a new readonly one |
+| `"rw?"` | Read-write, reuse - joins an existing transaction if one is open; otherwise opens a new read-write one |
+| `"r!"` | Readonly, required - must already be inside an enclosing transaction (throws otherwise) |
+| `"rw!"` | Read-write, required - must already be inside an enclosing transaction (throws otherwise) |
 
 Defaults used by `PersistentStore` internally:
 - Reads (`get`, `bulkGet`, `contains`, `toArray`): `"r"` or `"r?"`
@@ -1086,9 +1100,9 @@ The field template is an array of `FieldDef` strings. The first entry is always 
 [...defaultMetadataFieldDefTemplate, "score", "*categories"]
 ```
 
-TypeScript enforces that every entry is a valid `FieldDef<keyof T>` — only field names from your metadata type (with their modifier variants) are suggested and accepted. Fields not in the template are still stored, but cannot be used in `where()` or `orderBy()`.
+TypeScript enforces that every entry is a valid `FieldDef<keyof T>` - only field names from your metadata type (with their modifier variants) are suggested and accepted. Fields not in the template are still stored, but cannot be used in `where()` or `orderBy()`.
 
-#### `where()` — Index-based Queries
+#### `where()` - Index-based Queries
 
 `where(field)` returns a `WhereFilter` typed to the field's value type. All methods return an `IStoreCollection` chainable with `.filter()`, `.limit()`, `.offset()`, `.toArray()`, `.getCount()`, etc.
 
@@ -1169,7 +1183,7 @@ await store.set(
   '<p>Content here</p>'
 );
 
-// Index-based query — fast, uses IndexedDB index directly
+// Index-based query - fast, uses IndexedDB index directly
 const topPosts = await store.where('score').above(10).toArray();
 
 // Range query on a date field
@@ -1189,12 +1203,12 @@ const page = await store
 
 ---
 
-### cache — Persistent Cache
+### cache - Persistent Cache
 
 **Imports:**
 
-- `@actdim/utico/cache/persistentCache` — `PersistentCache`, `CacheOptions`, `PersistentCacheOptions`
-- `@actdim/utico/cache/cacheContracts` — `CacheMetadataRecord`
+- `@actdim/utico/cache/persistentCache` - `PersistentCache`, `CacheOptions`, `PersistentCacheOptions`
+- `@actdim/utico/cache/cacheContracts` - `CacheMetadataRecord`
 
 Built on top of the `store` module. Adds expiration semantics (TTL, absolute expiration, sliding expiration) and a background cleanup job that evicts expired entries automatically.
 
@@ -1205,14 +1219,14 @@ Built on top of the `store` module. Adds expiration semantics (TTL, absolute exp
 | `CacheMetadataRecord` | Extends `MetadataRecord` with `slidingExpiration`, `absoluteExpiration`, and `expiresAt` |
 | `CacheOptions` | Per-entry expiration options (see below) |
 | `PersistentCacheOptions` | Cache-level options: `cleanupTimeout` (ms between background cleanup runs) |
-| `CacheEvictionEvent` | `{ records: CacheMetadataRecord[] }` — payload of the `"evict"` event |
+| `CacheEvictionEvent` | `{ records: CacheMetadataRecord[] }` - payload of the `"evict"` event |
 
 #### `CacheOptions`
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `slidingExpiration` | `number` (ms) | Extends `expiresAt` by this duration on every `get()`. Recommended: combined with `absoluteExpiration` as a cap. |
-| `absoluteExpiration` | `Date \| number` | Hard deadline — `expiresAt` is never pushed past this value. |
+| `absoluteExpiration` | `Date \| number` | Hard deadline - `expiresAt` is never pushed past this value. |
 | `ttl` | `number \| { seconds?, minutes?, hours? }` | Sets `absoluteExpiration` relative to the creation time. |
 
 #### Static Methods
@@ -1312,11 +1326,11 @@ using c = await PersistentCache.open('temp');   // auto-disposed at block exit (
 
 ---
 
-### arrayExtensions — Array Prototype Extensions
+### arrayExtensions - Array Prototype Extensions
 
 **Import:** `@actdim/utico/arrayExtensions`
 
-> **Side-effect import** — augments `Array.prototype` globally. Import once at the application entry point.
+> **Side-effect import** - augments `Array.prototype` globally. Import once at the application entry point.
 
 Extends the native `Array<T>` with LINQ-style collection utilities.
 
@@ -1340,7 +1354,7 @@ Extends the native `Array<T>` with LINQ-style collection utilities.
 ```typescript
 import '@actdim/utico/arrayExtensions';
 
-// unfold — flat-map
+// unfold - flat-map
 [[1, 2], [3, 4]].unfold(x => x);           // [1, 2, 3, 4]
 
 // max / min
@@ -1363,7 +1377,7 @@ import '@actdim/utico/arrayExtensions';
 
 ---
 
-### memoryCache — In-Memory Cache
+### memoryCache - In-Memory Cache
 
 **Import:** `@actdim/utico/cache/memoryCache`
 
@@ -1397,7 +1411,7 @@ cache.size;           // 2
 
 ---
 
-### utils — General Utilities
+### utils - General Utilities
 
 **Import:** `@actdim/utico/utils`
 
@@ -1440,7 +1454,7 @@ const node = searchTree(tree, n => n.id === 42, n => n.children);
 
 ---
 
-### math — Math Utilities
+### math - Math Utilities
 
 **Import:** `@actdim/utico/math`
 
@@ -1458,7 +1472,7 @@ round(123.456)   // 123
 
 ---
 
-### i18n — Culture Definitions
+### i18n - Culture Definitions
 
 **Import:** `@actdim/utico/i18n/cultures` (index) or individual culture files.
 
@@ -1468,8 +1482,8 @@ All format tokens follow Luxon conventions (`yyyy`, `MM`, `dd`, `HH`, `hh`, `a`,
 | Import | Culture |
 |--------|---------|
 | `@actdim/utico/i18n/cultures` | `{ "en-US": ..., "eu": ..., "invariant": ... }` |
-| `@actdim/utico/i18n/enUsCulture` | US English — `MM/dd/yyyy`, 12-hour clock |
-| `@actdim/utico/i18n/euCulture` | European — `dd.MM.yyyy`, 24-hour clock |
+| `@actdim/utico/i18n/enUsCulture` | US English - `MM/dd/yyyy`, 12-hour clock |
+| `@actdim/utico/i18n/euCulture` | European - `dd.MM.yyyy`, 24-hour clock |
 | `@actdim/utico/i18n/invariantCulture` | Locale-neutral ISO-style formats |
 
 Each culture exports a `dateTime.formats` object with keys:
@@ -1487,7 +1501,7 @@ cultures['eu'].dateTime.formats.date  // "dd.MM.yyyy"
 
 ---
 
-### gfx/color — Color Utilities
+### gfx/color - Color Utilities
 
 **Import:** `@actdim/utico/gfx/color`
 
@@ -1495,7 +1509,7 @@ Converts between hex strings, RGBA components, and packed 24/32-bit integers.
 
 | Function | Description |
 |----------|-------------|
-| `getColorNumberFromRgba(r, g, b, a?, mode?)` | Packs RGBA into a 32-bit unsigned int. `mode`: `'24bit'`, `'32bit'`, or `'auto'` (default — 24-bit when `a` is omitted) |
+| `getColorNumberFromRgba(r, g, b, a?, mode?)` | Packs RGBA into a 32-bit unsigned int. `mode`: `'24bit'`, `'32bit'`, or `'auto'` (default - 24-bit when `a` is omitted) |
 | `getColorRgbaFromHexString(hex)` | Parses a hex string (`#RGB`, `#RRGGBB`, `#RRGGBBAA`) into `{ r, g, b, a }` |
 | `getColorNumberFromHexString(hex)` | Parses a hex string into a number |
 | `get24bitColorHexStringFromNumber(color)` | Formats a number as `#rrggbb` |
@@ -1516,11 +1530,11 @@ getColorRgbaFromHexString('#ff8000');             // { r: 255, g: 128, b: 0, a: 
 
 ---
 
-### gfx/canvasUtils — Canvas Utilities
+### gfx/canvasUtils - Canvas Utilities
 
 **Import:** `@actdim/utico/gfx/canvasUtils`
 
-> **Browser-only** — uses `document`, `window`, `Canvas`, `SVG`, and `FileReader` APIs.
+> **Browser-only** - uses `document`, `window`, `Canvas`, `SVG`, and `FileReader` APIs.
 
 | Function / Value | Description |
 |------------------|-------------|
@@ -1542,7 +1556,7 @@ getColorRgbaFromHexString('#ff8000');             // { r: 255, g: 128, b: 0, a: 
 
 ---
 
-### dataFormats — Data Format Shortcuts
+### dataFormats - Data Format Shortcuts
 
 **Import:** `@actdim/utico/dataFormats`
 
@@ -1599,7 +1613,7 @@ See [dateTimeDataFormat](#datetimedataformat--datetime-serialisation) for full t
 ### 1.1.2
 - Breaking API changes across `cache` and `store` modules
 
-### 1.1.0 – 1.1.1
+### 1.1.0 - 1.1.1
 - `typeCore`, `utils`: internal refactoring
 
 ### 1.0.6
@@ -1654,3 +1668,4 @@ This package ships with native AI agent instructions and Knowledge Base metadata
 ## License
 
 Proprietary. (c) Pavel Borodaev
+MIT License. See [LICENSE](LICENSE) for details.

@@ -1,11 +1,10 @@
 ---
 protocol: along
-protocol_version: "2.2.5"
 slug: architecture
 title: 01 Architecture
 type: topic
 created: 2026-08-27
-updated: 2026-09-02
+updated: 2026-09-10
 tags: [architecture]
 ---
 
@@ -85,7 +84,7 @@ To avoid repetitive generic instantiation for classes like `StructEvent<TStruct,
 
 ## 4. Cross-Links
 - [[INDEX.md]] - Knowledge Base Root
-- [[02-domain-model.md]] - Domain Contracts and Entities
-- [[03-setup-and-workflow.md]] - Build and Test Instructions
-- [[04-api-reference.md]] - Exhaustive API Reference
-- [[05-patterns-and-recipes.md]] - Practical Recipes and Integration Patterns
+- [[02-[domain-model](./topic--domain-model.md).md]] - Domain Contracts and Entities
+- [[03-[setup-and-workflow](./topic--setup-and-workflow.md).md]] - Build and Test Instructions
+- [[[04-api-reference](./topic--04-api-reference.md).md]] - Exhaustive API Reference
+- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes and Integration Patterns

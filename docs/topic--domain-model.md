@@ -1,11 +1,10 @@
 ---
 protocol: along
-protocol_version: "2.2.5"
 slug: domain-model
 title: 02 Domain Model
 type: topic
 created: 2026-08-27
-updated: 2026-09-02
+updated: 2026-09-10
 tags: [domain-model]
 ---
 
@@ -94,7 +93,7 @@ The domain model of `@actdim/utico` centers around contract-driven type manipula
 
 ## 3. Cross-Links
 - [[INDEX.md]] - Knowledge Base Root
-- [[01-architecture.md]] - System Architecture
-- [[03-setup-and-workflow.md]] - Setup and Workflow
-- [[04-api-reference.md]] - API Reference
-- [[05-patterns-and-recipes.md]] - Practical Recipes
+- [[01-[architecture](./topic--architecture.md).md]] - System Architecture
+- [[03-[setup-and-workflow](./topic--setup-and-workflow.md).md]] - Setup and Workflow
+- [[[04-api-reference](./topic--04-api-reference.md).md]] - API Reference
+- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes

@@ -3,7 +3,9 @@ This folder belongs to a repository that uses the ALONG structure. The full work
 guidance + agent-context protocol live once in the nearest ancestor `AGENTS.md` (`../../../AGENTS.md`) -
 read it there. This folder keeps its OWN `.along/` state; use the nearest one.
 Only this folder's specifics follow.
-<!-- END ALONG-PROTOCOL -->See @AGENTS.md for project instructions and guidance.
+<!-- END ALONG-PROTOCOL -->
+
+See @AGENTS.md for project instructions and guidance.
 
 # @actdim/utico - Agent Instructions
 
@@ -31,7 +33,7 @@ pnpm format            # Prettier write
 pnpm format:check      # Prettier check
 ```
 
-Tests use `fake-indexeddb` for IndexedDB in Node.js — no browser required.
+Tests use `fake-indexeddb` for IndexedDB in Node.js - no browser required.
 The vitest config sets `isolate: false` and `pool: "forks"` intentionally (debugger support).
 
 ---
@@ -70,25 +72,25 @@ These modules are importable but have no public documentation:
 | `@actdim/utico/arrayExtensions` | `src/arrayExtensions.ts` | `Array.prototype` extensions: `unfold`, `max`, `min`, `orderBy`, `orderByDesc`, `groupBy`, `distinct`, `copy`, `copyTo` |
 | `@actdim/utico/dataFormats` | `src/dataFormats.ts` | Additional data format utilities |
 | `@actdim/utico/cache/memoryCache` | `src/cache/memoryCache.ts` | In-memory generic cache |
-| `@actdim/utico/store/dataStore` | `src/store/dataStore.ts` | Core DataStore — wrapped by PersistentStore |
+| `@actdim/utico/store/dataStore` | `src/store/dataStore.ts` | Core DataStore - wrapped by PersistentStore |
 | `@actdim/utico/store/storeDb` | `src/store/storeDb.ts` | Dexie schema wrapper; `storeDb.d.ts` intentionally deleted post-build (no types) |
 | `@actdim/utico/i18n/*` | `src/i18n/` | Culture definitions (`enUsCulture`, `euCulture`, etc.) |
-| `@actdim/utico/gfx/*` | `src/gfx/` | `canvasUtils`, `color` — graphics helpers |
+| `@actdim/utico/gfx/*` | `src/gfx/` | `canvasUtils`, `color` - graphics helpers |
 
 ---
 
 ## TypeScript Config Layout
 
-Solution-style split — do not collapse it back into one config:
+Solution-style split - do not collapse it back into one config:
 
-- `tsconfig.base.json` — shared `compilerOptions` only. `moduleResolution: "bundler"` (this is a Vite package; do NOT switch to `"node"`/`node10` (deprecated) or `nodenext` (would force `.js` import extensions)). No `baseUrl` (deprecated in TS 6.0) — `paths` targets are relative: `"@/*": ["./src/*"]`. `extends` inherits only `compilerOptions`, not `include`/`files`/`references`.
-- `tsconfig.json` — pure orchestrator: `{ "files": [], "references": [...] }`. It compiles nothing itself; it only wires the leaf projects.
-- `tsconfig.build.json` — library build; emits `.d.ts` to `dist`. Consumed by `vite-plugin-dts` via its `tsconfigPath` (must stay a config WITHOUT `references`, else the plugin emits zero declarations).
-- `tsconfig.dev.json` — editor/dev + tests; broad `types` (node, vitest/globals, vite/client, …).
+- `tsconfig.base.json` - shared `compilerOptions` only. `moduleResolution: "bundler"` (this is a Vite package; do NOT switch to `"node"`/`node10` (deprecated) or `nodenext` (would force `.js` import extensions)). No `baseUrl` (deprecated in TS 6.0) - `paths` targets are relative: `"@/*": ["./src/*"]`. `extends` inherits only `compilerOptions`, not `include`/`files`/`references`.
+- `tsconfig.json` - pure orchestrator: `{ "files": [], "references": [...] }`. It compiles nothing itself; it only wires the leaf projects.
+- `tsconfig.build.json` - library build; emits `.d.ts` to `dist`. Consumed by `vite-plugin-dts` via its `tsconfigPath` (must stay a config WITHOUT `references`, else the plugin emits zero declarations).
+- `tsconfig.dev.json` - editor/dev + tests; broad `types` (node, vitest/globals, vite/client, ...).
 
 Rules:
-- Root Node files (`packageConfig.ts`, `vite.config.ts`, `vitest*.config.ts`) get node types via `types: ["node"]` in the build/dev projects — NOT by editing includes elsewhere or adding `node` to a shared `types` array (that leaks node globals into browser `src`). If the editor shows "Cannot find name 'path'/'__dirname'" on such a file, it means the file isn't routed to a project — check the `references` chain, don't hack the source with `/// <reference>`.
-- Always type-check the solution with `tsc -b` (build mode), never `tsc -p` — `-p` sees `files: []` and checks nothing. Both `typecheck` and `build` scripts already use `tsc -b tsconfig.json`.
+- Root Node files (`packageConfig.ts`, `vite.config.ts`, `vitest*.config.ts`) get node types via `types: ["node"]` in the build/dev projects - NOT by editing includes elsewhere or adding `node` to a shared `types` array (that leaks node globals into browser `src`). If the editor shows "Cannot find name 'path'/'__dirname'" on such a file, it means the file isn't routed to a project - check the `references` chain, don't hack the source with `/// <reference>`.
+- Always type-check the solution with `tsc -b` (build mode), never `tsc -p` - `-p` sees `files: []` and checks nothing. Both `typecheck` and `build` scripts already use `tsc -b tsconfig.json`.
 
 ---
 
@@ -106,14 +108,14 @@ PersistentCache  ──builds on──►  PersistentStore
 
 - `PersistentStore.open()` and `PersistentCache.open()` are factory methods (async).
 - Both use `AsyncLock` internally to serialize concurrent DB access.
-- Transactions are managed automatically — callers never handle them directly.
+- Transactions are managed automatically - callers never handle them directly.
 - `StructEventTarget` is the event base for `PersistentCache`.
 
 ### Store data model
 
 Every stored item has two separate tables:
-- **metadata** — `MetadataRecord` (key, createdAt, updatedAt, tags, + custom fields)
-- **data** — `DataRecord<TValue>` (key, value) — keyed same as metadata
+- **metadata** - `MetadataRecord` (key, createdAt, updatedAt, tags, + custom fields)
+- **data** - `DataRecord<TValue>` (key, value) - keyed same as metadata
 
 `StoreItem<T, TValue>` combines them. Queries operate on the metadata table; data is
 joined in automatically by `StoreCollection.toArray()`.
@@ -156,13 +158,13 @@ Spread `defaultMetadataFieldDefTemplate` when adding custom fields to a typed st
 
 ### WhereFilter (index queries)
 
-`store.where("score").above(10).toArray()` — uses IndexedDB index directly.
-`store.query().filter(m => ...).limit(n).toArray()` — in-memory scan, use for complex conditions.
+`store.where("score").above(10).toArray()` - uses IndexedDB index directly.
+`store.query().filter(m => ...).limit(n).toArray()` - in-memory scan, use for complex conditions.
 
 ### WatchablePromise
 
 `watch(fn)` wraps any executor. Check `.status`, `.settled`, `.result` synchronously at any point.
-`toWatchable(fn)` wraps a function — check `.executing` before calling again to prevent double invocation.
+`toWatchable(fn)` wraps a function - check `.executing` before calling again to prevent double invocation.
 
 ---
 
@@ -188,14 +190,14 @@ Spread `defaultMetadataFieldDefTemplate` when adding custom fields to a typed st
 ### Missing Tests
 
 These modules have no test coverage:
-- `decorators.ts` — `@nonEnumerable` untested
-- `memoryCache.ts` — untested
-- `gfx/`, `i18n/`, `math.ts`, `patterns.ts` — untested
+- `decorators.ts` - `@nonEnumerable` untested
+- `memoryCache.ts` - untested
+- `gfx/`, `i18n/`, `math.ts`, `patterns.ts` - untested
 
 
 ### Design Concerns
 
-- **`utils.ts` — commented-out `TODO` block** (lines 201–231): alternative metadata implementation
+- **`utils.ts` - commented-out `TODO` block** (lines 201-231): alternative metadata implementation
   sketched but never finished. Either implement or remove.
 
 - **`patterns.ts`** exports only `noop`. Either extend or merge into `utils.ts`.
@@ -218,7 +220,7 @@ Install only what you use. Modules that don't use a peer dep have no hard depend
 
 `dist/` contains per-module `.es.js` + `.d.ts` files with source maps.
 `dist/store/storeDb.d.ts` is intentionally deleted post-build to hide the internal Dexie schema.
-The package is `"type": "module"` — ESM only, no CJS output.
+The package is `"type": "module"` - ESM only, no CJS output.
 
 ## Project specifics
 

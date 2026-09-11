@@ -1,11 +1,10 @@
 ---
 protocol: along
-protocol_version: "2.2.25"
 slug: INDEX
 title: Knowledge Base Topic Index
 type: index
-created: 2026-09-07
-updated: 2026-09-07
+created: 2026-09-10
+updated: 2026-09-10
 tags: [index, kb, topics, map]
 ---
 
@@ -24,6 +23,12 @@ flowchart TD
     INDEX --> T_DOMAIN_MODEL
     T_SETUP_AND_WORKFLOW["03 Setup And Workflow"]
     INDEX --> T_SETUP_AND_WORKFLOW
+    T_ARCHITECTURE -.->|references| T_DOMAIN_MODEL
+    T_ARCHITECTURE -.->|references| T_SETUP_AND_WORKFLOW
+    T_DOMAIN_MODEL -.->|references| T_ARCHITECTURE
+    T_DOMAIN_MODEL -.->|references| T_SETUP_AND_WORKFLOW
+    T_SETUP_AND_WORKFLOW -.->|references| T_ARCHITECTURE
+    T_SETUP_AND_WORKFLOW -.->|references| T_DOMAIN_MODEL
 ```
 
 ---

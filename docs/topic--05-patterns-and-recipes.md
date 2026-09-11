@@ -1,6 +1,5 @@
 ---
 protocol: along
-protocol_version: "2.2.5"
 slug: topic--05-patterns-and-recipes
 title: 05 Patterns And Recipes
 type: topic
