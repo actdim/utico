@@ -4,7 +4,7 @@ slug: INDEX
 title: Knowledge Base Topic Index
 type: index
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-11
 tags: [index, kb, topics, map]
 ---
 
@@ -17,30 +17,55 @@ Central entry point and cross-linked topic catalog for project documentation:
 ```mermaid
 flowchart TD
     INDEX["Knowledge Base (INDEX)"]
+    T_04_API_REFERENCE["04 API Reference"]
+    INDEX --> T_04_API_REFERENCE
+    T_05_PATTERNS_AND_RECIPES["05 Patterns and Recipes"]
+    INDEX --> T_05_PATTERNS_AND_RECIPES
     T_ARCHITECTURE["01 Architecture"]
     INDEX --> T_ARCHITECTURE
     T_DOMAIN_MODEL["02 Domain Model"]
     INDEX --> T_DOMAIN_MODEL
+    T_LICENSE["License"]
+    INDEX --> T_LICENSE
     T_SETUP_AND_WORKFLOW["03 Setup And Workflow"]
     INDEX --> T_SETUP_AND_WORKFLOW
+    T_04_API_REFERENCE -.->|references| T_ARCHITECTURE
+    T_04_API_REFERENCE -.->|references| T_DOMAIN_MODEL
+    T_04_API_REFERENCE -.->|references| T_SETUP_AND_WORKFLOW
+    T_04_API_REFERENCE -.->|references| T_05_PATTERNS_AND_RECIPES
+    T_04_API_REFERENCE -.->|references| T_LICENSE
+    T_05_PATTERNS_AND_RECIPES -.->|references| T_ARCHITECTURE
+    T_05_PATTERNS_AND_RECIPES -.->|references| T_DOMAIN_MODEL
+    T_05_PATTERNS_AND_RECIPES -.->|references| T_SETUP_AND_WORKFLOW
+    T_05_PATTERNS_AND_RECIPES -.->|references| T_04_API_REFERENCE
+    T_05_PATTERNS_AND_RECIPES -.->|references| T_LICENSE
     T_ARCHITECTURE -.->|references| T_DOMAIN_MODEL
     T_ARCHITECTURE -.->|references| T_SETUP_AND_WORKFLOW
+    T_ARCHITECTURE -.->|references| T_04_API_REFERENCE
+    T_ARCHITECTURE -.->|references| T_05_PATTERNS_AND_RECIPES
+    T_ARCHITECTURE -.->|references| T_LICENSE
     T_DOMAIN_MODEL -.->|references| T_ARCHITECTURE
     T_DOMAIN_MODEL -.->|references| T_SETUP_AND_WORKFLOW
+    T_DOMAIN_MODEL -.->|references| T_04_API_REFERENCE
+    T_DOMAIN_MODEL -.->|references| T_05_PATTERNS_AND_RECIPES
+    T_DOMAIN_MODEL -.->|references| T_LICENSE
     T_SETUP_AND_WORKFLOW -.->|references| T_ARCHITECTURE
     T_SETUP_AND_WORKFLOW -.->|references| T_DOMAIN_MODEL
+    T_SETUP_AND_WORKFLOW -.->|references| T_04_API_REFERENCE
+    T_SETUP_AND_WORKFLOW -.->|references| T_05_PATTERNS_AND_RECIPES
+    T_SETUP_AND_WORKFLOW -.->|references| T_LICENSE
 ```
 
 ---
 
 ## Articles
 
+- **[04 API Reference](./topic--04-api-reference.md)** (topic) `04-api-reference`, `api`, `modules`
+- **[05 Patterns and Recipes](./topic--05-patterns-and-recipes.md)** (topic) `05-patterns-and-recipes`, `patterns`, `recipes`
 - **[01 Architecture](./topic--architecture.md)** (topic) `architecture`
 - **[02 Domain Model](./topic--domain-model.md)** (topic) `domain-model`
+- **[License](./topic--license.md)** (license) `license`, `proprietary`
 - **[03 Setup And Workflow](./topic--setup-and-workflow.md)** (topic) `setup-and-workflow`
-- **[04 API Reference](./topic--04-api-reference.md)** (topic) `04-api-reference`
-- **[05 Patterns and Recipes](./topic--05-patterns-and-recipes.md)** (topic) `05-patterns-and-recipes`
-- **[License](./topic--license.md)** (license) `license`
 
 ---
 

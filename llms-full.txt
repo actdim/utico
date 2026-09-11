@@ -72,6 +72,19 @@ pnpm add dexie uuid luxon
 
 ---
 
+## AI Coding Assistants (Cursor, Claude Code, Copilot, Antigravity)
+
+To enable AI coding agents in your project to leverage Utico utility types, helper functions, and data structures, add a reference to the bundled LLM documentation in your project's `AGENTS.md`, `CLAUDE.md`, or `.cursorrules`:
+
+```markdown
+## Utico Toolkit Guidelines
+- Reference: `node_modules/@actdim/utico/llms.txt`
+```
+
+This provides agents with indexed utility type definitions and helpers from `node_modules/@actdim/utico/docs/` matching your installed version.
+
+---
+
 ## Modules
 
 ### typeCore - Expressive Type Composition
@@ -1903,6 +1916,236 @@ See the following engineering guidelines:
 
 ---
 
+## Document: docs/topic--04-api-reference.md (04 API Reference)
+
+# 04. API Reference
+
+Complete module reference for `@actdim/utico`. All modules are fully tree-shakeable and exported via subpath imports.
+
+---
+
+## Module Directory
+
+| Subpath Import | Purpose | Peer Dependencies |
+|---|---|---|
+| `@actdim/utico/typeCore` | Static type composition, dot-notation `KeyPath`, object transformations | *None (Pure TS)* |
+| `@actdim/utico/typeUtils` | Runtime reflection, proxies, constructor binding, stable JSON | *None* |
+| `@actdim/utico/stringCore` | Case-insensitive & locale-aware string comparisons (`Intl.Collator`) | `Intl.Collator` |
+| `@actdim/utico/metadata` | Prototype-aware property metadata using `WeakMap` | *None* |
+| `@actdim/utico/decorators` | Property decorators (e.g. `@nonEnumerable`) | *None* |
+| `@actdim/utico/dateTimeDataFormat` | Luxon-based date/time serialization, parsing, and wire transports | `luxon >= 3.7.2` |
+| `@actdim/utico/structEvent` | Strictly typed DOM `EventTarget` and `CustomEvent` structs | *DOM / Node EventTarget* |
+| `@actdim/utico/watchable` | Observable promise and function execution tracking (`pending`, `fulfilled`) | *None* |
+| `@actdim/utico/asyncLock` | Mutex concurrency lock with FIFO queuing and timeout control | *None* |
+| `@actdim/utico/store/*` | IndexedDB structured persistence on top of Dexie | `dexie >= 4.2.0` |
+| `@actdim/utico/cache/*` | TTL and sliding expiration cache with background eviction | `dexie >= 4.2.0`, `uuid >= 13.0.0` |
+| `@actdim/utico/memoryCache` | In-memory Map cache with lazy factory and sliding TTL | *None* |
+| `@actdim/utico/arrayExtensions` | Global `Array.prototype` LINQ extensions (`orderBy`, `groupBy`, `distinct`) | *None* |
+| `@actdim/utico/gfx/color` | RGBA, Hex, 24-bit, 32-bit color conversions and packing | *None* |
+| `@actdim/utico/gfx/canvasUtils` | Browser Canvas rendering, SVG rasterization, rounded rects | *Browser DOM APIs* |
+| `@actdim/utico/math` | High-precision rounding with `Number.EPSILON` drift correction | *None* |
+
+---
+
+## 1. Type Engine (`@actdim/utico/typeCore`)
+
+Advanced TypeScript type-level metaprogramming utilities:
+
+- **`Skip<T, K>`**: Clean version of `Omit` removing keys `K` from `T`.
+- **`Filter<T, V>`**: Keeps only properties whose values extend `V`.
+- **`Diff<T, U>`**: Properties in `T` that do not exist in `U`.
+- **`CommonPart<T, U>`**: Mathematical intersection of shared properties.
+- **`KeyPath<T, IncludeFunctions?, MaxDepth?, D?, TLeaf?>`**: Deep dot-notation path strings for nested properties of `T`.
+- **`KeyPathValue<T, P>`**: Value type at dot-notation path `P` in `T`.
+- **`KeyPathValueMap<T>`**: Partial map of `KeyPath` strings to their target values.
+- **`OneOfType<T>`**: Strict discriminated union enforcing that exactly one property is set.
+- **`MaybePromise<T>`**: Union of `T | PromiseLike<T>`.
+
+---
+
+## 2. Runtime Type Utilities (`@actdim/utico/typeUtils`)
+
+- **`typed(ctor)`**: Binds generic type arguments via Instantiation Expressions (TS 4.7+) with zero runtime cost.
+- **`createConstructor(ctor)`**: Binds type arguments and makes the constructor callable without `new`.
+- **`keysOf(obj)`**: Typed `Object.keys` returning `(keyof T)[]`.
+- **`satisfies<TShape>()(obj)`**: Curried type constraint helper without type widening.
+- **`proxify(source)`**: Lazy proxy evaluating `source()` on every property access.
+- **`toReadOnly(obj)`**: Deep read-only proxy.
+- **`orderedStringify(obj)`**: Deterministic JSON serialization with recursively sorted keys.
+
+---
+
+## 3. Concurrency & Synchronization (`@actdim/utico/asyncLock`)
+
+- **`AsyncLock`**: Concurrency coordinator providing FIFO execution queues:
+  ```typescript
+  import { AsyncLock } from '@actdim/utico/asyncLock';
+
+  const lock = new AsyncLock();
+  await lock.dispatch('resource-id', async () => {
+    // Critical section executed sequentially
+  });
+  ```
+
+---
+
+## 4. Persistent Storage & Cache (`@actdim/utico/store`, `@actdim/utico/cache`)
+
+- **`PersistentStore<T>`**: Declarative IndexedDB abstraction built on Dexie.
+- **`PersistentCache`**: Two-tier cache supporting:
+  - Sliding expiration (renewed on `get()`).
+  - Absolute expiration ceiling.
+  - Background worker for automatic expired record eviction.
+  - Explicit resource cleanup via `Symbol.dispose` (`using` statement).
+
+---
+
+## 5. Cross-Links
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [01 System Architecture](./topic--architecture.md) - System Architecture
+- [02 Domain Model](./topic--domain-model.md) - Domain Model
+- [03 Setup & Workflow](./topic--setup-and-workflow.md) - Build, Tests & Dev Workflow
+- [05 Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Integration Recipes
+- [License](./topic--license.md) - License Information
+
+---
+
+## Document: docs/topic--05-patterns-and-recipes.md (05 Patterns and Recipes)
+
+# 05. Patterns and Recipes
+
+Practical architectural patterns and code recipes using `@actdim/utico`.
+
+---
+
+## Recipe 1: Dot-Notation Deep Typing & Patch Updates
+
+Safely update nested properties without breaking compile-time type safety:
+
+```typescript
+import type { KeyPath, KeyPathValueMap } from '@actdim/utico/typeCore';
+import { getByKeyPath, setByKeyPath } from '@actdim/utico/typeCore';
+
+type AppConfig = {
+  server: {
+    host: string;
+    port: number;
+    ssl: { enabled: boolean; certPath?: string };
+  };
+  debug: boolean;
+};
+
+// 1. Compile-time verified dot-notation paths
+type ConfigPaths = KeyPath<AppConfig>;
+// => "server" | "debug" | "server.host" | "server.port" | "server.ssl" | "server.ssl.enabled" | ...
+
+// 2. Strongly-typed patch object
+const patch: KeyPathValueMap<AppConfig> = {
+  'server.port': 8080,
+  'server.ssl.enabled': true
+};
+
+// 3. Runtime mutation with leaf-type verification
+const cfg: AppConfig = {
+  server: { host: 'localhost', port: 3000, ssl: { enabled: false } },
+  debug: true
+};
+
+setByKeyPath(cfg, 'server.port', 8080);
+console.log(getByKeyPath(cfg, 'server.port')); // => 8080
+```
+
+---
+
+## Recipe 2: Mutex Concurrency with AsyncLock
+
+Prevent race conditions in async operations with named locks and timeouts:
+
+```typescript
+import { AsyncLock } from '@actdim/utico/asyncLock';
+
+const syncLock = new AsyncLock();
+
+async function updateAccountBalance(accountId: string, amount: number) {
+  return await syncLock.dispatch(`account:${accountId}`, async () => {
+    const current = await fetchBalance(accountId);
+    const updated = current + amount;
+    await saveBalance(accountId, updated);
+    return updated;
+  });
+}
+```
+
+---
+
+## Recipe 3: Reactive Function & Promise Tracking with watchable
+
+Track pending / fulfilled state of async calls without manual `try/finally` state tracking:
+
+```typescript
+import { watch } from '@actdim/utico/watchable';
+
+// Wraps promise with observable status fields
+const task = watch(async () => {
+  const response = await fetch('/api/data');
+  return await response.json();
+});
+
+console.log(task.status);  // "pending"
+console.log(task.settled); // false
+
+await task;
+
+console.log(task.status);  // "fulfilled"
+console.log(task.result);  // parsed JSON data
+```
+
+---
+
+## Recipe 4: IndexedDB Persistence with PersistentStore
+
+Declarative IndexedDB storage using typed schemas on top of Dexie:
+
+```typescript
+import { PersistentStore } from '@actdim/utico/store';
+
+type UserSession = {
+  id: string;
+  userId: string;
+  token: string;
+  expiresAt: number;
+};
+
+const sessionStore = new PersistentStore<UserSession>({
+  dbName: 'AppAuthDb',
+  tableName: 'sessions',
+  schema: '&id, userId, expiresAt'
+});
+
+await sessionStore.put({
+  id: 'sess-123',
+  userId: 'usr-456',
+  token: 'jwt-token-xyz',
+  expiresAt: Date.now() + 3600000
+});
+
+const session = await sessionStore.get('sess-123');
+```
+
+---
+
+## 5. Cross-Links
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [01 System Architecture](./topic--architecture.md) - System Architecture
+- [02 Domain Model](./topic--domain-model.md) - Domain Model
+- [03 Setup & Workflow](./topic--setup-and-workflow.md) - Setup and Workflow
+- [04 API Reference](./topic--04-api-reference.md) - Exhaustive API Reference
+- [License](./topic--license.md) - License Information
+
+---
+
 ## Document: docs/topic--architecture.md (01 Architecture)
 
 # @actdim/utico Architecture
@@ -1980,11 +2223,13 @@ To avoid repetitive generic instantiation for classes like `StructEvent<TStruct,
 - **Explicit Resource Management**: Implements `[Symbol.dispose]()` for automatic cleanup via TypeScript 5.2+ `using`.
 
 ## 4. Cross-Links
-- [[INDEX.md]] - Knowledge Base Root
-- [[02-[domain-model](./topic--domain-model.md).md]] - Domain Contracts and Entities
-- [[03-[setup-and-workflow](./topic--setup-and-workflow.md).md]] - Build and Test Instructions
-- [[[04-api-reference](./topic--04-api-reference.md).md]] - Exhaustive API Reference
-- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes and Integration Patterns
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [Domain Model](./topic--domain-model.md) - Domain Contracts and Entities
+- [Setup & Workflow](./topic--setup-and-workflow.md) - Build and Test Instructions
+- [API Reference](./topic--04-api-reference.md) - Exhaustive API Reference
+- [Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Practical Recipes and Integration Patterns
+- [License](./topic--license.md) - License Information
 
 ---
 
@@ -2074,11 +2319,45 @@ The domain model of `@actdim/utico` centers around contract-driven type manipula
   ```
 
 ## 3. Cross-Links
-- [[INDEX.md]] - Knowledge Base Root
-- [[01-[architecture](./topic--architecture.md).md]] - System Architecture
-- [[03-[setup-and-workflow](./topic--setup-and-workflow.md).md]] - Setup and Workflow
-- [[[04-api-reference](./topic--04-api-reference.md).md]] - API Reference
-- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [01 Architecture](./topic--architecture.md) - System Architecture
+- [Setup & Workflow](./topic--setup-and-workflow.md) - Setup and Workflow
+- [API Reference](./topic--04-api-reference.md) - API Reference
+- [Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Practical Recipes
+- [License](./topic--license.md) - License Information
+
+---
+
+## Document: docs/topic--license.md (License)
+
+# License
+
+`@actdim/utico` is distributed under a **Proprietary License**.
+
+- Repository file: [LICENSE](https://github.com/actdim/utico/blob/main/LICENSE)
+
+## Summary of Terms
+
+- **Personal & Internal Use**: Permission is granted to use and reference this package for personal or internal evaluation purposes only.
+- **Redistribution & Modification**: You may not modify, redistribute, decompile, or create derivative works from this software, in whole or in part, without prior written permission from the author.
+- **Warranty**: This software is provided "as is", without warranty of any kind.
+- **Commercial & Inquiry Contact**: Pavel Borodaev (`pavel.borodaev@gmail.com`)
+
+---
+
+## Full License Text
+
+```text
+Copyright (c) 2025-2026 Pavel Borodaev
+
+This software is publicly accessible but proprietary.
+
+Permission is granted to use and reference this package for personal or internal purposes only.
+You may not modify, redistribute, decompile, or create derivative works from this software, in whole or in part, without prior written permission from the author.
+
+This software is provided "as is", without warranty of any kind.
+```
 
 ---
 
@@ -2121,8 +2400,10 @@ pnpm add dexie@^4.2.0 uuid@^13.0.0 luxon@^3.7.2
 - **Time Freezing**: Vitest `vi.useFakeTimers()` is used to assert timer cleanup and eviction intervals.
 
 ## 4. Cross-Links
-- [[INDEX.md]] - Knowledge Base Root
-- [[01-[architecture](./topic--architecture.md).md]] - System Architecture
-- [[02-[domain-model](./topic--domain-model.md).md]] - Domain Model
-- [[[04-api-reference](./topic--04-api-reference.md).md]] - API Reference
-- [[[05-patterns-and-recipes](./topic--05-patterns-and-recipes.md).md]] - Practical Recipes
+
+- [Knowledge Base Index](./INDEX.md) - Knowledge Base Root
+- [01 Architecture](./topic--architecture.md) - System Architecture
+- [02 Domain Model](./topic--domain-model.md) - Domain Model
+- [API Reference](./topic--04-api-reference.md) - API Reference
+- [Patterns & Recipes](./topic--05-patterns-and-recipes.md) - Practical Recipes
+- [License](./topic--license.md) - License Information

@@ -1,6 +1,6 @@
 ---
 protocol: along
-slug: topic--05-patterns-and-recipes
+slug: 05-patterns-and-recipes
 title: 05 Patterns and Recipes
 type: topic
 created: 2026-08-27

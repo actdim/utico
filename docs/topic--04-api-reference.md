@@ -1,6 +1,6 @@
 ---
 protocol: along
-slug: topic--04-api-reference
+slug: 04-api-reference
 title: 04 API Reference
 type: topic
 created: 2026-08-27
