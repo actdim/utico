@@ -16,6 +16,7 @@ export const normalize = (v: number) => (!v || !isFinite(v) ? 0 : v);
 // funcArgCacheKeyResolver(Provider/Builder)
 export const buildFuncArgCacheKey = (() => {
     const weakMap = new WeakMap<any, string>();
+
     return (...args: any[]) => {
         const keys: string[] = [];
         for (const arg of args) {
@@ -31,6 +32,7 @@ export const buildFuncArgCacheKey = (() => {
             }
             keys.push(key);
         }
+
         return `"${keys.join("/")}"`;
     };
 })();
@@ -39,6 +41,7 @@ export const delay = (ms: number, abortSignal?: AbortSignal) => {
     return new Promise<void>((resolve, reject) => {
         if (abortSignal?.aborted) {
             reject(abortSignal.reason);
+
             return;
         }
         const id = setTimeout(resolve, ms);
@@ -78,6 +81,7 @@ export function searchTree<T>(treeNodes: T[], predicate: (item: T) => boolean, c
             return node;
         }
     }
+
     return undefined;
 }
 
@@ -104,6 +108,7 @@ export const suppressConsole = (action: () => void) => {
             console[key] = origConsole[key];
         }
     }
+
     return result;
 };
 
@@ -119,6 +124,7 @@ export function removePrefix(str: string, prefixes: string[]): string {
             }
         }
     }
+
     return str;
 }
 
@@ -134,6 +140,7 @@ export function removeSuffix(str: string, suffixes: string[]): string {
             }
         }
     }
+
     return str;
 }
 
@@ -148,6 +155,7 @@ export function memoEffect<TDep, TResult>(
     let val: TDep | undefined;
     let initialized = false;
     let retVal: TResult;
+
     return () => {
         const next = getValue();
         if (!initialized || !comparator(next, val!)) {
@@ -155,6 +163,7 @@ export function memoEffect<TDep, TResult>(
             initialized = true;
             retVal = callback(next);
         }
+
         return retVal;
     };
 }
@@ -168,12 +177,13 @@ export function lazy<T>(factory: () => T): () => T {
             instance = factory();
             initialized = true;
         }
+
         return instance!;
     };
 }
 
 export function makeNonEnumerable<T>(obj: T, propertyNames: (keyof T)[]) {
-    let propertyDescriptorMap: PropertyDescriptorMap = {};
+    const propertyDescriptorMap: PropertyDescriptorMap = {};
     for (const propertyName of propertyNames) {
         propertyDescriptorMap[propertyName] = {
             enumerable: false

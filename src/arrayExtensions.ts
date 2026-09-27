@@ -20,6 +20,7 @@ interface Array<T> {
 Array.prototype.unfold = function (callback: (element: any) => any[]): any[] {
     return this.reduce((res, element) => {
         Array.prototype.push.apply(res, callback(element));
+
         return res;
     }, []);
 };
@@ -28,8 +29,10 @@ Array.prototype.max = function (selector: (element: any) => any, defaultValue?: 
     if (this.length == 0) {
         return defaultValue;
     }
+
     return this.reduce((best: any, el: any) => {
         const v = selector(el);
+
         return best === undefined || v > best ? v : best;
     }, undefined);
 };
@@ -38,8 +41,10 @@ Array.prototype.min = function (selector: (element: any) => any, defaultValue?: 
     if (this.length == 0) {
         return defaultValue;
     }
+
     return this.reduce((best: any, el: any) => {
         const v = selector(el);
+
         return best === undefined || v < best ? v : best;
     }, undefined);
 };
@@ -47,6 +52,7 @@ Array.prototype.min = function (selector: (element: any) => any, defaultValue?: 
 Array.prototype.orderBy = function (selector: (element: any) => any): any[] {
     return this.slice(0).sort((a, b) => {
         const va = selector(a), vb = selector(b);
+
         return va === vb ? 0 : va > vb ? 1 : -1;
     });
 };
@@ -54,6 +60,7 @@ Array.prototype.orderBy = function (selector: (element: any) => any): any[] {
 Array.prototype.orderByDesc = function (selector: (element: any) => any): any[] {
     return this.slice(0).sort((a, b) => {
         const va = selector(a), vb = selector(b);
+
         return va === vb ? 0 : va > vb ? -1 : 1;
     });
 };
@@ -62,6 +69,7 @@ Array.prototype.groupBy = function (selector: (element: any) => string): { [key:
     return this.reduce((result, item) => {
         const value = selector(item);
         (result[value] = result[value] || []).push(item);
+
         return result;
     }, {});
 };
@@ -72,10 +80,12 @@ Array.prototype.distinct = function (selector?: (element: any) => any): any[] {
         return [...new Set(this)];
     }
     const seen = new Set();
+
     return this.filter(function (element) {
         const key = selector(element);
         if (seen.has(key)) return false;
         seen.add(key);
+
         return true;
     });
 };
@@ -83,11 +93,11 @@ Array.prototype.distinct = function (selector?: (element: any) => any): any[] {
 // copyFrom
 Array.prototype.copy = function (src: any[], srcIndex = 0, dstIndex = 0, length?: number) {
     return copyArray(src, this, srcIndex, dstIndex, length);
-}
+};
 
 Array.prototype.copyTo = function (dst: any[], srcIndex = 0, dstIndex = 0, length?: number) {
     return copyArray(this, dst, srcIndex, dstIndex, length);
-}
+};
 
 function copyArray(src: any[], dst: any[], srcIndex = 0, dstIndex = 0, length?: number) {
     if (srcIndex < 0) {
@@ -104,5 +114,6 @@ function copyArray(src: any[], dst: any[], srcIndex = 0, dstIndex = 0, length?: 
         dst[j] = src[i];
         j++;
     }
+
     return dst;
 }

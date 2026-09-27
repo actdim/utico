@@ -116,18 +116,22 @@ function extend(dt: DateTime | DateTimeExtended, precision: DateTimePrecision = 
                 const format = extended.precision === DateTimePrecision.Date
                     ? s11nFormat.localDate
                     : s11nFormat.localDateTime;
+
                 return interpreted.setZone("local").toFormat(format, options);
             }
             if (formatOrKind === DateTimeKind.Utc) {
                 const format = extended.precision === DateTimePrecision.Date
                     ? s11nFormat.utcDate
                     : s11nFormat.utcDateTime;
+
                 return interpreted.setZone("utc").toFormat(format, options);
             }
+
             return interpreted.toFormat(formatOrKind, options);
         };
     }
     extended.precision = precision;
+
     return extended;
 }
 
@@ -136,6 +140,7 @@ function inferPrecisionFromFormat(format?: string): DateTimePrecision | undefine
     if (format.includes("S")) return DateTimePrecision.Millisecond;
     if (format.includes("s")) return DateTimePrecision.Second;
     if (format.includes("m")) return DateTimePrecision.Minute;
+
     return DateTimePrecision.Date;
 }
 
@@ -189,13 +194,12 @@ export function getDateTimeFromString(
         dt = dt.setZone("utc", { keepLocalTime: true });
     }
     if (!dt.isValid) {
-        throw new Error(
-            `Assertion. Invalid datetime format: ${value}. Expected format: ${format ?? "ISO 8601 (yyyy-MM-dd'T'HH:mm:ss.SSS[Z|±HH:mm] or yyyy-MM-dd'T'HH:mm:ss.SSS)"}.`
-        );
+        throw new Error(`Assertion. Invalid datetime format: ${value}. Expected format: ${format ?? "ISO 8601 (yyyy-MM-dd'T'HH:mm:ss.SSS[Z|±HH:mm] or yyyy-MM-dd'T'HH:mm:ss.SSS)"}.`);
     }
     if (precision === DateTimePrecision.Auto) {
         precision = inferPrecisionFromFormat(format) ?? DateTimePrecision.Millisecond;
     }
+
     return extend(dt, precision);
 }
 
@@ -233,6 +237,7 @@ export function getDateTimeFromNumber(
             break;
         }
     }
+
     return extend(dt, precision);
 }
 
@@ -250,6 +255,7 @@ export function getDateTimeNumber(
             return dt.toSeconds();
         case DateTimeNumberFormat.OADate: {
             const oaEpochMs = Date.UTC(1899, 11, 30, 0, 0, 0, 0);
+
             return (dt.toMillis() - oaEpochMs) / 8.64e7;
         }
     }
@@ -290,6 +296,7 @@ export function toDateTime(
         const dt = options.dateInterpretAs === DateTimeKind.Utc
             ? DateTime.fromJSDate(source).toUTC()
             : DateTime.fromJSDate(source);
+
         return extend(dt, options.precision);
     }
     throw new Error("Unsupported DateTime source");
@@ -305,6 +312,7 @@ const commonLocalDateTimeTransport: DateTimeTransport = {
         if (dt == null) {
             return null;
         }
+
         return dt.exportToString(DateTimeKind.Local, DateTimeKind.Local);
     },
     deserialize: (v) => {
@@ -324,6 +332,7 @@ const utcDateTimeTransport: DateTimeTransport = {
         if (dt == null) {
             return null;
         }
+
         return dt.exportToString(DateTimeKind.Utc, DateTimeKind.Utc);
     },
     deserialize: (v) => {
@@ -341,4 +350,4 @@ const utcDateTimeTransport: DateTimeTransport = {
 export const dateTimeTransports = {
     commonLocal: commonLocalDateTimeTransport,
     utc: utcDateTimeTransport
-}
+};

@@ -11,25 +11,25 @@ A modern foundation toolkit for complex TypeScript apps.
 
 - [Installation](#installation)
 - [Modules](#modules)
-    - [typeCore - Expressive Type Composition](#typecore--expressive-type-composition)
-    - [typeUtils - Runtime Type Utilities](#typeutils--runtime-type-utilities)
-    - [stringCore - Locale-Aware String Utilities](#stringcore--locale-aware-string-utilities)
-    - [metadata - Property Metadata](#metadata--property-metadata)
-    - [decorators - Property Decorators](#decorators--property-decorators)
-    - [dateTimeDataFormat - Date/Time Serialisation](#datetimedataformat--datetime-serialisation)
-    - [StructEvent - Typed DOM Events](#structevent--typed-dom-events)
-    - [watchable - Promise & Function Tracking](#watchable--promise--function-tracking)
-    - [asyncLock - Async Lock](#asynclock--async-lock)
-    - [store - Structured Persistence](#store--structured-persistence)
-    - [cache - Persistent Cache](#cache--persistent-cache)
-    - [arrayExtensions - Array Prototype Extensions](#arrayextensions--array-prototype-extensions)
-    - [memoryCache - In-Memory Cache](#memorycache--in-memory-cache)
-    - [utils - General Utilities](#utils--general-utilities)
-    - [math - Math Utilities](#math--math-utilities)
-    - [i18n - Culture Definitions](#i18n--culture-definitions)
-    - [gfx/color - Color Utilities](#gfxcolor--color-utilities)
-    - [gfx/canvasUtils - Canvas Utilities](#gfxcanvasutils--canvas-utilities)
-    - [dataFormats - Data Format Shortcuts](#dataformats--data-format-shortcuts)
+    - [typeCore - Expressive Type Composition](#typecore---expressive-type-composition)
+    - [typeUtils - Runtime Type Utilities](#typeutils---runtime-type-utilities)
+    - [stringCore - Locale-Aware String Utilities](#stringcore---locale-aware-string-utilities)
+    - [metadata - Property Metadata](#metadata---property-metadata)
+    - [decorators - Property Decorators](#decorators---property-decorators)
+    - [dateTimeDataFormat - Date/Time Serialisation](#datetimedataformat---datetime-serialisation)
+    - [StructEvent - Typed DOM Events](#structevent---typed-dom-events)
+    - [watchable - Promise & Function Tracking](#watchable---promise-function-tracking)
+    - [asyncLock - Async Lock](#asynclock---async-lock)
+    - [store - Structured Persistence](#store---structured-persistence)
+    - [cache - Persistent Cache](#cache---persistent-cache)
+    - [arrayExtensions - Array Prototype Extensions](#arrayextensions---array-prototype-extensions)
+    - [memoryCache - In-Memory Cache](#memorycache---in-memory-cache)
+    - [utils - General Utilities](#utils---general-utilities)
+    - [math - Math Utilities](#math---math-utilities)
+    - [i18n - Culture Definitions](#i18n---culture-definitions)
+    - [gfx/color - Color Utilities](#gfxcolor---color-utilities)
+    - [gfx/canvasUtils - Canvas Utilities](#gfxcanvasutils---canvas-utilities)
+    - [dataFormats - Data Format Shortcuts](#dataformats---data-format-shortcuts)
 - [License](#license)
 
 ---
@@ -248,7 +248,7 @@ These utilities solve a common TypeScript problem: creating a reusable, pre-type
 generic class without repeating its type arguments everywhere.
 
 **Background.** Consider `StructEvent<TStruct, TTarget>` - a generic typed event class
-(see [StructEvent](#structevent--typed-dom-events)).
+(see [StructEvent](#structevent---typed-dom-events)).
 Inside `PersistentCache` you want to work with
 `StructEvent<PersistentCacheEventStruct, PersistentCache>` as if it were its own named type.
 TypeScript offers four ways to achieve this; each has different trade-offs - see the [full comparison](#comparison-4-ways-to-bind-a-generic-constructor) at the end of this section.
@@ -1570,7 +1570,7 @@ dataFormats.dateTime.transports.commonLocal.serialize(dt);
 dataFormats.dateTime.transports.utc.serialize(dt);
 ```
 
-See [dateTimeDataFormat](#datetimedataformat--datetime-serialisation) for full transport documentation.
+See [dateTimeDataFormat](#datetimedataformat---datetime-serialisation) for full transport documentation.
 
 ---
 

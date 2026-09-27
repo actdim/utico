@@ -1,4 +1,4 @@
-import { DataRecord, MetadataRecord, StoreItem } from "@/store/storeContracts";
+import { type DataRecord, MetadataRecord, type StoreItem } from "@/store/storeContracts";
 
 // CacheMetadataEntry
 export class CacheMetadataRecord extends MetadataRecord {

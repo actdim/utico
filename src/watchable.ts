@@ -1,4 +1,4 @@
-import { Mutable, Executor, Func } from "./typeCore";
+import { type Mutable, type Executor, type Func } from "./typeCore";
 
 // PromiseState
 export type PromiseStatus = "pending" | "fulfilled" | "rejected";
@@ -78,6 +78,7 @@ export function toWatchable<TArgs extends any[] = any[], T = void>(fn: Func<TArg
                 fnResult.catch(complete);
                 fnResult.then(complete);
             }
+
             return fnResult;
         } finally {
             if (!isAsyncFn) {
@@ -85,5 +86,6 @@ export function toWatchable<TArgs extends any[] = any[], T = void>(fn: Func<TArg
             }
         }
     };
+
     return watchable;
 }

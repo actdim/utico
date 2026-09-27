@@ -66,6 +66,7 @@ export class MemoryCache<TKey = any, TValue = any> implements IMemoryCache {
                 this.map.set(key, valueOrValueFactory);
             }
         }
+
         return this.get(key);
     }
 

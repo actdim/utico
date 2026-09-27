@@ -1,6 +1,6 @@
 {
     "name": "@actdim/utico",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "description": "TypeScript utility toolkit featuring type-level metaprogramming, runtime metadata, structured persistence, and high-performance caching.",
     "author": "Pavel Borodaev",
     "license": "MIT",
@@ -81,7 +81,7 @@
         "test": "npx vitest --config=vitest.node.config.ts --no-cache",
         "test:w": "npx vitest --config=vitest.node.config.ts --watch",
         "test:v8": "npx vite",
-        "lint": "eslint \"./**/*.{ts,tsx}\" -f visualstudio --report-unused-disable-directives --max-warnings 0",
+        "lint": "eslint \"./**/*.{ts,tsx}\" -f visualstudio --report-unused-disable-directives",
         "build": "tsc -b tsconfig.json && vite build",
         "pnpm:u": "pnpm update",
         "pnpm:ou": "pnpm outdated",
@@ -105,6 +105,7 @@
     "devDependencies": {
         "@braintree/sanitize-url": "^7.1.2",
         "@eslint/js": "^9.39.5",
+        "@stylistic/eslint-plugin": "^5.10.0",
         "@types/chai": "^5.2.3",
         "@types/mocha": "^10.0.10",
         "@types/node": "^24.10.0",

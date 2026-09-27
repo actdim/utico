@@ -3,6 +3,7 @@
 // getRandomColorChannelValue(Number)
 function getRandomColorChannelNumber(brightness: number) {
     const r = 255 - brightness;
+
     return 0 | ((Math.random() * r) + brightness);
 }
 
@@ -13,6 +14,7 @@ export function getRandomColorChannelString(brightness: number) {
     if (result.length == 1) {
         result = '0' + result;
     }
+
     return result;
 }
 
@@ -28,6 +30,7 @@ export function getRandom32BitColorNumber(alpha: number = null, brightness: numb
     const b = getRandomColorChannelNumber(brightness);
     // typeof alpha !== "number"
     const a = alpha == undefined ? getRandomColorChannelNumber(brightness) : alpha;
+
     return getColorNumberFromRgba(r, g, b, a);
 }
 
@@ -40,6 +43,7 @@ export function getRandom24BitColorNumber(brightness: number = null) {
     const r = getRandomColorChannelNumber(brightness);
     const g = getRandomColorChannelNumber(brightness);
     const b = getRandomColorChannelNumber(brightness);
+
     return getColorNumberFromRgba(r, g, b);
 }
 
@@ -81,7 +85,7 @@ export function getColorNumberFromHexString(colorHexString: string) {
 
         colorHexString = refineColorHexString(colorHexString);
 
-        let result =
+        const result =
             // new Number(colorHexString).valueOf();
             // parseInt(colorHexString);
             parseInt(colorHexString, 16);
@@ -154,6 +158,7 @@ export function get24bitColorHexStringFromNumber(color: number) {
         return "";
     }
     color = Math.floor(color);
+
     return "#" + ('000000' + color.toString(16)).slice(-6);
 }
 
@@ -163,6 +168,7 @@ export function get32BitColorHexStringFromNumber(color: number) {
         return "";
     }
     color = Math.floor(color);
+
     return "#" + ('00000000' + color.toString(16)).slice(-8);
 }
 
@@ -184,6 +190,7 @@ export function getColorNumberFromRgba(r: number, g: number, b: number, a: numbe
     } else {
         result = (r << 24) + (g << 16) + (b << 8) + (a ?? 255);
     }
+
     return result >>> 0; // convert to unsigned int32
 }
 
@@ -191,6 +198,7 @@ export function getColorNumberFromRgba(r: number, g: number, b: number, a: numbe
 // { r: number, g: number, b: number, a?: number }
 export function getColorHexStringFromRgba(r: number, g: number, b: number, a: number = undefined) {
     const value = getColorNumberFromRgba(r, g, b, a);
+
     return get24bitColorHexStringFromNumber(value);
 }
 

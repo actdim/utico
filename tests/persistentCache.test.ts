@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { PersistentCache } from "@/cache/persistentCache";
-import { CacheMetadataRecord } from "@/cache/cacheContracts";
+import { type CacheMetadataRecord } from "@/cache/cacheContracts";
 import { delay } from "@/utils";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────

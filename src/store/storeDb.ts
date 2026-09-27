@@ -1,5 +1,5 @@
 import { AsyncLock } from "@/asyncLock";
-import { DataRecord, FieldDefTemplate, MetadataRecord, StoreBase, TransactionMode } from "./storeContracts";
+import { type DataRecord, type FieldDefTemplate, type MetadataRecord, type StoreBase, type TransactionMode } from "./storeContracts";
 import * as Dexie from "dexie";
 
 const metadataTableName = "metadata";
@@ -95,12 +95,14 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown
 
     async exec<T>(
         action: () => Promise<T>, // scope
-        transactionMode: TransactionMode = "r!") {
+        transactionMode: TransactionMode = "r!"
+    ) {
         await this.open();
         try {
             const result = await this.transaction(transactionMode, this.metadata, this.data, async () => {
                 return await action();
             });
+
             return result;
         } catch (err) {
             if (this.isOpen()) {
@@ -117,6 +119,7 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown
     async contains(key: string, transactionMode: TransactionMode = "r") {
         return await this.exec(async () => {
             const metadataRecord = await this.metadata.get(key);
+
             return metadataRecord !== undefined;
         }, transactionMode);
     }
@@ -168,6 +171,7 @@ export class StoreDb<T extends MetadataRecord = MetadataRecord, TValue = unknown
         return await lock.dispatch(async () => {
             const store = factory(name);
             await store.open();
+
             return store;
         });
     }

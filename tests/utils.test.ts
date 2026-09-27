@@ -23,19 +23,21 @@ describe("utils", () => {
             if (!fake) {
                 id++;
             }
+
             return a + id;
         };
         const fn = memoEffect(
             () => dep,
             (str) => {
                 c++;
+
                 return action(str);
             }
         );
 
         let r = fn();
         expect(r).toBe(action(dep, true));
-        let oldR = r;
+        const oldR = r;
         r = fn();
         expect(r).toBe(oldR);
         expect(c).toBe(1);

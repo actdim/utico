@@ -135,6 +135,7 @@ describe("AsyncLock.dispatch", () => {
         const lock = new AsyncLock();
         const result = await lock.dispatch(async () => {
             await delay(0);
+
             return "done";
         });
         expect(result).toBe("done");
@@ -142,24 +143,18 @@ describe("AsyncLock.dispatch", () => {
 
     it("propagates errors thrown by the executor", async () => {
         const lock = new AsyncLock();
-        await expect(
-            lock.dispatch(() => { throw new Error("boom"); })
-        ).rejects.toThrow("boom");
+        await expect(lock.dispatch(() => { throw new Error("boom"); })).rejects.toThrow("boom");
     });
 
     it("propagates rejections from async executors", async () => {
         const lock = new AsyncLock();
-        await expect(
-            lock.dispatch(async () => { throw new Error("async fail"); })
-        ).rejects.toThrow("async fail");
+        await expect(lock.dispatch(async () => { throw new Error("async fail"); })).rejects.toThrow("async fail");
     });
 
     it("releases the lock even when the executor throws", async () => {
         const lock = new AsyncLock();
 
-        await expect(
-            lock.dispatch(() => { throw new Error("kaboom"); })
-        ).rejects.toThrow();
+        await expect(lock.dispatch(() => { throw new Error("kaboom"); })).rejects.toThrow();
 
         const unlock = await lock.lock();
         expect(typeof unlock).toBe("function");

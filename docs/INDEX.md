@@ -1,14 +1,14 @@
 ---
 protocol: along
 slug: INDEX
-title: Knowledge Base Topic Index
+title: '@actdim/utico - Knowledge Base Topic Index'
 type: index
 created: 2026-09-10
-updated: 2026-09-11
+updated: 2026-09-27
 tags: [index, kb, topics, map]
 ---
 
-# Knowledge Base Topic Index
+# @actdim/utico - Knowledge Base Topic Index
 
 Central entry point and cross-linked topic catalog for project documentation:
 
@@ -23,6 +23,8 @@ flowchart TD
     INDEX --> T_05_PATTERNS_AND_RECIPES
     T_ARCHITECTURE["01 Architecture"]
     INDEX --> T_ARCHITECTURE
+    T_DEPENDENCIES["Dependencies & AI Documentation for @actdim/utico"]
+    INDEX --> T_DEPENDENCIES
     T_DOMAIN_MODEL["02 Domain Model"]
     INDEX --> T_DOMAIN_MODEL
     T_LICENSE["License"]
@@ -63,6 +65,7 @@ flowchart TD
 - **[04 API Reference](./topic--04-api-reference.md)** (topic) `04-api-reference`, `api`, `modules`
 - **[05 Patterns and Recipes](./topic--05-patterns-and-recipes.md)** (topic) `05-patterns-and-recipes`, `patterns`, `recipes`
 - **[01 Architecture](./topic--architecture.md)** (topic) `architecture`
+- **[Dependencies & AI Documentation for @actdim/utico](./topic--dependencies.md)** (topic) `dependencies`, `subproject`, `ai-context`, `rules`
 - **[02 Domain Model](./topic--domain-model.md)** (topic) `domain-model`
 - **[License](./topic--license.md)** (license) `license`, `proprietary`
 - **[03 Setup And Workflow](./topic--setup-and-workflow.md)** (topic) `setup-and-workflow`
@@ -73,5 +76,4 @@ flowchart TD
 
 - [AGENTS.md](../AGENTS.md): Active protocol conventions and rules.
 - [.along/DECISIONS.md](../.along/DECISIONS.md): Architectural Decision Records.
-- [.along/ISSUES.md](../.along/ISSUES.md): Active issue tracking board.
-- [.along/HISTORY.md](../.along/HISTORY.md): Append-only project history log.
+- [Domain Model & Entity Ecosystem](./topic--domain-model.md): Specifications for active issues and project history.

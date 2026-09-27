@@ -1,5 +1,5 @@
 import { DataStore } from "./dataStore";
-import { FieldDef, FieldDefTemplate, IPersistentStore, MetadataRecord } from "./storeContracts";
+import { FieldDef, type FieldDefTemplate, type IPersistentStore, type MetadataRecord } from "./storeContracts";
 import { StoreDb } from "./storeDb";
 
 // TODO: implement real encryption:

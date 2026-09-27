@@ -10,6 +10,7 @@ export function round(number: number, digits = 0): number {
     }
 
     const factor = Math.pow(10, digits);
+
     // const _digits = +padEnd("1", digits + 1, "0");
     return Math.round((number + epsilon) * factor) / factor;
 }

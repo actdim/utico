@@ -78,18 +78,17 @@ function encodeUnicode(str: any) {
 
 export const html2Svg = (() => {
     const xmlSerializer = new XMLSerializer();
+
     return async (elements: HTMLElement[], viewBoxSize: number[], css: string) => {
         const w = viewBoxSize[0];
         const h = viewBoxSize[1];
 
         let html = elements
-            .map(
-                (el) => `<foreignObject width="${w}" height="${h}">
+            .map((el) => `<foreignObject width="${w}" height="${h}">
             <body xmlns="http://www.w3.org/1999/xhtml">
                 ${el.outerHTML}
             </body>
-        </foreignObject>`
-            )
+        </foreignObject>`)
             .join("");
         html = `<style>${css}</style>${html}`;
 
@@ -105,11 +104,13 @@ export const html2Svg = (() => {
 
 export function getSvgImageObjectUrl(svgData: string) {
     const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+
     return DOMURL.createObjectURL(svgBlob);
 }
 
 export function getSvgImageDataUrl(svgData: string) {
     const svgBase64 = window.btoa(encodeUnicode(svgData));
+
     return "data:image/svg+xml;base64," + svgBase64;
     // without base64 encoding (ok for simple SVGs):
     // return "data:image/svg+xml;charset=utf-8," + window.encodeURIComponent(svgData); // "data:image/svg+xml;utf8,"; - incorrect!
@@ -118,9 +119,11 @@ export function getSvgImageDataUrl(svgData: string) {
 // querySvgDataUrl
 export const querySvgData = (() => {
     const xmlSerializer = new XMLSerializer();
+
     return (selector: string) => {
         const svg = document.querySelector(selector);
         const svgData = xmlSerializer.serializeToString(svg);
+
         return svgData;
     };
 })();
@@ -162,6 +165,7 @@ export function drawImage(src: string, context: CanvasRenderingContext2D) {
 
 export const drawSvg = (svgData: string, context: CanvasRenderingContext2D, useDataUrl = false) => {
     const imageSrc = useDataUrl ? getSvgImageDataUrl(svgData) : getSvgImageObjectUrl(svgData);
+
     return drawImage(imageSrc, context).finally(() => DOMURL.revokeObjectURL(imageSrc));
 };
 
@@ -199,6 +203,7 @@ export async function canvasToImage(canvas: HTMLCanvasElement, size?: number[], 
     const imageSrc = await toObjectUrl(canvas, mimeType, quality);
     image.onload = () => DOMURL.revokeObjectURL(imageSrc);
     image.src = imageSrc;
+
     return image;
 }
 
@@ -219,11 +224,13 @@ export async function objectUrlToDataURL(objectUrl: string): Promise<string> {
 
 export const getSvgSize = (() => {
     const domParser = new DOMParser();
+
     return (svg: string) => {
         const svgDom = domParser.parseFromString(svg, "text/xml");
         // svgElement/svgNode
         // const svgDoc = svgDom.documentElement;
         const svgDoc = svgDom.querySelector("svg");
+
         return getSvgElementSize(svgDoc);
     };
 })();
@@ -264,6 +271,7 @@ export function getSvgElementSize(svgDoc: SVGSVGElement): [number, number] {
 
 export const refineSvg = (() => {
     const domParser = new DOMParser();
+
     return (data: string) => {
         const svgDom = domParser.parseFromString(data, "text/xml");
         // const svgDoc = svgDom.documentElement;
@@ -272,6 +280,7 @@ export const refineSvg = (() => {
         // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=700533#c39
         svgDoc.setAttribute("width", `${size[0]}px`);
         svgDoc.setAttribute("height", `${size[1]}px`);
+
         return svgDoc.outerHTML;
     };
 })();
@@ -295,7 +304,7 @@ export function drawRoundedRect(
         r = { tl: r, tr: r, br: r, bl: r };
     } else {
         const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
-        for (let side in defaultRadius) {
+        for (const side in defaultRadius) {
             r[side] = r[side] || defaultRadius[side];
         }
     }

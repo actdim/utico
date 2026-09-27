@@ -37,6 +37,7 @@ export function getPropertyMetadata<TInstance, TMetadata = unknown>(target: TIns
         }
 
     }
+
     return undefined;
 }
 
@@ -64,5 +65,5 @@ export function getPropertyMetadataItem<TMetadataItem = unknown>(metadata: WeakM
 export function metadata(value: unknown, slotName: string) {
     return function (target: any, propertyKey: PropertyKey) {
         updatePropertyMetadata(target, propertyKey, value, slotName);
-    }
+    };
 }

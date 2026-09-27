@@ -6,9 +6,10 @@ const ciCompare = (() => {
         sensitivity: "accent" // or "base"
     };
     ;
+
     // feature detection
     return 'A'.localeCompare('a', undefined, collatorOptions) ? (strA: string, strB: string, locale = defaultLocale) => {
-        return strA.localeCompare(strB, locale, collatorOptions)
+        return strA.localeCompare(strB, locale, collatorOptions);
     } : (strA: string, strB: string, locale?: string) => {
         // fallback approach
         return strA.toLocaleUpperCase(locale).localeCompare(strB.toLocaleUpperCase(locale), locale);
@@ -22,6 +23,7 @@ function compare(strA: string, strB: string, ignoreCase = false, locale = defaul
     if (ignoreCase) {
         return ciCompare(strA, strB, locale);
     }
+
     return strA.localeCompare(strB, locale);
 }
 
@@ -33,6 +35,7 @@ function equals(strA: string, strB: string, ignoreCase = false, locale = default
     if (ignoreCase) {
         return ciCompare(strA, strB) === 0;
     }
+
     return strA.localeCompare(strB, locale) === 0;
 }
 
@@ -40,6 +43,7 @@ function ciStartsWith(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return false;
     }
+
     return equals(str.substring(0, searchStr.length), searchStr, true, locale);
 }
 
@@ -47,6 +51,7 @@ function ciEndsWith(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return false;
     }
+
     return equals(str.substring(str.length - searchStr.length), searchStr, true, locale);
 }
 
@@ -54,6 +59,7 @@ function ciIndexOf(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return -1;
     }
+
     return str.toLocaleUpperCase(locale).indexOf(searchStr.toLocaleUpperCase(locale));
 }
 
@@ -61,6 +67,7 @@ function ciIncludes(str: string, searchStr: string, locale = defaultLocale) {
     if (typeof str !== 'string' || typeof searchStr !== 'string' || str.length < searchStr.length) {
         return false;
     }
+
     return str.toLocaleUpperCase(locale).includes(searchStr.toLocaleUpperCase(locale));
 }
 

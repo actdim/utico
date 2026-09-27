@@ -1,11 +1,11 @@
-import { Executor } from './typeCore';
+import { type Executor } from './typeCore';
 /**
  * Example:
  * const lock = new AsyncLock();
  * await lock.dispatch(async () => {...});
  */
 
-export let defaultLockTimeout = 1000 * 5; // 5 seconds
+export const defaultLockTimeout = 1000 * 5; // 5 seconds
 
 class AsyncLock {
     private queue = Promise.resolve();
@@ -33,6 +33,7 @@ class AsyncLock {
         try {
             const unlock = await lockPromise;
             clearTimeout(timer);
+
             return () => {
                 this.locked = false;
                 unlock();
@@ -51,6 +52,7 @@ class AsyncLock {
         let resolve!: () => void;
         const promise = new Promise<void>(res => { resolve = res; });
         this.queue = this.queue.then(() => promise);
+
         return () => {
             this.locked = false;
             resolve();

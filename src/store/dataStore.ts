@@ -1,19 +1,19 @@
-import * as Dexie from "dexie";
+import type * as Dexie from "dexie";
 import { v4 as uuid } from "uuid";
 import { keyOf } from "@/typeUtils";
-import { KeyPathValueMap } from "@/typeCore";
+import { type KeyPathValueMap } from "@/typeCore";
 import {
-    ChangeSet,
-    DataRecord,
-    FieldDefTemplate,
-    IndexableType,
-    IStoreCollection,
-    WhereFilter,
-    MetadataRecord,
-    OrderDirection,
-    StoreBase,
-    StoreItem,
-    TransactionMode
+    type ChangeSet,
+    type DataRecord,
+    type FieldDefTemplate,
+    type IndexableType,
+    type IStoreCollection,
+    type WhereFilter,
+    type MetadataRecord,
+    type OrderDirection,
+    type StoreBase,
+    type StoreItem,
+    type TransactionMode
 } from "./storeContracts";
 import { StoreDb } from "@/store/storeDb";
 
@@ -27,9 +27,7 @@ function* reverseMapValues<K, V>(map: Map<K, V>) {
 class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknown> implements IStoreCollection<T, TValue> {
     private _metadata: Dexie.Collection<T>;
 
-    constructor(
-        metadata: Dexie.Collection<T>
-    ) {
+    constructor(metadata: Dexie.Collection<T>) {
         this._metadata = metadata;
     }
 
@@ -77,6 +75,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
             if (orderDirection === "desc") {
                 return [...reverseMapValues(map)];
             }
+
             return [...map.values()];
         }, transactionMode);
     }
@@ -87,6 +86,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
 
     filter(filter: ((x: T) => boolean)): IStoreCollection<T, TValue> {
         const metadata = this._metadata.filter(filter);
+
         return new StoreCollection<T, TValue>(metadata);
     }
 
@@ -110,6 +110,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         if (distinct) {
             return this._metadata.uniqueKeys();
         }
+
         return this._metadata.keys();
     }
 
@@ -117,6 +118,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         if (!callback) {
             throw new Error("callback cannot be undefined.");
         }
+
         return this.db.exec(async () => {
             return this._metadata.modify(r => {
                 callback(r);
@@ -128,8 +130,10 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         if (!callback) {
             throw new Error("callback cannot be undefined.");
         }
+
         return this.db.exec(async () => {
             const keys = await this.getKeys();
+
             return await this.db.data.where(keyOf<DataRecord>("key")).anyOf(keys).modify(r => {
                 callback(r);
             });
@@ -151,6 +155,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
                     dataCallback(r);
                 });
             }
+
             return mc;
         }, transactionMode);
     }
@@ -158,6 +163,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
 
 function createWhereFilter<T extends IndexableType, TResult = unknown>(source: Dexie.WhereClause<unknown, unknown>, factory: (source: Dexie.Collection) => TResult) {
     const methodCache = new WeakMap<Function, Function>();
+
     return new Proxy(source as any, {
         get(target, prop, receiver) {
             const value = Reflect.get(target, prop, receiver);
@@ -169,8 +175,10 @@ function createWhereFilter<T extends IndexableType, TResult = unknown>(source: D
                         },
                     }));
                 }
+
                 return methodCache.get(value);
             }
+
             return value;
         },
     }) as WhereFilter<T, TResult>;
@@ -193,12 +201,13 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     }
 
     open() {
-        return this._db.open()
+        return this._db.open();
     }
 
     exec<T>(
         action: () => Promise<T>, // scope
-        transactionMode: TransactionMode = "r!") {
+        transactionMode: TransactionMode = "r!"
+    ) {
         return this._db.exec(action, transactionMode);
     }
 
@@ -229,6 +238,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         const metadataRecord = await this._db.metadata.get(key);
         if (!metadataRecord) return undefined;
         const dataRecord = await this._db.data.get(key);
+
         return { metadata: metadataRecord, data: dataRecord } as StoreItem<T, TValue>;
     }
 
@@ -236,6 +246,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         if (!metadataRecord.key) metadataRecord.key = uuid();
         const result = await this._db.metadata.put(metadataRecord);
         await this._db.data.put({ key: metadataRecord.key, value });
+
         return result;
     }
 
@@ -248,6 +259,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         if (value === undefined) {
             throw new Error('Invalid parameter: "value".');
         }
+
         return this.exec(() => this.setInternal(metadataRecord, value), transactionMode);
     }
 
@@ -256,10 +268,12 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         if (!metadataRecord.key) {
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
+
         return this.exec(async () => {
             const existing = await this.getInternal<TValue>(metadataRecord.key);
             if (existing) return existing;
             await this.setInternal(metadataRecord, factory(metadataRecord));
+
             return this.getInternal<TValue>(metadataRecord.key);
         }, transactionMode);
     }
@@ -271,6 +285,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         if (!metadataChanges && !valueChanges) {
             throw new Error("No changes provided.");
         }
+
         return this.exec(async () => {
             let mc: number, dc: number;
             if (metadataChanges) {
@@ -279,6 +294,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
             if (valueChanges) {
                 dc = await this._db.data.update(key, valueChanges);
             }
+
             return mc;
         }, transactionMode);
     }
@@ -291,6 +307,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         if (dataChangeSets && (index = dataChangeSets.findIndex((x) => !x.key)) >= 0) {
             throw new Error(`Key cannot be empty. Parameter: "valueChangeSets". Invalid item index: ${index}.`);
         }
+
         return this.exec(async () => {
             let cm: number, dc: number;
             if (metadataChangeSets) {
@@ -299,6 +316,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
             if (dataChangeSets) {
                 dc = await this._db.data.bulkUpdate(dataChangeSets);
             }
+
             return cm;
         }, transactionMode);
     }
@@ -322,6 +340,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
                     }
                 }
             }
+
             return [...map.values()];
         }, transactionMode);
     }
@@ -342,6 +361,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
                 metadataRecord.key = uuid();
             }
         }
+
         return this.exec(async () => {
             let mKeys: string[], dKeys: string[];
             if (metadataRecords) {
@@ -350,6 +370,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
             if (dataRecords) {
                 dKeys = await this._db.data.bulkPut(dataRecords, undefined, { allKeys: true });
             }
+
             return mKeys;
         }, transactionMode);
     }
@@ -362,11 +383,13 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         if (distinct) {
             metadata = metadata.distinct();
         }
+
         return new StoreCollection(metadata);
     }
 
     distinct(field: keyof T) {
         const metadata = this._db.metadata.orderBy(field as string).distinct();
+
         return new StoreCollection(metadata);
     }
 
@@ -377,6 +400,7 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     // filter
     where<K extends keyof T, TValue = unknown>(field: K extends string ? K | K[] : never) {
         const source = this._db.metadata.where(field);
+
         return createWhereFilter<T[K] extends IndexableType ? T[K] : never, IStoreCollection<T, TValue>>(source, c => new StoreCollection<T, TValue>(c));
     }
 }

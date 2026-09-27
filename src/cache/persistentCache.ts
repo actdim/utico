@@ -1,8 +1,8 @@
 import { keyOf, typed } from "@/typeUtils";
 import { StructEvent, StructEventTarget } from "@/structEvent";
 import { v4 as uuid } from "uuid";
-import { DataRecord, FieldDef, MetadataRecord, StoreItem, TransactionMode } from "@/store/storeContracts";
-import { CacheMetadataRecord } from "./cacheContracts";
+import { type DataRecord, type FieldDef, type MetadataRecord, type StoreItem, type TransactionMode } from "@/store/storeContracts";
+import { type CacheMetadataRecord } from "./cacheContracts";
 import { StoreDb } from "@/store/storeDb";
 
 type Duration = number | { seconds?: number; minutes?: number; hours?: number };
@@ -102,12 +102,13 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
     }
 
     open() {
-        return this._db.open()
+        return this._db.open();
     }
 
     private exec<T>(
         action: () => Promise<T>, // scope
-        transactionMode: TransactionMode = "r!") {
+        transactionMode: TransactionMode = "r!"
+    ) {
         return this._db.exec(action, transactionMode);
     }
 
@@ -196,6 +197,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             });
             this.dispatchEvent(evt);
         }
+
         return result;
     }
 
@@ -204,6 +206,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         this.onGetMetadata(metadataRecord);
         await this._db.metadata.put(metadataRecord);
         const dataRecord = await this._db.data.get(key);
+
         return {
             metadata: metadataRecord,
             data: dataRecord
@@ -231,7 +234,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             record.absoluteExpiration = now + options.ttl;
         }
         if (record.absoluteExpiration == undefined) {
-            record.absoluteExpiration = Infinity
+            record.absoluteExpiration = Infinity;
         }
 
         this.onGetMetadata(record);
@@ -240,6 +243,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
     private async setInternal<TValue = any>(metadataRecord: CacheMetadataRecord, value: TValue) {
         const result = await this._db.metadata.put(metadataRecord);
         await this._db.data.put({ key: metadataRecord.key, value });
+
         return result;
     }
 
@@ -252,6 +256,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             metadataRecord.key = uuid();
         }
         this.onCreateMetadata(metadataRecord, options);
+
         return this.exec(() => this.setInternal(metadataRecord, value), "rw");
     }
 
@@ -260,6 +265,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
         if (!metadataRecord.key) {
             throw new Error(`Key cannot be empty. Parameter: "metadataRecord".`);
         }
+
         return this.exec(async () => {
             const existingStoreItem = await this.getInternal<TValue>(metadataRecord.key);
             if (existingStoreItem) {
@@ -267,6 +273,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             }
             this.onCreateMetadata(metadataRecord, options);
             await this.setInternal(metadataRecord, factory(metadataRecord));
+
             return this.getInternal<TValue>(metadataRecord.key);
         }, "rw");
     }
@@ -291,6 +298,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
                     item.data = dataRecord as DataRecord<TValue>;
                 }
             }
+
             return [...map.values()];
         }, "rw");
     }
@@ -313,6 +321,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             }
             this.onCreateMetadata(metadataRecord, optionsProvider(metadataRecord));
         }
+
         return this.exec(async () => {
             let mKeys: string[], dKeys: string[];
             if (metadataRecords) {
@@ -321,6 +330,7 @@ export class PersistentCache extends StructEventTarget<PersistentCacheEventStruc
             if (dataRecords) {
                 dKeys = await this._db.data.bulkPut(dataRecords, undefined, { allKeys: true });
             }
+
             return mKeys;
         }, "rw");
     }

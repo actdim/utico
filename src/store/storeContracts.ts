@@ -1,5 +1,5 @@
-import { CommonPartFromSchema, KeyPathValueMap } from "@/typeCore";
-import * as Dexie from "dexie";
+import { CommonPartFromSchema, type KeyPathValueMap } from "@/typeCore";
+import type * as Dexie from "dexie";
 
 // Making some navigation properties non-enumerable will prevent them from being handled by IndexedDB
 // when doing put() or add().

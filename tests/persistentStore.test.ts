@@ -1,7 +1,7 @@
 /* /// <reference types="node" /> */
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll, test } from "vitest";
 import { defaultMetadataFieldDefTemplate, PersistentStore } from "@/store/persistentStore";
-import { IPersistentStore, MetadataRecord, StoreItem } from "@/store/storeContracts";
+import { type IPersistentStore, type MetadataRecord, type StoreItem } from "@/store/storeContracts";
 
 describe("persistentStore", () => {
     // process.on("unhandledRejection", (reason, promise) => {
@@ -54,7 +54,7 @@ describe("persistentStore", () => {
 
     afterAll(async () => {
         sharedStore?.[Symbol.dispose]();
-    })
+    });
 
     // beforeEach(async () => {
     //     await sharedStore.clear();
@@ -84,7 +84,7 @@ describe("persistentStore", () => {
             expect(item.data).toEqual(storeItems[0].data);
             item = (await store.get(dataKeys[1]));
             expect(item.data).toEqual(storeItems[1].data);
-            let items = await store.bulkGet(dataKeys);
+            const items = await store.bulkGet(dataKeys);
             expect(items.map(x => x.data)).toEqual(storeItems.map(x => x.data));
         }
         finally {
@@ -185,9 +185,7 @@ describe("persistentStore", () => {
     it("bulkUpdate throws when a change set has an empty key", async () => {
         const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
         try {
-            await expect(
-                store.bulkUpdate([{ key: "", changes: { tags: ["x"] } }])
-            ).rejects.toThrow("Key cannot be empty");
+            await expect(store.bulkUpdate([{ key: "", changes: { tags: ["x"] } }])).rejects.toThrow("Key cannot be empty");
         } finally {
             store[Symbol.dispose]();
         }
@@ -204,11 +202,11 @@ describe("persistentStore", () => {
             store.set({
                 key: dataKeys[0],
                 magnitude: 1,
-            }, storeItems[0].data)
+            }, storeItems[0].data);
             store.set({
                 key: dataKeys[0],
                 magnitude: 2,
-            }, storeItems[1].data)
+            }, storeItems[1].data);
 
             const items = await store.where("magnitude").above(1).toArray();
             expect(items.length).toBe(1);

@@ -1,4 +1,4 @@
-import { CallableConstructor, Constructor, ConstructorClass } from "./typeCore";
+import { type CallableConstructor, type Constructor, type ConstructorClass } from "./typeCore";
 
 // @filename: typeUtils.ts
 
@@ -21,6 +21,7 @@ export function entry<T extends object, TKey extends keyof T>(obj: T, name: TKey
     } else {
         key = keys.find((k) => String(k).trim() === nameStr);
     }
+
     return [key, key == undefined ? undefined : (obj[key] as T[TKey])] as [TKey, T[TKey]];
 }
 
@@ -43,6 +44,7 @@ export function nameOf(f: (x: any) => any): keyof any {
             get: (target, key) => key
         }
     );
+
     return f(p);
 }
 
@@ -61,12 +63,14 @@ function getPropertyPathInternal<T>(expr: (x: T) => any, path?: (string | number
             {
                 get: (target, key) => {
                     path.push(key);
+
                     return createProxy();
                 }
             }
         );
     };
     expr(createProxy());
+
     return path;
 }
 
@@ -75,6 +79,7 @@ export function combinePropertyPath(path?: (string | number | symbol)[]) {
     for (const key of path) {
         builder.push(`["${key.toString()}"]`);
     }
+
     return builder.join("");
 }
 
@@ -86,8 +91,7 @@ function isNonObjectType<TConstructor extends Constructor>(type: TConstructor) {
 }
 
 // getConstructor
-export function createConstructor<TConstructor extends Constructor>(
-    type: TConstructor // ctor
+export function createConstructor<TConstructor extends Constructor>(type: TConstructor // ctor
 ): CallableConstructor<TConstructor> {
     if (isNonObjectType(type)) {
         return type as CallableConstructor<TConstructor>;
@@ -98,6 +102,7 @@ export function createConstructor<TConstructor extends Constructor>(
         }
 
         createInstance.prototype = type.prototype;
+
         return createInstance as CallableConstructor<TConstructor>;
     }
 }
@@ -116,6 +121,7 @@ export function getPrototypes(obj: any) {
         }
         result.push(prototype);
     }
+
     return result;
 }
 
@@ -141,6 +147,7 @@ export function getEnumValue<T>(enumType: T, name: string, defaultValue: T[keyof
     if (value == undefined) {
         value = defaultValue;
     }
+
     return value;
 }
 
@@ -163,7 +170,7 @@ export function assignWith<T extends object, U extends object>(
     const result: T & Partial<U> = dst;
     if (src) {
         for (const key in src) {
-            let value = src[key];
+            const value = src[key];
             const set = (v: U[keyof U]) => {
                 // result[key as PropertyKey] = value;
                 Reflect.set(result, key, v);
@@ -173,6 +180,7 @@ export function assignWith<T extends object, U extends object>(
             }
         }
     }
+
     return result;
 }
 
@@ -202,6 +210,7 @@ export function copy<T extends object, U extends object>(src: T, dst: U, props?:
 export function isPlainObject(val: unknown): val is Record<string, unknown> {
     if (val === null || typeof val !== 'object') return false;
     const proto = Object.getPrototypeOf(val);
+
     return proto === Object.prototype || proto === null;
 }
 
@@ -221,8 +230,10 @@ const sort = (() => {
         for (const key of orderedKeys) {
             container[key] = isPlainObject(obj[key]) ? sortImpl(obj[key]) : obj[key];
         }
+
         return container;
     }
+
     return sortImpl;
 })();
 
@@ -256,6 +267,7 @@ export function jsonClone<T extends object>(obj: T): T {
     if (!obj) {
         return obj;
     }
+
     return JSON.parse(JSON.stringify(obj));
 }
 
@@ -287,6 +299,7 @@ function toReadOnlyInternal<T extends object>(obj: T, throwOnSet: boolean = fals
                 // Reflect.get(target, property)
                 return toReadOnlyInternal(target[property], throwOnSet, lockTest);
             }
+
             return undefined;
         },
         set: (target, property, value, receiver) => {
@@ -294,6 +307,7 @@ function toReadOnlyInternal<T extends object>(obj: T, throwOnSet: boolean = fals
                 if (throwOnSet) {
                     throw new Error("Cannot set the value of read-only property"); // read-only object
                 }
+
                 // return false; // will throw a TypeError exception in strict mode
                 return true;
             } else {
@@ -306,6 +320,7 @@ function toReadOnlyInternal<T extends object>(obj: T, throwOnSet: boolean = fals
     obj[$lock] = (l: boolean) => {
         locked = l;
     };
+
     return result as Readonly<T> & { [$lock]: (locked: boolean) => void };
 }
 
@@ -345,18 +360,21 @@ export function createDeepProxy<T extends object>(target: T, handler: DeepProxyH
                 if (handler.set) {
                     handler.set(target, [...path, propertyKey], value, receiver);
                 }
+
                 return true;
             },
 
             deleteProperty(target: any, propertyKey: PropertyKey) {
                 if (Reflect.has(target, propertyKey)) {
                     unproxy(target, propertyKey);
-                    let deleted = Reflect.deleteProperty(target, propertyKey);
+                    const deleted = Reflect.deleteProperty(target, propertyKey);
                     if (deleted && handler.deleteProperty) {
                         handler.deleteProperty(target, [...path, propertyKey]);
                     }
+
                     return deleted;
                 }
+
                 return true;
             }
         };
@@ -369,7 +387,7 @@ export function createDeepProxy<T extends object>(target: T, handler: DeepProxyH
             proxyMap.delete(obj[key]);
         }
 
-        for (let k of Object.keys(obj[key])) {
+        for (const k of Object.keys(obj[key])) {
             if (typeof obj[key][k] === "object") {
                 unproxy(obj[key], k);
             }
@@ -378,14 +396,15 @@ export function createDeepProxy<T extends object>(target: T, handler: DeepProxyH
 
     function proxify(obj: any, path: DeepPropertyKey) {
         if (cache.has(obj)) return cache.get(obj);
-        for (let key of Object.keys(obj)) {
+        for (const key of Object.keys(obj)) {
             if (typeof obj[key] === "object") {
                 obj[key] = proxify(obj[key], [...path, key]);
             }
         }
-        let p = new Proxy(obj, makeHandler(path));
+        const p = new Proxy(obj, makeHandler(path));
         proxyMap.set(p, obj);
         cache.set(obj, p);
+
         return p;
     }
 
