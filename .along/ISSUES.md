@@ -7,4 +7,4 @@
 <!-- No backlog issues -->
 
 ## Done (recent)
-<!-- No completed issues -->
+- [x] `(task)` [release-v1-8-0](ISSUES/done/task--release-v1-8-0.md)
