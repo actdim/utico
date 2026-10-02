@@ -88,7 +88,7 @@ export default withMermaid(
       },
 
       footer: {
-        message: 'Released under Proprietary License.',
+        message: 'Released under the MIT License.',
         copyright: 'Copyright (c) 2025-2026 Pavel Borodaev'
       }
     },

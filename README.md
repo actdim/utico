@@ -4,7 +4,6 @@ A modern foundation toolkit for complex TypeScript apps.
 
 [![npm version](https://img.shields.io/npm/v/@actdim/utico.svg)](https://www.npmjs.com/package/@actdim/utico)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue.svg)](https://www.typescriptlang.org/)
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Table of Contents
@@ -1695,5 +1694,4 @@ This package ships with native AI agent instructions and Knowledge Base metadata
 
 ## License
 
-Proprietary. (c) Pavel Borodaev
-MIT License. See [LICENSE](LICENSE) for details.
+MIT License. (c) Pavel Borodaev. See [LICENSE](LICENSE) for details.

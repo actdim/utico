@@ -4,34 +4,46 @@ slug: license
 title: License
 type: license
 created: 2026-09-11
-updated: 2026-09-11
-tags: [license, proprietary]
+updated: 2026-10-02
+tags: [license, mit]
 ---
 
 # License
 
-`@actdim/utico` is distributed under a **Proprietary License**.
+`@actdim/utico` is distributed under the **MIT License**.
 
 - Repository file: [LICENSE](https://github.com/actdim/utico/blob/main/LICENSE)
 
 ## Summary of Terms
 
-- **Personal & Internal Use**: Permission is granted to use and reference this package for personal or internal evaluation purposes only.
-- **Redistribution & Modification**: You may not modify, redistribute, decompile, or create derivative works from this software, in whole or in part, without prior written permission from the author.
-- **Warranty**: This software is provided "as is", without warranty of any kind.
-- **Commercial & Inquiry Contact**: Pavel Borodaev (`pavel.borodaev@gmail.com`)
+- **Use, modification, distribution**: free for any purpose, including commercial use, modification, redistribution, sublicensing and sale.
+- **Condition**: the copyright notice and the permission notice must be included in all copies or substantial portions of the software.
+- **Warranty**: the software is provided "as is", without warranty of any kind.
 
 ---
 
 ## Full License Text
 
 ```text
-Copyright (c) 2025-2026 Pavel Borodaev
+MIT License
 
-This software is publicly accessible but proprietary.
+Copyright (c) 2025 Pavel Borodaev (@actdim/utico)
 
-Permission is granted to use and reference this package for personal or internal purposes only.
-You may not modify, redistribute, decompile, or create derivative works from this software, in whole or in part, without prior written permission from the author.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This software is provided "as is", without warranty of any kind.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 ```
