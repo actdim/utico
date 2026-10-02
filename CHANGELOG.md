@@ -22,4 +22,4 @@ Commits `4ee819b`, `0f862d1`.
 
 ## Earlier versions
 
-See the git history (`git log --oneline`).
+See the [Changelog section of README.md](./README.md#changelog).

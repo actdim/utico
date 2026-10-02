@@ -1576,67 +1576,95 @@ See [dateTimeDataFormat](#datetimedataformat---datetime-serialisation) for full 
 
 ## Changelog
 
-### 1.2.5
+### 1.8.0 (2026-10-01)
+- Version aligned with the `@actdim` workspace release 1.8.0; no library changes
+
+### 1.7.2 (2026-09-27)
+- Source cleanup for ESLint across all modules: type-only imports (`import type`), `let` -> `const`, formatting; no API changes
+- Dependencies documentation, ESLint configuration and test setup synchronized with the workspace; documentation CI workflow and lockfile fixed
+
+### 1.7.1 (2026-09-11)
+- VitePress documentation portal and GitHub Pages workflow; no library changes
+
+### 1.7.0 (2026-09-11)
+- License changed to MIT; package description and keywords updated
+- `lint` script: deprecated `--ext` flag removed; ESLint toolchain updated
+
+### 1.5.6 - 1.5.15 (2026-08-27 - 2026-09-07)
+- Version alignment with the other `@actdim` packages, Along agent metadata and ESLint config (`tsconfig.dev`, global ignores); no library changes
+
+### 1.5.5 (2026-08-26)
+- Version jumped from 1.2.7 so that all `@actdim` packages share one version
+- AI agent docs (`AGENTS.md`) and Knowledge Base added; no library changes
+
+### 1.2.7 (2026-07-01)
+- `typecheck` script uses `tsc -b` (build mode)
+- `exports`: `types` condition listed before `import`
+
+### 1.2.6 (2026-06-11)
+- `utils`: `delay`, `delayError` and `withTimeout` accept an optional `AbortSignal`; on abort the timer is cleared and the promise rejects with `abortSignal.reason`
+
+### 1.2.5 (2026-06-05)
 - `typeCore`: core type additions and refinements
 
-### 1.2.4
+### 1.2.4 (2026-05-15)
 - `typeCore`: `KeyPath` fixes and improvements
 - Added `tests/typeCore.test.ts`
 
-### 1.2.3
+### 1.2.3 (2026-05-05)
 - `typeCore`: `KeyPath` further improved
 - `typeUtils`: `isPlainObject` fix
 
-### 1.2.2
+### 1.2.2 (2026-05-03)
 - `arrayExtensions`: fixes; `src/array.ts` merged in and removed
 - Minor cleanup across `memoryCache`, `dataStore`, `storeContracts`, `stringCore`, `typeUtils`
 
-### 1.2.0
+### 1.2.0 (2026-04-30)
 - `typeCore`: new utility types
 
-### 1.1.8
+### 1.1.8 (2026-04-27)
 - `AsyncMutex` renamed to `AsyncLock` (`src/asyncLock.ts`); old module removed
 
-### 1.1.6
+### 1.1.6 (2026-02-25)
 - `dateTimeDataFormat`: overhaul with new parsing/serialization logic
 - `i18n`: added `euCulture` and `invariantCulture`
 
-### 1.1.5
+### 1.1.5 (2026-02-21)
 - `dateTimeDataFormat`: migrated from `moment` to `Luxon`
 - Added `tests/dateTimeDataFormat.test.ts`, `tests/watchable.test.ts`
 
-### 1.1.3
+### 1.1.3 (2026-02-20)
 - `decorators`: new `@nonEnumerable` decorator (`src/decorators.ts`)
 - Store fixes (`dataStore`, `persistentStore`, `storeDb`)
 - Added tests: `asyncMutex`, `metadata`, `persistentCache`, `stringCore`, `structEvent`, `typeUtils`
 
-### 1.1.2
+### 1.1.2 (2026-01-13)
 - Breaking API changes across `cache` and `store` modules
 
-### 1.1.0 - 1.1.1
+### 1.1.0 - 1.1.1 (2026-01-06 - 2026-01-08)
 - `typeCore`, `utils`: internal refactoring
 
-### 1.0.6
+### 1.0.6 (2026-01-02)
 - `utils`: added `removePrefix`, `removeSuffix`
 
-### 1.0.5
+### 1.0.5 (2025-12-31)
 - `utils`: added `lazy`
 
-### 1.0.4
+### 1.0.4 (2025-12-29)
 - `utils`: `delayError` updated
 
-### 1.0.0
+### 1.0.0 (2025-11-03)
 - Stable release; switched to `pnpm` and `Vitest`
 - `cacheContracts` introduced as a separate module
 
-### 0.9.7
+### 0.9.7 (2025-10-09)
 - New store layer: `dataStore`, `persistentStore`, `storeContracts`, `storeDb`
 - Migrated test runner from Jest to Vitest
 
-### 0.9.1
+### 0.9.1 (2025-07-08)
 - `utils`: added `memoEffect`; first `utils` tests
 
-### 0.9.0
+### 0.9.0 (2025-07-08)
 - Initial public release: `persistentCache`, `memoryCache`, `typeCore`, `typeUtils`, `stringCore`, `metadata`, `structEvent`, `watchable`, `asyncMutex`, `dateTimeDataFormat`
 
 ---
