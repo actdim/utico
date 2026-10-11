@@ -7,6 +7,7 @@
 <!-- No backlog issues -->
 
 ## Done (recent)
+- [x] `(task)` [release-v1-8-2](ISSUES/done/task--release-v1-8-2.md)
 - [x] `(docs)` [readme-version-history](ISSUES/done/docs--readme-version-history.md)
 - [x] `(docs)` [mit-license-leftovers](ISSUES/done/docs--mit-license-leftovers.md)
 - [x] `(task)` [release-v1-8-0](ISSUES/done/task--release-v1-8-0.md)
