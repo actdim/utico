@@ -139,4 +139,7 @@ docs/.vitepress/cache
 
 # Python bytecode cache (Along lifecycle scripts)
 __pycache__/
-*.pyc
+*.pyc
+
+# Along session-scoped blackboards
+.along/.session/
