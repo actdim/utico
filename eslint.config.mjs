@@ -6,19 +6,11 @@ import stylistic from '@stylistic/eslint-plugin';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
-import tsParser from '@typescript-eslint/parser';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
 import prettierPlugin from 'eslint-plugin-prettier';
 
 // cmd line: DEBUG=eslint:*
-export default defineConfig(
-    // eslint.configs.recommended,
-    // tsEslint.configs.recommended,
-    // we can't use some configs because they are in the old format
-    // prettierPlugin.configs.recommended,
 export default defineConfig([
     {
-        files: ['**/*.ts', '**/*.tsx'],
         ignores: [
             '**/node_modules/**',
             '**/dist/**',
@@ -87,7 +79,6 @@ export default defineConfig([
             '@typescript-eslint/no-redeclare': 'off',
             'no-empty': 'off',
             '@typescript-eslint/no-unused-vars': [
-                'error',
                 'warn',
                 {
                     argsIgnorePattern: '^_',
@@ -96,10 +87,14 @@ export default defineConfig([
                 },
             ],
             '@typescript-eslint/no-misused-promises': [
-            '@typescript-eslint/ban-ts-comment': [
                 'error',
                 {
                     checksVoidReturn: false,
+                },
+            ],
+            '@typescript-eslint/ban-ts-comment': [
+                'error',
+                {
                     'ts-nocheck': 'allow-with-description',
                     minimumDescriptionLength: 3,
                 },
@@ -125,22 +120,6 @@ export default defineConfig([
             ],
             '@stylistic/function-paren-newline': 'off',
         },
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
-            parser: tsParser,
-            parserOptions: {
-                ecmaVersion: 'latest',
-                // ecmaVersion: 2017,
-                sourceType: 'module',
-                project: './tsconfig.json',
-            },
-            globals: {
-                NodeJS: 'readonly', // or writable
-                // ...globals.browser,
-                // ...globals.node,
-            },
-        },
     },
     // File-pattern specific overrides
     // {
@@ -155,5 +134,4 @@ export default defineConfig([
     //         'no-console': 'off',
     //     },
     // }
-);
 ]);
