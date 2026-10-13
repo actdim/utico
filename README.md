@@ -1575,6 +1575,14 @@ See [dateTimeDataFormat](#datetimedataformat---datetime-serialisation) for full 
 
 ## Changelog
 
+### 1.8.2 (2026-10-11)
+- `eslint`: repaired broken merge conflicts in `eslint.config.mjs`
+- `git`: ignore session blackboards (`.along/.session/`) in `.gitignore`
+- Reconciled Along protocol v4.4.10 metadata and workspace patch bump
+
+### 1.8.1 (2026-10-07)
+- Synchronized workspace guidelines and version alignment
+
 ### 1.8.0 (2026-10-01)
 - Version aligned with the `@actdim` workspace release 1.8.0; no library changes
 

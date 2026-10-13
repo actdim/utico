@@ -2,6 +2,29 @@
 
 All notable changes to `@actdim/utico` are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.8.3] - 2026-10-13
+
+### Changed
+- Bump patch version to 1.8.3, synchronize workspace guidelines and Along protocol v4.4.12 metadata.
+
+## [1.8.2] - 2026-10-11
+
+Commits `294af99`, `0bd07c1`, `7ba3bae`.
+
+### Fixed
+- ESLint configuration repaired: unified flat config in `eslint.config.mjs`, removed broken merge conflicts (`bug--eslint-config-fix`).
+
+### Changed
+- Ignore session blackboards (`.along/.session/`) in `.gitignore` (`task--along-session-gitignore`).
+- Bump patch version to 1.8.2, reconcile Along protocol v4.4.10 metadata (`task--release-v1-8-2`).
+
+## [1.8.1] - 2026-10-07
+
+Commit `da763ad`.
+
+### Changed
+- Synchronized workspace guidelines and bumped patch version to 1.8.1.
+
 ## [1.8.0] - 2026-10-01
 
 Commit `69b9eeb`.
