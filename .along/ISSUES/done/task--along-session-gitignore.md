@@ -17,8 +17,15 @@ related: []
 
 # Ignore .along/.session blackboards
 
-Describe the feature, requirements, and background context here.
+## Problem Statement / Background
+Temporary session blackboard directories (.along/.session/) were being tracked by git instead of ignored as transient runtime state.
+
+## Implementation Details
+1. Added .along/.session/ rule to .gitignore.
+2. Untracked transient blackboard files from git index.
+3. Verified git status remains clean during active along sessions.
 
 ## Acceptance Criteria
-- [ ] Task requirement 1
-- [ ] Automated tests passing
+- [x] .along/.session/ added to package .gitignore
+- [x] Transient session files ignored by git
+- [x] Working tree remains clean during session work

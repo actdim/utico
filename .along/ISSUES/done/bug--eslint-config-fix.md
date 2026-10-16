@@ -17,8 +17,15 @@ title: Fix broken eslint.config.mjs (syntax errors and global ignores)
 
 # Rebuild eslint.config.mjs broken by interleaved old/new versions
 
-Describe the feature, requirements, and background context here.
+## Problem Statement / Background
+A git merge conflict left duplicated and interleaved old/new ESLint rules in eslint.config.mjs, causing pnpm lint to fail.
+
+## Implementation Details
+1. Resolved duplicate import statements and merged ESLint flat config cleanly.
+2. Validated syntax using ESLint CLI runner.
+3. Verified pnpm lint passes cleanly across the package.
 
 ## Acceptance Criteria
-- [ ] Task requirement 1
-- [ ] Automated tests passing
+- [x] eslint.config.mjs syntax errors repaired
+- [x] Duplicate rule declarations and imports removed
+- [x] pnpm lint runs without errors
