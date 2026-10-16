@@ -6,6 +6,8 @@ const GITHUB_REPO = 'https://github.com/actdim/utico';
 export default withMermaid(
   defineConfig({
     base: '/utico/',
+    outDir: '../.dist-docs',
+    cacheDir: '../node_modules/.cache/vitepress',
     title: 'Utico',
     description: 'Foundational TypeScript utility toolkit: type metaprogramming, concurrency locks, and persistent storage',
     cleanUrls: true,
