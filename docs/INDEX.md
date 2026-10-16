@@ -23,7 +23,7 @@ flowchart TD
     INDEX --> T_05_PATTERNS_AND_RECIPES
     T_ARCHITECTURE["01 Architecture"]
     INDEX --> T_ARCHITECTURE
-    T_DEPENDENCIES["Dependencies & AI Documentation for @actdim/utico"]
+    T_DEPENDENCIES["Dependencies & Submodules AI Documentation and Rules"]
     INDEX --> T_DEPENDENCIES
     T_DOMAIN_MODEL["02 Domain Model"]
     INDEX --> T_DOMAIN_MODEL
@@ -65,7 +65,7 @@ flowchart TD
 - **[04 API Reference](./topic--04-api-reference.md)** (topic) `04-api-reference`, `api`, `modules`
 - **[05 Patterns and Recipes](./topic--05-patterns-and-recipes.md)** (topic) `05-patterns-and-recipes`, `patterns`, `recipes`
 - **[01 Architecture](./topic--architecture.md)** (topic) `architecture`
-- **[Dependencies & AI Documentation for @actdim/utico](./topic--dependencies.md)** (topic) `dependencies`, `subproject`, `ai-context`, `rules`
+- **[Dependencies & Submodules AI Documentation and Rules](./topic--dependencies.md)** (topic) `dependencies`, `ai-context`, `submodules`, `vendor`, `rules`
 - **[02 Domain Model](./topic--domain-model.md)** (topic) `domain-model`
 - **[License](./topic--license.md)** (license) `license`, `mit`
 - **[03 Setup And Workflow](./topic--setup-and-workflow.md)** (topic) `setup-and-workflow`
