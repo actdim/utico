@@ -215,6 +215,139 @@ describe("persistentStore", () => {
             store[Symbol.dispose]();
         }
     });
+
+    it("toArray sorts ascending by default when direction is omitted", async () => {
+        type TimedRecord = MetadataRecord & { score: number };
+        const store = await PersistentStore.open<TimedRecord>(`TestDB_${Date.now()}_${Math.random()}`, [...defaultMetadataFieldDefTemplate, "score"]);
+        try {
+            await store.set({ key: "k1", score: 50 }, { val: 1 });
+            await store.set({ key: "k2", score: 10 }, { val: 2 });
+            await store.set({ key: "k3", score: 90 }, { val: 3 });
+
+            const ascItems = await store.query().toArray("score");
+            expect(ascItems.map(i => i.metadata?.score)).toEqual([10, 50, 90]);
+
+            const descItems = await store.query().toArray("score", "desc");
+            expect(descItems.map(i => i.metadata?.score)).toEqual([90, 50, 10]);
+
+            const orderedAlias = await store.query().toArrayOrdered!("score", "desc");
+            expect(orderedAlias.map(i => i.metadata?.score)).toEqual([90, 50, 10]);
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("modify works when only dataCallback is provided", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await addTestRecords(store);
+            const modifiedCount = await store.query().modify(undefined, (d) => {
+                d.value = { ...((d.value as any) ?? {}), modified: true };
+            });
+            expect(modifiedCount).toBe(2);
+
+            const item = await store.get(dataKeys[0]);
+            expect((item?.data?.value as any)?.modified).toBe(true);
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("bulkSet supports dataRecords only and returns written keys", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            const keys = await store.bulkSet(undefined, [
+                { key: "d1", value: "hello" },
+                { key: "d2", value: "world" },
+            ]);
+            expect(keys).toEqual(["d1", "d2"]);
+
+            const items = await store.bulkGet(["d1", "d2"]);
+            expect(items.length).toBe(2);
+            expect(items[0]?.data?.value).toBe("hello");
+            expect(items[1]?.data?.value).toBe("world");
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("bulkSet harmonizes missing keys between paired metadata and data records", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            const keys = await store.bulkSet(
+                [{ key: undefined }, { key: "explicit-key" }],
+                [{ key: undefined, value: 100 } as any, { key: undefined, value: 200 } as any]
+            );
+            expect(keys.length).toBe(2);
+            expect(keys[1]).toBe("explicit-key");
+
+            const item0 = await store.get(keys[0]);
+            expect(item0?.metadata?.key).toBe(keys[0]);
+            expect(item0?.data?.key).toBe(keys[0]);
+            expect(item0?.data?.value).toBe(100);
+
+            const item1 = await store.get("explicit-key");
+            expect(item1?.data?.value).toBe(200);
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("bulkUpdate supports dataChangeSets only and throws with correct param name on error", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        try {
+            await addTestRecords(store);
+            const count = await store.bulkUpdate(undefined, [
+                { key: dataKeys[0], changes: { value: { foo: "updated" } } as any },
+            ]);
+            expect(count).toBe(1);
+
+            const item = await store.get(dataKeys[0]);
+            expect((item?.data?.value as any)?.foo).toBe("updated");
+
+            await expect(store.bulkUpdate(undefined, [{ key: "", changes: {} as any }]))
+                .rejects.toThrow('Parameter: "dataChangeSets"');
+
+            await expect(store.bulkUpdate(undefined, undefined))
+                .rejects.toThrow("No change sets provided");
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("createWhereFilter proxy executes various Dexie where clauses", async () => {
+        type TaggedRecord = MetadataRecord & { score: number; code: string };
+        const store = await PersistentStore.open<TaggedRecord>(`TestDB_${Date.now()}_${Math.random()}`, [...defaultMetadataFieldDefTemplate, "score", "code"]);
+        try {
+            await store.set({ key: "k1", score: 10, code: "alpha" }, "v1");
+            await store.set({ key: "k2", score: 20, code: "beta" }, "v2");
+            await store.set({ key: "k3", score: 30, code: "gamma" }, "v3");
+
+            const eq = await store.where("score").equals(20).toArray();
+            expect(eq.length).toBe(1);
+            expect(eq[0].metadata?.key).toBe("k2");
+
+            const between = await store.where("score").between(15, 35).toArray();
+            expect(between.length).toBe(2);
+
+            const anyOf = await store.where("code").anyOf(["alpha", "gamma"]).toArray();
+            expect(anyOf.length).toBe(2);
+
+            const startsWith = await store.where("code").startsWith("al").toArray();
+            expect(startsWith.length).toBe(1);
+            expect(startsWith[0].metadata?.key).toBe("k1");
+        } finally {
+            store[Symbol.dispose]();
+        }
+    });
+
+    it("DataStore throws clean error when accessed after dispose", async () => {
+        const store = await PersistentStore.open(`TestDB_${Date.now()}_${Math.random()}`);
+        store[Symbol.dispose]();
+
+        await expect(store.get("k")).rejects.toThrow("DataStore has been disposed");
+        await expect(store.open()).rejects.toThrow("DataStore has been disposed");
+    });
 });
 // expect(obj).toEqual(
 //   expect.objectContaining({

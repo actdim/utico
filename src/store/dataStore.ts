@@ -44,7 +44,8 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         return db.exec(async () => {
             const map = new Map<string, StoreItem<T, TValue>>();
             let populate: (callback: (metadataRecord: T) => void) => void | PromiseLike<void> = this._metadata.each.bind(this._metadata);
-            if (orderBy && orderDirection) {
+            const effectiveDirection: OrderDirection | undefined = orderBy ? (orderDirection ?? "asc") : orderDirection;
+            if (orderBy) {
                 const metadataRecords = await this._metadata.sortBy(orderBy as string);
                 populate = metadataRecords.forEach.bind(metadataRecords);
             }
@@ -72,7 +73,7 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
             //     }
             // });
             // Array.from(map.values()) can be slower!
-            if (orderDirection === "desc") {
+            if (effectiveDirection === "desc") {
                 return [...reverseMapValues(map)];
             }
 
@@ -80,7 +81,11 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         }, transactionMode);
     }
 
-    orderBy(field: keyof T, direction: OrderDirection, transactionMode: TransactionMode = "r") {
+    orderBy(field: keyof T, direction: OrderDirection = "asc", transactionMode: TransactionMode = "r") {
+        return this.toArray(field, direction, transactionMode);
+    }
+
+    toArrayOrdered(field: keyof T, direction: OrderDirection = "asc", transactionMode: TransactionMode = "r") {
         return this.toArray(field, direction, transactionMode);
     }
 
@@ -132,7 +137,11 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         }
 
         return this.db.exec(async () => {
-            const keys = await this.getKeys();
+            const rawKeys = await this.getKeys();
+            const keys = rawKeys.filter((k): k is string => Boolean(k));
+            if (keys.length === 0) {
+                return 0;
+            }
 
             return await this.db.data.where(keyOf<DataRecord>("key")).anyOf(keys).modify(r => {
                 callback(r);
@@ -140,23 +149,28 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         }, transactionMode);
     }
 
-    modify(metadataCallback: (metadataRecord: T) => void, dataCallback: (dataRecord: DataRecord) => void, transactionMode: TransactionMode = "rw") {
+    modify(metadataCallback?: (metadataRecord: T) => void, dataCallback?: (dataRecord: DataRecord) => void, transactionMode: TransactionMode = "rw") {
         return this.db.exec(async () => {
-            const keys: string[] = [];
-            let mc: number, dc: number;
+            let keys: string[] = [];
+            let mc = 0;
+            let dc = 0;
             if (metadataCallback) {
                 mc = await this._metadata.modify(r => {
-                    keys.push(r.key);
+                    if (r.key) keys.push(r.key);
                     metadataCallback(r);
                 });
             }
-            if (dataCallback) {
+            else if (dataCallback) {
+                const rawKeys = await this.getKeys();
+                keys = rawKeys.filter((k): k is string => Boolean(k));
+            }
+            if (dataCallback && keys.length > 0) {
                 dc = await this.db.data.where(keyOf<DataRecord>("key")).anyOf(keys).modify(r => {
                     dataCallback(r);
                 });
             }
 
-            return mc;
+            return Math.max(mc, dc);
         }, transactionMode);
     }
 }
@@ -171,7 +185,7 @@ function createWhereFilter<T extends IndexableType, TResult = unknown>(source: D
                 if (!methodCache.has(value)) {
                     methodCache.set(value, new Proxy(value, {
                         apply(targetFn, thisArg, args) {
-                            return factory(Reflect.apply(targetFn, thisArg, args));
+                            return factory(Reflect.apply(targetFn, target, args));
                         },
                     }));
                 }
@@ -195,57 +209,66 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         this._db = new StoreDb<T>(name, metadataFieldDefTemplate);
     }
 
+    protected get db(): StoreDb<T> {
+        if (!this._db) {
+            throw new Error("DataStore has been disposed.");
+        }
+
+        return this._db;
+    }
+
     [Symbol.dispose]() {
         this._db?.[Symbol.dispose]();
-        this._db = null;
+        this._db = undefined;
     }
 
-    open() {
-        return this._db.open();
+    async open() {
+        return this.db.open();
     }
 
-    exec<T>(
+    async exec<T>(
         action: () => Promise<T>, // scope
         transactionMode: TransactionMode = "r!"
     ) {
-        return this._db.exec(action, transactionMode);
+        return this.db.exec(action, transactionMode);
     }
 
     getKeys() {
-        return this._db.getKeys();
+        return this.db.getKeys();
         // return this.query().getKeys();
     }
 
     contains(key: string, transactionMode: TransactionMode = "r") {
-        return this._db.contains(key, transactionMode);
+        return this.db.contains(key, transactionMode);
     }
 
     delete(key: string, transactionMode: TransactionMode = "rw") {
-        return this._db.deleteOne(key, transactionMode);
+        return this.db.deleteOne(key, transactionMode);
     }
 
     // deleteMany
     bulkDelete(keys: string[], transactionMode: TransactionMode = "rw") {
-        return this._db.bulkDelete(keys, transactionMode);
+        return this.db.bulkDelete(keys, transactionMode);
     }
 
     // clearAll
     clear(transactionMode: TransactionMode = "rw") {
-        return this._db.clear(transactionMode);
+        return this.db.clear(transactionMode);
     }
 
     private async getInternal<TValue>(key: string): Promise<StoreItem<T, TValue> | undefined> {
-        const metadataRecord = await this._db.metadata.get(key);
-        if (!metadataRecord) return undefined;
-        const dataRecord = await this._db.data.get(key);
+        const metadataRecord = await this.db.metadata.get(key);
+        const dataRecord = await this.db.data.get(key);
+        if (!metadataRecord && !dataRecord) return undefined;
+
 
         return { metadata: metadataRecord, data: dataRecord } as StoreItem<T, TValue>;
     }
 
     private async setInternal<TValue>(metadataRecord: T, value: TValue): Promise<string> {
         if (!metadataRecord.key) metadataRecord.key = uuid();
-        const result = await this._db.metadata.put(metadataRecord);
-        await this._db.data.put({ key: metadataRecord.key, value });
+        const result = await this.db.metadata.put(metadataRecord);
+        await this.db.data.put({ key: metadataRecord.key, value });
 
         return result;
     }
@@ -287,37 +310,40 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         }
 
         return this.exec(async () => {
-            let mc: number, dc: number;
+            let mc = 0, dc = 0;
             if (metadataChanges) {
-                mc = await this._db.metadata.update(key, metadataChanges as any);
+                mc = await this.db.metadata.update(key, metadataChanges as any);
             }
             if (valueChanges) {
-                dc = await this._db.data.update(key, valueChanges);
+                dc = await this.db.data.update(key, valueChanges);
             }
 
-            return mc;
+            return Math.max(mc, dc);
         }, transactionMode);
     }
 
-    async bulkUpdate(metadataChangeSets: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode: TransactionMode = "rw") {
+    async bulkUpdate(metadataChangeSets?: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode: TransactionMode = "rw") {
         let index: number;
         if (metadataChangeSets && (index = metadataChangeSets.findIndex((x) => !x.key)) >= 0) {
             throw new Error(`Key cannot be empty. Parameter: "metadataChangeSets". Invalid item index: ${index}.`);
         }
         if (dataChangeSets && (index = dataChangeSets.findIndex((x) => !x.key)) >= 0) {
-            throw new Error(`Key cannot be empty. Parameter: "valueChangeSets". Invalid item index: ${index}.`);
+            throw new Error(`Key cannot be empty. Parameter: "dataChangeSets". Invalid item index: ${index}.`);
+        }
+        if (!metadataChangeSets && !dataChangeSets) {
+            throw new Error("No change sets provided.");
         }
 
         return this.exec(async () => {
-            let cm: number, dc: number;
+            let cm = 0, dc = 0;
             if (metadataChangeSets) {
-                cm = await this._db.metadata.bulkUpdate(metadataChangeSets as any);
+                cm = await this.db.metadata.bulkUpdate(metadataChangeSets as any);
             }
             if (dataChangeSets) {
-                dc = await this._db.data.bulkUpdate(dataChangeSets);
+                dc = await this.db.data.bulkUpdate(dataChangeSets);
             }
 
-            return cm;
+            return Math.max(cm, dc);
         }, transactionMode);
     }
 
@@ -325,19 +351,22 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     bulkGet<TValue = unknown>(keys: string[], transactionMode: TransactionMode = "r") {
         return this.exec(async () => {
             const map = new Map<string, StoreItem<T, TValue>>();
-            const metadataRecords = await this._db.metadata.bulkGet(keys);
+            const metadataRecords = await this.db.metadata.bulkGet(keys);
             for (const metadataRecord of metadataRecords) {
                 if (metadataRecord) {
                     map.set(metadataRecord.key, { metadata: metadataRecord });
                 }
             }
-            const dataRecords = await this._db.data.bulkGet(keys);
+            const dataRecords = await this.db.data.bulkGet(keys);
             for (const dataRecord of dataRecords) {
                 if (dataRecord) {
-                    const item = map.get(dataRecord.key);
-                    if (item) {
-                        item.data = dataRecord as DataRecord<TValue>;
+                    let item = map.get(dataRecord.key);
+                    if (!item) {
+                        item = {};
+                        map.set(dataRecord.key, item);
                     }
+                    item.data = dataRecord as DataRecord<TValue>;
+
                 }
             }
 
@@ -345,38 +374,61 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
         }, transactionMode);
     }
 
-    async bulkSet<TValue = unknown>(metadataRecords: T[], dataRecords: DataRecord<TValue>[], transactionMode: TransactionMode = "rw") {
+    async bulkSet<TValue = unknown>(metadataRecords?: T[], dataRecords?: DataRecord<TValue>[], transactionMode: TransactionMode = "rw") {
         let index: number;
         if (metadataRecords && (index = metadataRecords.findIndex(x => !x)) >= 0) {
             throw new Error(`Invalid metadata record. Parameter: "metadataRecords". Index: ${index}.`);
         }
-        if (dataRecords && (index = dataRecords.findIndex(x => (!x || !x.key || x.value === undefined))) >= 0) {
+        if (dataRecords && (index = dataRecords.findIndex(x => (!x || x.value === undefined))) >= 0) {
             throw new Error(`Invalid data record. Parameter: "dataRecords". Index: ${index}.`);
         }
         if (!metadataRecords && !dataRecords) {
             throw new Error("No data provided.");
         }
-        for (const metadataRecord of metadataRecords) {
-            if (!metadataRecord.key) {
-                metadataRecord.key = uuid();
+        if (metadataRecords && dataRecords && metadataRecords.length === dataRecords.length) {
+            for (let i = 0; i < metadataRecords.length; i++) {
+                const m = metadataRecords[i];
+                const d = dataRecords[i];
+                const key = m.key || d.key || uuid();
+                m.key = key;
+                d.key = key;
+            }
+        } else {
+            if (metadataRecords) {
+                for (const metadataRecord of metadataRecords) {
+                    if (!metadataRecord.key) {
+                        metadataRecord.key = uuid();
+                    }
+                }
+            }
+            if (dataRecords) {
+                for (const dataRecord of dataRecords) {
+                    if (!dataRecord.key) {
+                        dataRecord.key = uuid();
+                    }
+                }
             }
         }
 
+
+
+
+
         return this.exec(async () => {
-            let mKeys: string[], dKeys: string[];
+            let mKeys: string[] | undefined, dKeys: string[] | undefined;
             if (metadataRecords) {
-                mKeys = await this._db.metadata.bulkPut(metadataRecords, undefined, { allKeys: true });
+                mKeys = await this.db.metadata.bulkPut(metadataRecords, undefined, { allKeys: true });
             }
             if (dataRecords) {
-                dKeys = await this._db.data.bulkPut(dataRecords, undefined, { allKeys: true });
+                dKeys = await this.db.data.bulkPut(dataRecords, undefined, { allKeys: true });
             }
 
-            return mKeys;
+            return mKeys ?? dKeys ?? [];
         }, transactionMode);
     }
 
     orderBy(field: keyof T, direction: OrderDirection, distinct = false) {
-        let metadata = this._db.metadata.orderBy(field as string);
+        let metadata = this.db.metadata.orderBy(field as string);
         if (direction === "desc") {
             metadata = metadata.reverse();
         }
@@ -388,18 +440,18 @@ export class DataStore<T extends MetadataRecord> implements StoreBase {
     }
 
     distinct(field: keyof T) {
-        const metadata = this._db.metadata.orderBy(field as string).distinct();
+        const metadata = this.db.metadata.orderBy(field as string).distinct();
 
         return new StoreCollection(metadata);
     }
 
     query<TValue = unknown>() {
-        return new StoreCollection<T, TValue>(this._db.metadata.toCollection());
+        return new StoreCollection<T, TValue>(this.db.metadata.toCollection());
     }
 
     // filter
     where<K extends keyof T, TValue = unknown>(field: K extends string ? K | K[] : never) {
-        const source = this._db.metadata.where(field);
+        const source = this.db.metadata.where(field);
 
         return createWhereFilter<T[K] extends IndexableType ? T[K] : never, IStoreCollection<T, TValue>>(source, c => new StoreCollection<T, TValue>(c));
     }

@@ -90,7 +90,7 @@ export interface IStoreCollection<T extends MetadataRecord = MetadataRecord, TVa
     getCount(): Promise<number>;
     modifyMetadata(callback: (metadataRecord: T) => void, transactionMode?: TransactionMode): Promise<number>;
     modifyData(callback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
-    modify(metadataCallback: (metadataRecord: T) => void, dataCallback: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
+    modify(metadataCallback?: (metadataRecord: T) => void, dataCallback?: (dataRecord: DataRecord) => void, transactionMode?: TransactionMode): Promise<number>;
 }
 
 // IKVStore
@@ -116,7 +116,7 @@ export interface IPersistentStore<T extends MetadataRecord = MetadataRecord> {
 
     bulkGet<TValue = unknown>(keys: string[]): Promise<StoreItem<T, TValue>[]>;
 
-    bulkSet<TValue = unknown>(metadataRecords: MetadataRecord[], dataRecords: DataRecord<TValue>[]): Promise<string[]>;
+    bulkSet<TValue = unknown>(metadataRecords?: MetadataRecord[], dataRecords?: DataRecord<TValue>[]): Promise<string[]>;
 
     orderBy(field: keyof T, direction: OrderDirection, distinct?: boolean): IStoreCollection<T>;
 
@@ -129,7 +129,7 @@ export interface IPersistentStore<T extends MetadataRecord = MetadataRecord> {
 
     update<TValue = unknown>(key: string, metadataChanges: KeyPathValueMap<T, false>, valueChanges?: KeyPathValueMap<TValue, false>, transactionMode?: TransactionMode): Promise<number>;
 
-    bulkUpdate(metadataChangeSets: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode?: TransactionMode): Promise<number>;
+    bulkUpdate(metadataChangeSets?: ChangeSet<T>[], dataChangeSets?: ChangeSet<DataRecord>[], transactionMode?: TransactionMode): Promise<number>;
 
     [Symbol.dispose]: () => void;
 }
