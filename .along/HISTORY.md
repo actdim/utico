@@ -10,3 +10,4 @@ _`<YYYY-MM-DD> - <slug> - <agent> - <summary> - <relative link>`_
 2026-10-11 - release-v1-8-2 - claude-code - Release v1.8.2: bump patch version and commit pending session work - [.along/SESSIONS/2026/2026-10-11--release-v1-8-2.md](./SESSIONS/2026/2026-10-11--release-v1-8-2.md)
 2026-10-12 - eslint-config-fix - claude-code - Repair broken merge in eslint.config.mjs - [.along/SESSIONS/2026/2026-10-12--eslint-config-fix.md](./SESSIONS/2026/2026-10-12--eslint-config-fix.md)
 2026-10-12 - along-session-gitignore - claude-code - Ignore along session blackboards in .gitignore - [.along/SESSIONS/2026/2026-10-12--along-session-gitignore.md](./SESSIONS/2026/2026-10-12--along-session-gitignore.md)
+2026-10-16 - datastore-dexie-persistence-fixes - antigravity - Fix edge cases, bulk operations and collection queries in DataStore - [Session Log](./SESSIONS/2026/2026-10-16--datastore-dexie-persistence-fixes.md)
