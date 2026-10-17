@@ -230,8 +230,8 @@ describe("persistentStore", () => {
             const descItems = await store.query().toArray("score", "desc");
             expect(descItems.map(i => i.metadata?.score)).toEqual([90, 50, 10]);
 
-            const orderedAlias = await store.query().toArrayOrdered!("score", "desc");
-            expect(orderedAlias.map(i => i.metadata?.score)).toEqual([90, 50, 10]);
+            const orderByItems = await store.query().orderBy("score", "desc");
+            expect(orderByItems.map(i => i.metadata?.score)).toEqual([90, 50, 10]);
         } finally {
             store[Symbol.dispose]();
         }

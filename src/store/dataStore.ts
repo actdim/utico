@@ -85,9 +85,9 @@ class StoreCollection<T extends MetadataRecord = MetadataRecord, TValue = unknow
         return this.toArray(field, direction, transactionMode);
     }
 
-    toArrayOrdered(field: keyof T, direction: OrderDirection = "asc", transactionMode: TransactionMode = "r") {
-        return this.toArray(field, direction, transactionMode);
-    }
+
+
+
 
     filter(filter: ((x: T) => boolean)): IStoreCollection<T, TValue> {
         const metadata = this._metadata.filter(filter);
