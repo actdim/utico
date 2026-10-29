@@ -8,6 +8,7 @@
 - [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
 - [docs/topic--04-api-reference.md](docs/topic--04-api-reference.md): 04 API Reference.
 - [docs/topic--05-patterns-and-recipes.md](docs/topic--05-patterns-and-recipes.md): 05 Patterns and Recipes.
+- [docs/topic--along-protocol.md](docs/topic--along-protocol.md): Along Protocol Reference.
 - [docs/topic--architecture.md](docs/topic--architecture.md): 01 Architecture.
 - [docs/topic--dependencies.md](docs/topic--dependencies.md): Dependencies & Submodules AI Documentation and Rules.
 - [docs/topic--domain-model.md](docs/topic--domain-model.md): 02 Domain Model.

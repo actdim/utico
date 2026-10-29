@@ -4,7 +4,7 @@ slug: INDEX
 title: '@actdim/utico - Knowledge Base Topic Index'
 type: index
 created: 2026-09-10
-updated: 2026-10-20
+updated: 2026-10-29
 tags: [index, kb, topics, map]
 ---
 
@@ -21,6 +21,8 @@ flowchart TD
     INDEX --> T_04_API_REFERENCE
     T_05_PATTERNS_AND_RECIPES["05 Patterns and Recipes"]
     INDEX --> T_05_PATTERNS_AND_RECIPES
+    T_ALONG_PROTOCOL["Along Protocol Reference"]
+    INDEX --> T_ALONG_PROTOCOL
     T_ARCHITECTURE["01 Architecture"]
     INDEX --> T_ARCHITECTURE
     T_DEPENDENCIES["Dependencies & Submodules AI Documentation and Rules"]
@@ -64,6 +66,7 @@ flowchart TD
 
 - **[04 API Reference](./topic--04-api-reference.md)** (topic) `04-api-reference`, `api`, `modules`
 - **[05 Patterns and Recipes](./topic--05-patterns-and-recipes.md)** (topic) `05-patterns-and-recipes`, `patterns`, `recipes`
+- **[Along Protocol Reference](./topic--along-protocol.md)** (reference) `protocol`, `agents-md`, `checklist`, `routing`, `concurrency`, `along-team`, `conventions`
 - **[01 Architecture](./topic--architecture.md)** (topic) `architecture`
 - **[Dependencies & Submodules AI Documentation and Rules](./topic--dependencies.md)** (topic) `dependencies`, `ai-context`, `submodules`, `vendor`, `rules`
 - **[02 Domain Model](./topic--domain-model.md)** (topic) `domain-model`

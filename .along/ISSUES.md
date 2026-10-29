@@ -1,7 +1,7 @@
 # Active Issues
 
 ## Active
-<!-- No active issues -->
+- [ ] `(docs)` [readme-long-examples](ISSUES/docs--readme-long-examples.md)
 
 ## Backlog
 - [ ] `(task)` [agent-native-reflection-and-types](ISSUES/task--agent-native-reflection-and-types.md)
