@@ -2,6 +2,13 @@
 
 All notable changes to `@actdim/utico` are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.14.0] - 2026-11-08
+
+### Changed
+- Adopted `@actdim/dev-config` 1.12.2 presets for ESLint, Prettier, and tsconfig (`#adopt-dev-config`).
+- Synchronized workspace guidelines and Along protocol v4.6.0 metadata.
+- Synchronized workspace dependencies to `>=1.14.0`.
+
 ## [1.8.3] - 2026-10-13
 
 ### Changed
