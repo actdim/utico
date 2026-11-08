@@ -12,3 +12,4 @@ _`<YYYY-MM-DD> - <slug> - <agent> - <summary> - <relative link>`_
 2026-10-12 - along-session-gitignore - claude-code - Ignore along session blackboards in .gitignore - [.along/SESSIONS/2026/2026-10-12--along-session-gitignore.md](./SESSIONS/2026/2026-10-12--along-session-gitignore.md)
 2026-10-16 - datastore-dexie-persistence-fixes - antigravity - Fix edge cases, bulk operations and collection queries in DataStore - [Session Log](./SESSIONS/2026/2026-10-16--datastore-dexie-persistence-fixes.md)
 2026-10-17 - remove-redundant-to-array-ordered - antigravity - Remove redundant toArrayOrdered method from StoreCollection - [Session Log](./SESSIONS/2026/2026-10-17--remove-redundant-to-array-ordered.md)
+2026-11-08 - adopt-dev-config - claude-code - ESLint, Prettier and tsconfig on @actdim/dev-config 1.12.2 presets with no finding, rule-set or Prettier regressions; results in the issue Outcome section - [Session Log](./SESSIONS/2026/2026-11-08--adopt-dev-config.md)
