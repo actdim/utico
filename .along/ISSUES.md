@@ -4,6 +4,7 @@
 - [ ] `(docs)` [readme-long-examples](ISSUES/docs--readme-long-examples.md)
 
 ## Backlog
+- [ ] `(task)` [adopt-dev-config](ISSUES/task--adopt-dev-config.md)
 - [ ] `(task)` [agent-native-reflection-and-types](ISSUES/task--agent-native-reflection-and-types.md)
 
 ## Done (recent)
