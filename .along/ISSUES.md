@@ -2,9 +2,10 @@
 
 ## Active
 - [ ] `(docs)` [readme-long-examples](ISSUES/docs--readme-long-examples.md)
+- [ ] `(task)` [adopt-dev-config](ISSUES/task--adopt-dev-config.md)
 
 ## Backlog
-- [ ] `(task)` [adopt-dev-config](ISSUES/task--adopt-dev-config.md)
+- [ ] `(bug)` [standalone-missing-peer-devdeps](ISSUES/bug--standalone-missing-peer-devdeps.md)
 - [ ] `(task)` [agent-native-reflection-and-types](ISSUES/task--agent-native-reflection-and-types.md)
 
 ## Done (recent)
