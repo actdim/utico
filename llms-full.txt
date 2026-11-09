@@ -1583,6 +1583,11 @@ See [dateTimeDataFormat](#datetimedataformat---datetime-serialisation) for full 
 
 ## Changelog
 
+### 1.14.0 (2026-11-08)
+- Adopted `@actdim/dev-config` presets for ESLint, Prettier, and TypeScript configuration
+- Synchronized workspace guidelines and Along protocol v4.6.0 metadata
+- Synchronized workspace dependencies to `>=1.14.0`
+
 ### 1.8.2 (2026-10-11)
 - `eslint`: repaired broken merge conflicts in `eslint.config.mjs`
 - `git`: ignore session blackboards (`.along/.session/`) in `.gitignore`
