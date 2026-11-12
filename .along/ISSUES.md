@@ -6,6 +6,7 @@
 ## Backlog
 - [ ] `(bug)` [standalone-missing-peer-devdeps](ISSUES/bug--standalone-missing-peer-devdeps.md)
 - [ ] `(task)` [agent-native-reflection-and-types](ISSUES/task--agent-native-reflection-and-types.md)
+- [ ] `(task)` [docs-static-publish](ISSUES/task--docs-static-publish.md)
 
 ## Done (recent)
 - [x] `(task)` [adopt-dev-config](ISSUES/done/task--adopt-dev-config.md)
